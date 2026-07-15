@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Environment
+.env
+.env.local
+*.env
+
+# Build output
+dist/
+build/
+frontend/dist/
+
+# Vector DB local storage
+chromadb/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+.pytest_cache/
