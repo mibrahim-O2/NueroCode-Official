@@ -46,7 +46,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center gap-8 px-6 animate-fade-in">
-      <Logo size={40} />
+      <Logo size={72} />
       <p className="text-text-muted font-body text-sm tracking-wide">Where Intelligence Meets Code</p>
 
       <div className="w-full max-w-md flex flex-col gap-3">
