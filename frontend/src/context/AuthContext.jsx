@@ -3,8 +3,12 @@ import {
   fetchCurrentUser,
   loginWithGoogle,
   loginWithGithub,
+  loginWithEmail,
+  registerWithEmail,
+  resetPassword,
   logout as logoutService,
 } from '@/services/authService';
+import { friendlyAuthError } from '@/utils/authErrors';
 
 const AuthContext = createContext(null);
 
@@ -28,49 +32,44 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleGoogleLogin = async () => {
+  const runAuthAction = async (action) => {
     setError(null);
     try {
-      const u = await loginWithGoogle();
+      const u = await action();
       setUser(u);
       return u;
     } catch (err) {
-      setError(err.message || 'Google sign-in failed');
+      setError(friendlyAuthError(err));
       throw err;
     }
   };
 
-  const handleGithubLogin = async () => {
-    setError(null);
-    try {
-      const u = await loginWithGithub();
-      setUser(u);
-      return u;
-    } catch (err) {
-      setError(err.message || 'GitHub sign-in failed');
-      throw err;
-    }
+  const value = {
+    user,
+    loading,
+    error,
+    setError,
+    loginWithGoogle: () => runAuthAction(loginWithGoogle),
+    loginWithGithub: () => runAuthAction(loginWithGithub),
+    loginWithEmail: (email, password) => runAuthAction(() => loginWithEmail(email, password)),
+    registerWithEmail: (name, email, password) =>
+      runAuthAction(() => registerWithEmail(name, email, password)),
+    resetPassword: async (email) => {
+      setError(null);
+      try {
+        await resetPassword(email);
+      } catch (err) {
+        setError(friendlyAuthError(err));
+        throw err;
+      }
+    },
+    logout: async () => {
+      await logoutService();
+      setUser(null);
+    },
   };
 
-  const handleLogout = async () => {
-    await logoutService();
-    setUser(null);
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        error,
-        loginWithGoogle: handleGoogleLogin,
-        loginWithGithub: handleGithubLogin,
-        logout: handleLogout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
