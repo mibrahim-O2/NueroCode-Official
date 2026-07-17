@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import LoadingScreen from '@/components/common/LoadingScreen';
 import AppRoutes from '@/routes/AppRoutes';
+import { AuthProvider } from '@/context/AuthContext';
 
 export default function App() {
   const [initializing, setInitializing] = useState(true);
@@ -17,7 +18,9 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </BrowserRouter>
   );
 }

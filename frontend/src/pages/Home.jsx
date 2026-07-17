@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, XCircle, Loader2, Palette } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2, Palette, LayoutDashboard } from 'lucide-react';
 import Logo from '@/components/common/Logo';
+import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
@@ -31,6 +32,7 @@ function StatusRow({ label, status }) {
 }
 
 export default function Home() {
+  const { user } = useAuth();
   const [backendStatus, setBackendStatus] = useState('loading');
   const [socketStatus, setSocketStatus] = useState('loading');
 
@@ -55,17 +57,31 @@ export default function Home() {
         <StatusRow label="Realtime (Socket.io :3001)" status={socketStatus} />
       </div>
 
-      <Link
-        to="/logo-test"
-        className={cn(
-          'flex items-center gap-2 rounded-button border border-border bg-charcoal px-4 py-2',
-          'text-text-secondary text-sm font-body shadow-button',
-          'hover:border-emerald hover:text-emerald transition-colors duration-200'
-        )}
-      >
-        <Palette className="h-4 w-4" />
-        View Design System
-      </Link>
+      <div className="flex items-center gap-3">
+        <Link
+          to="/logo-test"
+          className={cn(
+            'flex items-center gap-2 rounded-button border border-border bg-charcoal px-4 py-2',
+            'text-text-secondary text-sm font-body shadow-button',
+            'hover:border-emerald hover:text-emerald transition-colors duration-200'
+          )}
+        >
+          <Palette className="h-4 w-4" />
+          View Design System
+        </Link>
+
+        <Link
+          to={user ? '/dashboard' : '/login'}
+          className={cn(
+            'flex items-center gap-2 rounded-button bg-emerald px-4 py-2',
+            'text-white text-sm font-body shadow-button',
+            'hover:bg-emerald-hover transition-colors duration-200'
+          )}
+        >
+          <LayoutDashboard className="h-4 w-4" />
+          {user ? 'Go to Dashboard' : 'Login'}
+        </Link>
+      </div>
 
       <span className="text-xs text-text-disabled">Phase 2 — Brand Identity & Logo Implementation</span>
     </main>

@@ -9,6 +9,7 @@ venv/
 .env
 .env.local
 *.env
+backend/firebase-service-account.json
 
 # Build output
 dist/
