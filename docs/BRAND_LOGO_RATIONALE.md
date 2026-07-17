@@ -21,4 +21,14 @@
   <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=500&size=17&duration=2800&pause=900&color=EAB308&center=true&vCenter=true&width=650&lines=Every+visual+element+maps+to+product+philosophy;Design+by+Muhammad+Ibrahim" alt="Typing SVG" />
 </div>
 
+ ## Contents
+
+1. [Overall composition](#1-overall-composition)
+2. [Component-by-component breakdown](#2-component-by-component-breakdown)
+3. [Why this direction fits NeuroCode specifically](#3-why-this-direction-fits-neurocode-specifically)
+
+<div align="center">
+  <img src="https://capsule-render.vercel.app/api?type=soft&color=0:000000,50:0d9488,100:000000&height=2&section=header" width="70%"/>
+</div>
+
  
