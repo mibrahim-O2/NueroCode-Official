@@ -55,4 +55,17 @@ The brain represents **Learn**, the emerald half of the N represents **Improve**
   <img src="https://capsule-render.vercel.app/api?type=soft&color=0:000000,50:0d9488,100:000000&height=2&section=header&animation=fadeIn" width="70%"/>
 </div>
 
+## 2. Component-by-component breakdown
+
+### Quick reference
+
+| # | Element | Color | Core symbolism |
+|---|---|---|---|
+| a | Brain silhouette | Emerald outline | AI as mentor, not authority |
+| b | Circuit traces (filled nodes) | Emerald | Neuro + Code fused in one shape |
+| c | `</>` bracket | Emerald | Instant "this is a coding platform" cue |
+| d | Bicolor N monogram | Emerald → Gold | Progress bar: learning to mastery |
+| e | Circuit network (open rings) | Gold | Earned, structured achievement |
+
+---
  
