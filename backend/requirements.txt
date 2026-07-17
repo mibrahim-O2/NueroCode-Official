@@ -5,3 +5,5 @@ pydantic-settings==2.5.2
 firebase-admin==6.5.0
 pyjwt==2.9.0
 supabase==2.7.4
+chromadb==0.5.5
+sentence-transformers==3.0.1
