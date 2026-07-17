@@ -74,3 +74,9 @@ A rounded, organic, cloud-like brain outline — deliberately soft and friendly 
 
 > **Why it matters:** `BRANDING.md §7` (AI Experience) is explicit that "Artificial Intelligence should always feel like a mentor, not a replacement" and should "encourage learning" and "maintain an educational focus." A jagged, mechanical, Terminator-style brain would communicate AI-as-authority. A soft, rounded, hand-drawn-feeling lobe communicates AI-as-mentor — approachable intelligence, not a black-box algorithm grading you.
 
+### b) The circuit traces inside the brain (small filled nodes)
+
+Thin right-angled lines terminating in small filled emerald circles, running through the brain like a simplified PCB trace or neuron pathway.
+
+> **Why it matters:** This is the most literal piece of symbolism in the mark — it fuses *neuro* (biological cognition) with *code* (electronic computation) inside a single shape, rather than placing a brain next to a chip as two separate icons. That fusion is the whole thesis of the platform: NeuroCode doesn't just teach code, it uses AI (Tree-sitter AST analysis, ChromaDB RAG, adaptive ML recommendations — per `AI_ML_IMPLEMENTATION_PLAN.md`) to understand *how* a student thinks, not just *what* they typed. The filled nodes read as "activated" — knowledge that has already been acquired and fired.
+
