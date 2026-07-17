@@ -1,15 +1,6 @@
 from supabase import create_client, Client
 from app.config.settings import settings
 
-# ==================== DEBUG ====================
-print("=== SUPABASE DEBUG START ===")
-print("Current working directory:", __import__('os').getcwd())
-print("SUPABASE_URL (raw):", repr(settings.SUPABASE_URL))
-print("SUPABASE_URL length:", len(settings.SUPABASE_URL))
-print("SUPABASE_SERVICE_ROLE_KEY length:", len(settings.SUPABASE_SERVICE_ROLE_KEY) if settings.SUPABASE_SERVICE_ROLE_KEY else 0)
-print("=== SUPABASE DEBUG END ===\n")
-# ===============================================
-
 supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)
 
 
