@@ -80,3 +80,9 @@ Thin right-angled lines terminating in small filled emerald circles, running thr
 
 > **Why it matters:** This is the most literal piece of symbolism in the mark — it fuses *neuro* (biological cognition) with *code* (electronic computation) inside a single shape, rather than placing a brain next to a chip as two separate icons. That fusion is the whole thesis of the platform: NeuroCode doesn't just teach code, it uses AI (Tree-sitter AST analysis, ChromaDB RAG, adaptive ML recommendations — per `AI_ML_IMPLEMENTATION_PLAN.md`) to understand *how* a student thinks, not just *what* they typed. The filled nodes read as "activated" — knowledge that has already been acquired and fired.
 
+### c) The `</>` code bracket
+
+Sitting directly above the monogram, rendered in the same emerald gradient as the brain.
+
+> **Why it matters:** It's the one universally-recognized glyph for "this is about programming," included specifically so the mark doesn't rely on the brain alone to signal "coding platform" — someone glancing at it for half a second gets both halves of the name (Neuro + Code) without needing to read the wordmark.
+
