@@ -31,4 +31,28 @@
   <img src="https://capsule-render.vercel.app/api?type=soft&color=0:000000,50:0d9488,100:000000&height=2&section=header" width="70%"/>
 </div>
 
+## 1. Overall composition
+
+The mark reads left-to-right as a single visual sentence: a biological brain feeding into a bicolor monogram, which feeds into a network of achievement nodes. That left-to-right flow isn't decorative — it's a direct visual translation of `DESIGN_SYSTEM.md`'s stated core philosophy for the whole product:
+
+<p align="center"><b>Learn → Improve → Master</b></p>
+
+```mermaid
+flowchart LR
+    A[Brain silhouette<br/>Learn] --> B[Emerald N stroke<br/>Improve]
+    B --> C[Gold N stroke<br/>Master]
+    C --> D[Circuit network<br/>Achievement]
+
+    classDef learn fill:#0d9488,stroke:#2dd4bf,color:#eafff9
+    classDef master fill:#eab308,stroke:#f59e0b,color:#1a1400
+    class A,B learn
+    class C,D master
+```
+
+The brain represents **Learn**, the emerald half of the N represents **Improve** (active coding/practice), and the gold half plus its circuit network represents **Master** (achievement, credentialing). The logo is effectively a compressed diagram of the product's own user journey, not just a brandmark.
+
+<div align="center">
+  <img src="https://capsule-render.vercel.app/api?type=soft&color=0:000000,50:0d9488,100:000000&height=2&section=header&animation=fadeIn" width="70%"/>
+</div>
+
  
