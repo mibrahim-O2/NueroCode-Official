@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.settings import settings
 from app.routes import auth_routes
+from app.database.chroma_client import chroma_health_check
+from app.services.supabase_service import supabase
 
 app = FastAPI(
     title="NeuroCode API",
@@ -24,7 +26,19 @@ app.include_router(auth_routes.router)
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok"}
+    try:
+        supabase.table("users").select("id").limit(1).execute()
+        supabase_status = "connected"
+    except Exception:
+        supabase_status = "unreachable"
+
+    chroma_status = "connected" if chroma_health_check() else "unreachable"
+
+    return {
+        "status": "ok",
+        "supabase": supabase_status,
+        "chromadb": chroma_status,
+    }
 
 
 @app.get("/")
