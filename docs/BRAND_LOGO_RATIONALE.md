@@ -68,4 +68,9 @@ The brain represents **Learn**, the emerald half of the N represents **Improve**
 | e | Circuit network (open rings) | Gold | Earned, structured achievement |
 
 ---
- 
+### a) The brain silhouette (far left, emerald outline)
+
+A rounded, organic, cloud-like brain outline — deliberately soft and friendly rather than sharp or robotic.
+
+> **Why it matters:** `BRANDING.md §7` (AI Experience) is explicit that "Artificial Intelligence should always feel like a mentor, not a replacement" and should "encourage learning" and "maintain an educational focus." A jagged, mechanical, Terminator-style brain would communicate AI-as-authority. A soft, rounded, hand-drawn-feeling lobe communicates AI-as-mentor — approachable intelligence, not a black-box algorithm grading you.
+
