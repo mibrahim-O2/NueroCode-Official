@@ -2,6 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg-obsidian: #0B0B0C;
+  --bg-charcoal: #17181C;
+  --bg-elevated: #21242B;
+  --bg-card: #1C1F24;
+  --border-color: #2A2D34;
+  --divider-color: #343843;
+
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --text-disabled: #4B5563;
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-dialog: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --shadow-dropdown: 0 8px 20px rgba(0, 0, 0, 0.45);
+  --shadow-button: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme='light'] {
+  --bg-obsidian: #F7F7F5;
+  --bg-charcoal: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --border-color: #E2E4E9;
+  --divider-color: #EAECEF;
+
+  --text-primary: #14171A;
+  --text-secondary: #4B5563;
+  --text-muted: #6B7280;
+  --text-disabled: #9CA3AF;
+
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-dialog: 0 10px 30px rgba(15, 23, 42, 0.12);
+  --shadow-dropdown: 0 8px 20px rgba(15, 23, 42, 0.1);
+  --shadow-button: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+@layer base {
+  body {
+    @apply bg-obsidian text-text-primary font-body antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+  code, pre {
+    @apply font-mono;
+  }
+}
+
 @layer utilities {
   .animate-logo-glow {
     animation: logoGlow 3.2s ease-in-out infinite;
@@ -34,16 +84,4 @@
   0% { background-position: 200% 0; }
   55% { background-position: -40% 0; }
   100% { background-position: -40% 0; }
-}
-
-@layer base {
-  body {
-    @apply bg-obsidian text-text-primary font-body antialiased;
-  }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-heading;
-  }
-  code, pre {
-    @apply font-mono;
-  }
 }
