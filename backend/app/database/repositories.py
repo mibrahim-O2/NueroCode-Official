@@ -1,4 +1,36 @@
+import re
+from datetime import datetime, timezone
+
 from app.services.supabase_service import supabase
+
+
+def _parse_timestamp(value: str) -> datetime:
+    """Parses Supabase timestamptz strings safely.
+
+    Postgres/PostgREST strips trailing zeros from fractional seconds and
+    may omit the colon in the UTC offset, but Python's fromisoformat (on
+    versions before 3.11) requires exactly 0, 3, or 6 fractional digits
+    and a colon in the offset. This normalizes both before parsing.
+    """
+    value = value.strip().replace("Z", "+00:00")
+    value = re.sub(r"\.(\d+)", lambda m: "." + (m.group(1) + "000000")[:6], value, count=1)
+    value = re.sub(r"([+-]\d{2})(\d{2})$", r"\1:\2", value)
+    return datetime.fromisoformat(value)
+
+DEFAULT_TOPICS = [
+    ("Arrays", "beginner"),
+    ("Strings", "beginner"),
+    ("Hash Maps", "beginner"),
+    ("Two Pointers", "intermediate"),
+    ("Sliding Window", "intermediate"),
+    ("Stacks & Queues", "intermediate"),
+    ("Recursion & Backtracking", "intermediate"),
+    ("Trees", "advanced"),
+    ("Graphs", "advanced"),
+    ("Dynamic Programming", "advanced"),
+]
+
+XP_REWARDS = {"beginner": 50, "intermediate": 100, "advanced": 150}
 
 
 # --- Roadmap -----------------------------------------------------------
@@ -24,6 +56,128 @@ def get_roadmap_for_user(user_id: str) -> list[dict]:
         .execute()
         .data
     )
+
+
+def seed_default_roadmap(user_id: str) -> list[dict]:
+    now = datetime.now(timezone.utc).isoformat()
+    rows = []
+    for i, (topic, difficulty) in enumerate(DEFAULT_TOPICS):
+        status = "unlocked" if i == 0 else "locked"
+        rows.append({
+            "user_id": user_id,
+            "topic": topic,
+            "difficulty": difficulty,
+            "status": status,
+            "position": i,
+            "xp_earned": 0,
+            "unlocked_at": now if status == "unlocked" else None,
+        })
+    return supabase.table("roadmap_nodes").insert(rows).execute().data
+
+
+def mark_node_in_progress(node_id: str, user_id: str) -> dict | None:
+    existing = supabase.table("roadmap_nodes").select("*").eq("id", node_id).eq("user_id", user_id).execute()
+    if not existing.data:
+        return None
+    node = existing.data[0]
+    if node["status"] not in ("unlocked", "in_progress"):
+        return None
+    return (
+        supabase.table("roadmap_nodes")
+        .update({"status": "in_progress"})
+        .eq("id", node_id)
+        .execute()
+        .data[0]
+    )
+
+
+def complete_roadmap_node(node_id: str, user_id: str) -> dict | None:
+    existing = supabase.table("roadmap_nodes").select("*").eq("id", node_id).eq("user_id", user_id).execute()
+    if not existing.data:
+        return None
+    node = existing.data[0]
+    if node["status"] not in ("unlocked", "in_progress"):
+        return None
+
+    xp_reward = XP_REWARDS.get(node["difficulty"], 50)
+    now = datetime.now(timezone.utc).isoformat()
+
+    updated_node = (
+        supabase.table("roadmap_nodes")
+        .update({"status": "completed", "xp_earned": xp_reward, "completed_at": now})
+        .eq("id", node_id)
+        .execute()
+        .data[0]
+    )
+
+    # Unlock the next node BEFORE touching XP/streak bookkeeping, so that a
+    # failure in gamification math can never block roadmap progression that
+    # has already been earned.
+    next_position = node["position"] + 1
+    next_node = (
+        supabase.table("roadmap_nodes")
+        .select("*")
+        .eq("user_id", user_id)
+        .eq("position", next_position)
+        .execute()
+    )
+    if next_node.data and next_node.data[0]["status"] == "locked":
+        supabase.table("roadmap_nodes").update(
+            {"status": "unlocked", "unlocked_at": now}
+        ).eq("id", next_node.data[0]["id"]).execute()
+
+    updated_user, leveled_up = update_user_progress(user_id, xp_reward)
+
+    return {
+        "node": updated_node,
+        "user": updated_user,
+        "xp_awarded": xp_reward,
+        "leveled_up": leveled_up,
+    }
+
+
+def update_user_progress(user_id: str, xp_delta: int) -> tuple[dict, bool]:
+    user = supabase.table("users").select("*").eq("id", user_id).execute().data[0]
+    old_level = user["level"]
+    new_xp = user["xp"] + xp_delta
+    new_level = (new_xp // 500) + 1
+    leveled_up = new_level > old_level
+
+    now = datetime.now(timezone.utc)
+    last_active = user.get("last_active_at")
+    new_streak = user["streak"]
+
+    if last_active:
+        last_date = _parse_timestamp(last_active).date()
+        today = now.date()
+        if last_date == today:
+            pass
+        elif (today - last_date).days == 1:
+            new_streak += 1
+        else:
+            new_streak = 1
+    else:
+        new_streak = 1
+
+    update_data = {
+        "xp": new_xp,
+        "level": new_level,
+        "streak": new_streak,
+        "last_active_at": now.isoformat(),
+    }
+    updated = supabase.table("users").update(update_data).eq("id", user_id).execute().data[0]
+    return updated, leveled_up
+
+
+def get_leaderboard(limit: int = 20) -> list[dict]:
+    result = (
+        supabase.table("users")
+        .select("id,name,avatar_url,xp,level,role")
+        .order("xp", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return result.data
 
 
 # --- Submissions ---------------------------------------------------------
