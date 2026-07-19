@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.settings import settings
-from app.routes import auth_routes
+from app.routes import auth_routes, roadmap_routes, leaderboard_routes
 from app.database.chroma_client import chroma_health_check
 from app.services.supabase_service import supabase
 
@@ -22,6 +22,8 @@ app.add_middleware(
 
 
 app.include_router(auth_routes.router)
+app.include_router(roadmap_routes.router)
+app.include_router(leaderboard_routes.router)
 
 
 @app.get("/health")
