@@ -5,12 +5,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        obsidian: '#0B0B0C',
-        charcoal: '#17181C',
-        elevated: '#21242B',
-        card: '#1C1F24',
-        border: '#2A2D34',
-        divider: '#343843',
+        obsidian: 'var(--bg-obsidian)',
+        charcoal: 'var(--bg-charcoal)',
+        elevated: 'var(--bg-elevated)',
+        card: 'var(--bg-card)',
+        border: 'var(--border-color)',
+        divider: 'var(--divider-color)',
         emerald: {
           DEFAULT: '#00A676',
           hover: '#00B67F',
@@ -26,10 +26,10 @@ export default {
           soft: '#F3DE8A',
         },
         text: {
-          primary: '#F8FAFC',
-          secondary: '#CBD5E1',
-          muted: '#94A3B8',
-          disabled: '#4B5563',
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          muted: 'var(--text-muted)',
+          disabled: 'var(--text-disabled)',
         },
         status: {
           success: '#22C55E',
@@ -51,10 +51,10 @@ export default {
         badge: '999px',
       },
       boxShadow: {
-        card: '0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3)',
-        dialog: '0 10px 30px rgba(0,0,0,0.5)',
-        dropdown: '0 8px 20px rgba(0,0,0,0.45)',
-        button: '0 1px 2px rgba(0,0,0,0.3)',
+        card: 'var(--shadow-card)',
+        dialog: 'var(--shadow-dialog)',
+        dropdown: 'var(--shadow-dropdown)',
+        button: 'var(--shadow-button)',
       },
       keyframes: {
         pulseEmerald: {
