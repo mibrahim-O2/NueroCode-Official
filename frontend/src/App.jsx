@@ -3,6 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import LoadingScreen from '@/components/common/LoadingScreen';
 import AppRoutes from '@/routes/AppRoutes';
 import { AuthProvider } from '@/context/AuthContext';
+import { ThemeProvider } from '@/context/ThemeContext';
 
 export default function App() {
   const [initializing, setInitializing] = useState(true);
@@ -18,9 +19,11 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }
