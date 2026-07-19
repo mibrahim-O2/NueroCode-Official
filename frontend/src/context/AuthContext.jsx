@@ -44,11 +44,14 @@ export function AuthProvider({ children }) {
     }
   };
 
+ const updateUser = (partial) => setUser((prev) => (prev ? { ...prev, ...partial } : prev));
+
   const value = {
     user,
     loading,
     error,
     setError,
+    updateUser,
     loginWithGoogle: () => runAuthAction(loginWithGoogle),
     loginWithGithub: () => runAuthAction(loginWithGithub),
     loginWithEmail: (email, password) => runAuthAction(() => loginWithEmail(email, password)),
