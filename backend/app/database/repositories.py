@@ -169,6 +169,36 @@ def update_user_progress(user_id: str, xp_delta: int) -> tuple[dict, bool]:
     return updated, leveled_up
 
 
+def get_recent_problem_titles(user_id: str, topic: str, limit: int = 5) -> list[str]:
+    result = (
+        supabase.table("problems")
+        .select("title")
+        .eq("user_id", user_id)
+        .eq("topic", topic)
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return [row["title"] for row in result.data]
+
+
+def save_generated_problem(user_id: str, topic: str, difficulty: str, problem: dict) -> dict:
+    data = {
+        "user_id": user_id,
+        "topic": topic,
+        "difficulty": difficulty,
+        "title": problem["title"],
+        "description": problem["description"],
+        "examples": problem["examples"],
+        "constraints": problem["constraints"],
+        "expected_complexity": problem["expected_complexity"],
+        "canonical_solution": problem["canonical_solution"],
+        "test_cases": problem["test_cases"],
+        "validated": True,
+    }
+    return supabase.table("problems").insert(data).execute().data[0]
+
+
 def get_leaderboard(limit: int = 20) -> list[dict]:
     result = (
         supabase.table("users")
