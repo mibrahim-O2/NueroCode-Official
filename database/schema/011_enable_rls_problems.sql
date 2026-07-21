@@ -1,0 +1,1 @@
+alter table problems enable row level security;
