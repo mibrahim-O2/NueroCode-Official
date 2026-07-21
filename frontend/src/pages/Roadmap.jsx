@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Loader2, Sparkles } from 'lucide-react';
 import { getRoadmap, startNode, completeNode } from '@/services/roadmapService';
 import { useAuth } from '@/context/AuthContext';
@@ -7,6 +8,7 @@ import LeaderboardCard from '@/components/dashboard/LeaderboardCard';
 
 export default function Roadmap() {
   const { updateUser } = useAuth();
+  const navigate = useNavigate();
   const [nodes, setNodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
@@ -30,6 +32,7 @@ export default function Roadmap() {
       const updated = await startNode(node.id);
       setNodes((prev) => prev.map((n) => (n.id === updated.id ? updated : n)));
       setSelected(updated);
+      navigate(`/practice?topic=${encodeURIComponent(updated.topic)}&difficulty=${updated.difficulty}`);
     } finally {
       setActionPending(false);
     }
