@@ -19,5 +19,10 @@ class Settings(BaseSettings):
     FIREBASE_SERVICE_ACCOUNT_PATH: str = "./firebase-service-account.json"
     ADMIN_EMAIL: str = "mibrahimkhalid306@gmail.com"
 
+    # AI provider abstraction — "openai" for now, "anthropic" is a future drop-in
+    AI_PROVIDER: str = "openai"
+    OPENAI_API_KEY: str = ""
+    OPENAI_MODEL: str = "gpt-4o-mini"
+
 
 settings = Settings()
