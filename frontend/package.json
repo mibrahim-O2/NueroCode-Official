@@ -17,7 +17,9 @@
     "tailwind-merge": "^2.5.2",
    "class-variance-authority": "^0.7.0",
     "firebase": "^10.13.0",
-    "framer-motion": "^11.5.4"
+    "framer-motion": "^11.5.4",
+    "@monaco-editor/react": "^4.6.0"
+
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
