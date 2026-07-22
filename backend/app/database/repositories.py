@@ -169,6 +169,11 @@ def update_user_progress(user_id: str, xp_delta: int) -> tuple[dict, bool]:
     return updated, leveled_up
 
 
+def get_problem_by_id(problem_id: str) -> dict | None:
+    result = supabase.table("problems").select("*").eq("id", problem_id).execute()
+    return result.data[0] if result.data else None
+
+
 def get_recent_problem_titles(user_id: str, topic: str, limit: int = 5) -> list[str]:
     result = (
         supabase.table("problems")
