@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Sparkles, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Sparkles, Loader2, AlertCircle, RefreshCw, Play } from 'lucide-react';
 import { generateProblem } from '@/services/problemService';
+import { submitCode } from '@/services/submissionService';
 import ProblemPanel from '@/components/editor/ProblemPanel';
+import CodeEditor, { DEFAULT_SNIPPETS } from '@/components/editor/CodeEditor';
+import Timer from '@/components/editor/Timer';
+import TestResultsPanel from '@/components/editor/TestResultsPanel';
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
+const LANGUAGES = ['python', 'javascript', 'cpp'];
 const ROADMAP_DIFFICULTY_MAP = { beginner: 'easy', intermediate: 'medium', advanced: 'hard' };
 
 export default function Practice() {
@@ -19,16 +24,44 @@ export default function Practice() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const [language, setLanguage] = useState('python');
+  const [code, setCode] = useState(DEFAULT_SNIPPETS.python);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [result, setResult] = useState(null);
+
   const handleGenerate = async () => {
     setLoading(true);
     setError(null);
+    setResult(null);
     try {
-      const result = await generateProblem(topic, difficulty);
-      setProblem(result);
+      const newProblem = await generateProblem(topic, difficulty);
+      setProblem(newProblem);
+      setLanguage('python');
+      setCode(DEFAULT_SNIPPETS.python);
     } catch (err) {
       setError(err.message || 'Failed to generate a problem. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLanguageChange = (lang) => {
+    setLanguage(lang);
+    setCode(DEFAULT_SNIPPETS[lang]);
+  };
+
+  const handleSubmit = async () => {
+    if (!problem) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const outcome = await submitCode(problem.id, language, code);
+      setResult(outcome);
+    } catch (err) {
+      setSubmitError(err.message || 'Execution failed. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -91,7 +124,50 @@ export default function Practice() {
         </div>
       )}
 
-      {problem && <ProblemPanel problem={problem} />}
+      {problem && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="flex flex-col gap-6">
+            <ProblemPanel problem={problem} />
+            {result && <TestResultsPanel result={result} />}
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="flex overflow-hidden rounded-input border border-border">
+                {LANGUAGES.map((lang) => (
+                  <button
+                    key={lang}
+                    onClick={() => handleLanguageChange(lang)}
+                    className={`px-3 py-1.5 text-xs capitalize transition-colors duration-200 ${
+                      language === lang ? 'bg-emerald text-white' : 'text-text-muted hover:text-text-primary'
+                    }`}
+                  >
+                    {lang === 'cpp' ? 'C++' : lang}
+                  </button>
+                ))}
+              </div>
+              <Timer durationSeconds={1200} resetKey={problem.id} />
+            </div>
+
+            <CodeEditor language={language} value={code} onChange={setCode} />
+
+            {submitError && (
+              <div className="rounded-input border border-status-error/40 bg-status-error/10 px-4 py-2.5 text-xs text-status-error">
+                {submitError}
+              </div>
+            )}
+
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="flex items-center justify-center gap-2 rounded-button bg-emerald px-4 py-2.5 text-sm font-body text-white shadow-button transition-colors duration-200 hover:bg-emerald-hover disabled:opacity-50"
+            >
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4 fill-current" />}
+              {submitting ? 'Running…' : 'Submit Solution'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
