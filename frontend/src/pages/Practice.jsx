@@ -7,6 +7,7 @@ import ProblemPanel from '@/components/editor/ProblemPanel';
 import CodeEditor, { DEFAULT_SNIPPETS } from '@/components/editor/CodeEditor';
 import Timer from '@/components/editor/Timer';
 import TestResultsPanel from '@/components/editor/TestResultsPanel';
+import AnalysisPanel from '@/components/editor/AnalysisPanel';
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
 const LANGUAGES = ['python', 'javascript', 'cpp'];
@@ -129,6 +130,7 @@ export default function Practice() {
           <div className="flex flex-col gap-6">
             <ProblemPanel problem={problem} />
             {result && <TestResultsPanel result={result} />}
+            {result?.analysis && <AnalysisPanel analysis={result.analysis} />}
           </div>
 
           <div className="flex flex-col gap-4">
