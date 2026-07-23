@@ -174,6 +174,57 @@ def get_problem_by_id(problem_id: str) -> dict | None:
     return result.data[0] if result.data else None
 
 
+def update_submission_analysis(
+    submission_id: str, complexity: str, detected_patterns: dict, ai_feedback: str
+) -> dict:
+    return (
+        supabase.table("submissions")
+        .update({"complexity": complexity, "detected_patterns": detected_patterns, "ai_feedback": ai_feedback})
+        .eq("id", submission_id)
+        .execute()
+        .data[0]
+    )
+
+
+def promote_roadmap_topic(user_id: str, current_topic: str, target_topic: str) -> bool:
+    """Moves target_topic's roadmap node to just after current_topic's node.
+
+    Only reorders nodes that are still 'locked' (untouched, upcoming) —
+    reordering something the student has already started or finished
+    wouldn't make sense. Positions are unique per user, so the target is
+    parked at a temporary out-of-range position first and intervening
+    nodes are shifted in descending order to avoid a collision window.
+
+    Returns True only if a reorder actually happened, so callers can tell
+    a real promotion apart from a silent no-op (e.g. target already
+    completed, or already earlier in the sequence).
+    """
+    nodes = get_roadmap_for_user(user_id)
+    current_node = next((n for n in nodes if n["topic"] == current_topic), None)
+    target_node = next((n for n in nodes if n["topic"] == target_topic), None)
+
+    if not current_node or not target_node or target_node["status"] != "locked":
+        return False
+
+    new_position = current_node["position"] + 1
+    old_position = target_node["position"]
+    if old_position <= new_position:
+        return False
+
+    supabase.table("roadmap_nodes").update({"position": -1}).eq("id", target_node["id"]).execute()
+
+    shifting = sorted(
+        [n for n in nodes if new_position <= n["position"] < old_position],
+        key=lambda n: n["position"],
+        reverse=True,
+    )
+    for n in shifting:
+        supabase.table("roadmap_nodes").update({"position": n["position"] + 1}).eq("id", n["id"]).execute()
+
+    supabase.table("roadmap_nodes").update({"position": new_position}).eq("id", target_node["id"]).execute()
+    return True
+
+
 def get_recent_problem_titles(user_id: str, topic: str, limit: int = 5) -> list[str]:
     result = (
         supabase.table("problems")
