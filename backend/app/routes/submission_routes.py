@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.middleware.auth_middleware import get_current_user
@@ -5,6 +7,8 @@ from app.schemas.submission_schemas import SubmitRequest, SubmitResponse
 from app.database.repositories import get_problem_by_id, create_submission
 from app.services.execution_service import run_submission
 from app.services.analysis_service import analyze_submission
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/submissions", tags=["submissions"])
 
@@ -32,14 +36,22 @@ async def execute_submission(payload: SubmitRequest, current_user: dict = Depend
         execution_result=outcome,
     )
 
-    analysis = analyze_submission(
-        submission_id=saved_submission["id"],
-        user_id=current_user["id"],
-        topic=problem["topic"],
-        difficulty=problem["difficulty"],
-        language=payload.language,
-        source_code=payload.source_code,
-        all_tests_passed=outcome["all_passed"],
-    )
+    try:
+        analysis = analyze_submission(
+            submission_id=saved_submission["id"],
+            user_id=current_user["id"],
+            topic=problem["topic"],
+            difficulty=problem["difficulty"],
+            language=payload.language,
+            source_code=payload.source_code,
+            all_tests_passed=outcome["all_passed"],
+        )
+    except Exception as exc:
+        # Test results are already computed at this point and must still
+        # reach the student even if feedback generation (or ChromaDB, or
+        # the AI provider) fails for any reason — grading and analysis
+        # are independent guarantees, not one atomic operation.
+        logger.warning("Analysis failed for submission %s: %s", saved_submission["id"], exc)
+        analysis = None
 
     return {**outcome, "analysis": analysis}
