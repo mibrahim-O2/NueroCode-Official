@@ -25,7 +25,9 @@ Running NeuroCode locally requires **four terminals**, each dedicated to a speci
   
 ## Terminal 1 Starting Piston (WSL2)
 
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
+</p>
 
 </div>
 
@@ -156,7 +158,9 @@ Expected:
 
 ## Terminal 2 Backend
 
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
+</p>
 
 </div>
 
@@ -190,4 +194,37 @@ http://localhost:8000
 ```
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+
+<div align="center">
+  
+## Terminal 3 Frontend
+
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
+</p>
+
+</div>
+
+**PowerShell (Windows):**
+
+```powershell
+cd frontend
+```
+
+Run:
+
+```powershell
+npm run dev
+```
+
+**Expected:**
+```
+Local:
+http://localhost:5173
+```
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+
+
+
 
