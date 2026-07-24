@@ -1,18 +1,15 @@
 """Static complexity + anti-pattern analysis using Tree-sitter.
 
-Complexity is derived from the deepest chain of nested loops, using the
-bound/condition variable of each loop (not just nesting depth) so that
-loops over different variables (e.g. `range(n)` and `range(sum_total)`)
-are reported as O(n * sum_total) rather than being blindly squared into
-O(n^2). This is still a heuristic, not full semantic analysis — it reads
-the loop header's text, it doesn't trace data flow — but it directly
-distinguishes "two loops over the same bound" from "two loops over
-different bounds," which plain depth-counting cannot.
+Complexity output is always one of a fixed set of canonical Big-O forms
+(O(1), O(log n), O(n), O(n log n), O(n^2), O(2^n), etc.) — raw source
+identifiers (loop bound variable names, function names) are used only
+internally to compare loops/calls for equality and are never spliced
+into the displayed string. This is still a heuristic reading loop
+headers and call sites, not full semantic analysis.
 
-Anti-pattern detection remains Python-only (see Phase 9 notes) and is
-scoped per-line within identified loop bodies, with a lightweight
-set/dict-assignment scan so that `x in a_set` isn't flagged the same way
-as `x in a_list`.
+Anti-pattern detection remains Python-only (see Phase 9 notes), scoped
+per-line within identified loop bodies, with a set/dict-assignment scan
+so `x in a_set` isn't flagged the same way as `x in a_list`.
 """
 
 import re
@@ -37,8 +34,16 @@ MEMBERSHIP_CHECK_MESSAGE = (
     "average-case lookups instead."
 )
 
+BOUND_SYMBOLS = ["n", "m", "k", "p", "q"]
+SUPERSCRIPTS = {2: "\u00b2", 3: "\u00b3"}
 
-# --- Complexity: deepest loop chain + bound-variable-aware expression ---
+# A loop whose body halves/doubles its own bound (binary search's
+# `left`/`right`/`mid`, or explicit `// 2` / bit-shift halving) is
+# logarithmic, not linear — detected from the loop's own source text.
+LOG_HINT_PATTERN = re.compile(r"//\s*2\b|>>=?\s*1\b|\bmid\b")
+
+
+# --- Complexity: deepest loop chain, bound-equality-aware, log-aware ---
 
 def _deepest_loop_chain(node, loop_types: set) -> list:
     """Returns the loop nodes along the single deepest nesting path,
@@ -53,10 +58,13 @@ def _deepest_loop_chain(node, loop_types: set) -> list:
     return best_chain
 
 
-def _extract_range_variable(loop_node, source_bytes: bytes) -> str:
-    """Best-effort extraction of the variable/expression a loop is bounded
-    by, so distinct bounds aren't collapsed into a generic "n" for every
-    loop. Falls back to "n" when the shape isn't recognized."""
+def _extract_bound_identity(loop_node, source_bytes: bytes) -> str:
+    """Returns an internal identity string for what a loop is bounded by.
+
+    Used ONLY to test whether two loops share the same bound (e.g. both
+    `range(n)`) versus different bounds (`range(n)` vs `range(sum_total)`).
+    This value is never shown to the user directly.
+    """
     if loop_node.type == "for_statement":
         right = loop_node.child_by_field_name("right")
         if right is not None:
@@ -67,7 +75,7 @@ def _extract_range_variable(loop_node, source_bytes: bytes) -> str:
             simple = re.match(r"^([a-zA-Z_]\w*)$", text.strip())
             if simple:
                 return simple.group(1)
-        return "n"
+        return "__unknown__"
 
     if loop_node.type == "while_statement":
         condition = loop_node.child_by_field_name("condition")
@@ -76,25 +84,117 @@ def _extract_range_variable(loop_node, source_bytes: bytes) -> str:
             match = re.search(r"[<>]=?\s*([a-zA-Z_]\w*)", text)
             if match:
                 return match.group(1)
-        return "n"
+        return "__unknown__"
 
-    return "n"
+    return "__unknown__"
+
+
+def _loop_is_logarithmic(loop_node, source_bytes: bytes) -> bool:
+    text = source_bytes[loop_node.start_byte:loop_node.end_byte].decode("utf-8", errors="ignore")
+    return bool(LOG_HINT_PATTERN.search(text))
+
+
+def _symbol_for_index(index: int) -> str:
+    if index < len(BOUND_SYMBOLS):
+        return BOUND_SYMBOLS[index]
+    return f"x{index}"
+
+
+def _format_factor(name: str, count: int) -> str:
+    if count == 1:
+        return name
+    if name != "log n" and count in SUPERSCRIPTS:
+        return f"{name}{SUPERSCRIPTS[count]}"
+    return f"({name})^{count}"
 
 
 def _build_complexity_expression(chain: list, source_bytes: bytes) -> str:
+    """Builds a canonical Big-O string from the deepest loop chain.
+
+    Bound identifiers are only used to decide whether consecutive loops
+    share a bound (-> squared) or differ (-> multiplied as distinct
+    symbols) — the displayed symbols always come from a fixed set.
+    """
     if not chain:
         return "O(1)"
 
-    variables = [_extract_range_variable(node, source_bytes) for node in chain]
+    bound_ids = [_extract_bound_identity(node, source_bytes) for node in chain]
+    is_log = [_loop_is_logarithmic(node, source_bytes) for node in chain]
+
+    symbol_for_bound: dict[str, str] = {}
+    next_index = 0
+    factors: list[str] = []
+
+    for bound_id, log in zip(bound_ids, is_log):
+        if log:
+            factors.append("log n")
+            continue
+        if bound_id not in symbol_for_bound:
+            symbol_for_bound[bound_id] = _symbol_for_index(next_index)
+            next_index += 1
+        factors.append(symbol_for_bound[bound_id])
+
     counts: dict[str, int] = {}
     order: list[str] = []
-    for v in variables:
-        if v not in counts:
-            order.append(v)
-        counts[v] = counts.get(v, 0) + 1
+    for f in factors:
+        if f not in counts:
+            order.append(f)
+        counts[f] = counts.get(f, 0) + 1
 
-    parts = [v if counts[v] == 1 else f"{v}^{counts[v]}" for v in order]
+    # Conventional idiom: a plain "n" loop containing one logarithmic loop
+    # is written "n log n", not "n * log n".
+    if set(order) == {"n", "log n"} and counts["n"] == 1 and counts["log n"] == 1:
+        return "O(n log n)"
+
+    parts = [_format_factor(f, counts[f]) for f in order]
     return "O(" + " * ".join(parts) + ")"
+
+
+# --- No-loop case: bounded recursion heuristic (Python only) ---
+
+def _find_function_name(root_node, source_bytes: bytes) -> str | None:
+    for node in root_node.children:
+        if node.type == "function_definition":
+            name_node = node.child_by_field_name("name")
+            if name_node is not None:
+                return source_bytes[name_node.start_byte:name_node.end_byte].decode("utf-8", errors="ignore")
+    return None
+
+
+def _count_self_calls(root_node, function_name: str, source_bytes: bytes) -> int:
+    count = 0
+
+    def walk(node):
+        nonlocal count
+        if node.type == "call":
+            func_node = node.child_by_field_name("function")
+            if func_node is not None:
+                name = source_bytes[func_node.start_byte:func_node.end_byte].decode("utf-8", errors="ignore")
+                if name == function_name:
+                    count += 1
+        for child in node.children:
+            walk(child)
+
+    walk(root_node)
+    return count
+
+
+def _analyze_recursive_complexity(root_node, source_bytes: bytes) -> str:
+    """Heuristic only: 2+ self-calls in one function body (e.g. naive
+    fib(n-1) + fib(n-2)) reads as exponential branching; exactly one
+    self-call reads as linear recursion; no self-calls and no loops is
+    O(1). This does not detect memoization, tail-call patterns, or
+    multi-function mutual recursion.
+    """
+    function_name = _find_function_name(root_node, source_bytes)
+    if not function_name:
+        return "O(1)"
+    self_calls = _count_self_calls(root_node, function_name, source_bytes)
+    if self_calls >= 2:
+        return "O(2^n)"
+    if self_calls == 1:
+        return "O(n)"
+    return "O(1)"
 
 
 # --- Anti-patterns: Python only, line-scoped, set/dict-aware ---
@@ -107,9 +207,6 @@ def _find_loop_spans(node, loop_types: set, source_bytes: bytes, spans: list) ->
 
 
 def _find_set_like_variables(full_source: str) -> set:
-    """Collects names assigned from a set/dict literal or constructor
-    anywhere in the source, so the membership-check heuristic can exclude
-    them — `x in a_set` is O(1), not the O(n) list scan this rule targets."""
     names = set()
     for match in re.finditer(r"\b([a-zA-Z_]\w*)\s*=\s*(?:\{|set\(|dict\()", full_source):
         names.add(match.group(1))
@@ -131,9 +228,6 @@ def _detect_python_anti_patterns(root_node, loop_types: set, source_bytes: bytes
     found = []
     seen_keys = set()
     for span in loop_spans:
-        # Matched per-line, not against the whole span, so a token on one
-        # line can never match against a colon/bracket that belongs to an
-        # unrelated statement several lines later.
         for line in span.splitlines():
             if "count_in_loop" not in seen_keys and re.search(r"\.count\(", line):
                 found.append({"key": "count_in_loop", "message": COUNT_IN_LOOP_MESSAGE})
@@ -155,7 +249,13 @@ def analyze_code(source_code: str, language: str) -> dict:
     loop_types = LOOP_NODE_TYPES[language]
 
     chain = _deepest_loop_chain(tree.root_node, loop_types)
-    complexity = _build_complexity_expression(chain, source_bytes)
+
+    if chain:
+        complexity = _build_complexity_expression(chain, source_bytes)
+    elif language == "python":
+        complexity = _analyze_recursive_complexity(tree.root_node, source_bytes)
+    else:
+        complexity = "O(1)"
 
     anti_patterns = []
     if language == "python":
