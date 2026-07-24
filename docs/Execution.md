@@ -20,3 +20,89 @@ Running NeuroCode locally requires **four terminals**, each dedicated to a speci
 </div>
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+
+<div align="center">
+  
+## Terminal 1 Starting Piston (WSL2)
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+
+</div>
+
+### Step 1 — Verify Docker Desktop
+
+**PowerShell (Windows):**
+
+```powershell
+docker desktop status
+```
+
+**Expected:**
+```
+Status : running
+```
+
+If Docker Desktop is not running:
+
+```powershell
+docker desktop start
+```
+
+> **Note:** Wait until Docker Desktop is fully started before proceeding.
+
+---
+### Step 2 — Open WSL
+
+**PowerShell (Windows):**
+
+```powershell
+wsl
+```
+
+This launches the Bash environment — all following commands in Terminal 1 run inside WSL.
+
+---
+
+### Step 3 — Navigate to the Piston Directory
+
+**Bash (WSL2):**
+
+```bash
+cd ~/piston
+```
+
+Verify:
+
+```bash
+pwd
+```
+
+**Expected:**
+```text
+/home/mibrahim/piston
+```
+
+---
+
+### Step 4 — Start the Piston Container
+
+**Bash (WSL2):**
+
+```bash
+docker-compose up -d api
+```
+
+**Expected:**
+```
+Container piston_api Running
+```
+
+---
+
+### Step 5 — Verify the Runtime
+
+**Bash (WSL2):**
+
+```bash
+curl http://localhost:2000/api/v2/runtimes
+```
