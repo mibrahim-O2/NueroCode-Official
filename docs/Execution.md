@@ -151,3 +151,43 @@ Expected:
 > **Only proceed to the Backend after this check passes.**
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+
+<div align="center">
+
+## Terminal 2 Backend
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+
+</div>
+
+**PowerShell (Windows):**
+
+```powershell
+cd backend
+```
+
+Activate the environment:
+
+```powershell
+venv\Scripts\activate
+```
+
+Run the backend:
+
+```powershell
+uvicorn app.main:app --reload --port 8000
+```
+
+**Expected:**
+```
+Application startup complete.
+```
+
+Backend URL:
+
+```
+http://localhost:8000
+```
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+
