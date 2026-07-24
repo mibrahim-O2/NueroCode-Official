@@ -225,6 +225,32 @@ http://localhost:5173
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
 
+<div align="center">
+
+## Terminal 4 Optional (Testing / Git / Logs)
+
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
+</p>
+
+</div>
+
+**Bash (WSL2):**
+
+```bash
+docker logs piston_api
+```
+
+```bash
+docker ps
+```
+
+```bash
+git status
+```
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+
 
 
 
