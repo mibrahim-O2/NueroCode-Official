@@ -7,3 +7,16 @@
 ## Overview
 
 Running NeuroCode locally requires **four terminals**, each dedicated to a specific service.
+
+<div align="center">
+
+| Terminal | Purpose | Shell |
+|:---:|---|:---:|
+| **Terminal 1** | Piston API (WSL2 + Docker) | PowerShell → Bash |
+| **Terminal 2** | FastAPI Backend | PowerShell |
+| **Terminal 3** | Vite Frontend | PowerShell |
+| **Terminal 4** | Optional — Testing / Git / Logs | Bash |
+
+</div>
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
