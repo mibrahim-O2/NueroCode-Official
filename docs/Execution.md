@@ -251,6 +251,121 @@ git status
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
 
+## Project Architecture
 
+```
+VS Code
+│
+├── Frontend (Vite)
+│      localhost:5173
+│
+├── Backend (FastAPI)
+│      localhost:8000
+│
+└── Piston API (Docker + WSL2)
+       localhost:2000
+```
+
+**Communication Flow**
+
+```
+Frontend
+   │
+   ▼
+Backend
+   │
+   ▼
+Piston API
+   │
+   ▼
+Python Runtime
+```
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+
+## Important Notes
+
+### 1. Docker First
+
+Always start Docker Desktop before opening WSL.
+
+### 2. Always Verify Piston
+
+```bash
+curl http://localhost:2000/api/v2/runtimes
+```
+
+### 3. Never Continue on Empty Output
+
+If the output is:
+
+```
+[]
+```
+
+Run:
+
+```bash
+docker-compose up -d --force-recreate api
+```
+
+> **Known issue:** After a restart, Piston's runtime list sometimes returns empty and requires `--force-recreate` to resolve. This is not typical Piston behavior — it appears related to Docker bind-mount/container recreation behavior, a documented scenario where bind-mounted folders can appear empty after redeploy. Current recommendation: continue using this guide as the working workaround for now, and revisit permanently optimizing the Docker/Piston startup behavior after FYP submission, since it does not currently block development.
+
+### 4. Backend Environment Variable
+
+`.env`:
+
+```env
+PISTON_API=http://localhost:2000/api/v2
+```
+
+No code changes are required — the backend already reads this URL from the environment configuration.
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+
+## Shutdown
+
+**Backend / Frontend:**
+
+```
+Ctrl + C
+```
+(Run in both the Backend and Frontend terminals)
+
+**Piston:**
+
+```bash
+docker-compose down
+```
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+
+## First Startup Checklist
+
+- [ ] Docker Desktop Running
+- [ ] WSL Opened
+- [ ] `docker-compose up -d api`
+- [ ] `curl http://localhost:2000/api/v2/runtimes`
+- [ ] Backend Running
+- [ ] Frontend Running
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+
+## References
+
+- [Docker Mounted Folder Becomes Empty After Redeploy — Oscar's Notebook](https://oscarchou.com/posts/troubleshoot/docker-compose-mount-empty-after-redeploy/)
+- [Piston Configuration Documentation](https://piston.readthedocs.io/en/latest/configuration/)
+
+<div align="center">
+<sub>© 2026 AbstractMinds. All rights reserved.</sub>
+<br/>
+<sub>This execution guide is configured for the local development machine of <b>Muhammad Ibrahim</b> (Team Lead) paths, ports, and environment values may differ on other developers' machines.</sub>
+</div>
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=2" width="90%"/>
+</p>
+<div align="center">
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:1a1a1a,30:00A676,70:D4AF37,100:1a1a1a&height=100&section=footer"/>
+</div>
 
 
