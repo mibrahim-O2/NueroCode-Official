@@ -106,3 +106,48 @@ Container piston_api Running
 ```bash
 curl http://localhost:2000/api/v2/runtimes
 ```
+**If the output is:**
+
+```json
+[
+  {
+    "language": "python",
+    "version": "3.12.0"
+  }
+]
+```
+
+Everything is OK — proceed to the Backend.
+
+**If the output is:**
+
+```json
+[]
+```
+
+Run:
+
+```bash
+docker-compose up -d --force-recreate api
+```
+
+Wait a few seconds, then verify again:
+
+```bash
+curl http://localhost:2000/api/v2/runtimes
+```
+
+Expected:
+
+```json
+[
+  {
+    "language": "python",
+    "version": "3.12.0"
+  }
+]
+```
+
+> **Only proceed to the Backend after this check passes.**
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
