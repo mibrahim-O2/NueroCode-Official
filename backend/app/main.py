@@ -10,6 +10,7 @@ from app.routes import (
     submission_routes,
     recommendation_routes,
     chatbot_routes,
+    proctoring_routes,
 )
 from app.database.chroma_client import chroma_health_check
 from app.services.supabase_service import supabase
@@ -36,6 +37,7 @@ app.include_router(problem_routes.router)
 app.include_router(submission_routes.router)
 app.include_router(recommendation_routes.router)
 app.include_router(chatbot_routes.router)
+app.include_router(proctoring_routes.router)
 
 
 @app.get("/health")
