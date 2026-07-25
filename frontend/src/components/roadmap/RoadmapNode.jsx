@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Lock, CheckCircle2, Play } from 'lucide-react';
+import { Lock, CheckCircle2, Play, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const DIFFICULTY_LABEL = {
@@ -8,7 +8,7 @@ const DIFFICULTY_LABEL = {
   advanced: 'Advanced',
 };
 
-export default function RoadmapNode({ node, isLast, isSelected, onSelect, justUnlocked }) {
+export default function RoadmapNode({ node, isLast, isSelected, onSelect, justUnlocked, recommended = false }) {
   const isCompleted = node.status === 'completed';
   const isActive = node.status === 'unlocked' || node.status === 'in_progress';
   const isLocked = node.status === 'locked';
@@ -53,14 +53,21 @@ export default function RoadmapNode({ node, isLast, isSelected, onSelect, justUn
         )}
       >
         <div className="flex items-center justify-between">
-          <h3
-            className={cn(
-              'font-heading font-semibold text-sm',
-              isLocked ? 'text-text-disabled' : 'text-text-primary'
+          <div className="flex items-center gap-2">
+            <h3
+              className={cn(
+                'font-heading font-semibold text-sm',
+                isLocked ? 'text-text-disabled' : 'text-text-primary'
+              )}
+            >
+              {node.topic}
+            </h3>
+            {recommended && (
+              <span className="flex items-center gap-1 rounded-badge border border-emerald/40 bg-emerald/10 px-2 py-0.5 text-[10px] uppercase text-emerald">
+                <Sparkles className="h-2.5 w-2.5" /> Recommended
+              </span>
             )}
-          >
-            {node.topic}
-          </h3>
+          </div>
           <span className="rounded-badge border border-border px-2 py-0.5 text-[10px] uppercase text-text-muted">
             {DIFFICULTY_LABEL[node.difficulty]}
           </span>
