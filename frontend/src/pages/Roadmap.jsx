@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, Sparkles } from 'lucide-react';
-import { getRoadmap, startNode, completeNode } from '@/services/roadmapService';
+import { getRoadmap, startNode, completeNode, getRecommendation } from '@/services/roadmapService';
 import { useAuth } from '@/context/AuthContext';
 import RoadmapNode from '@/components/roadmap/RoadmapNode';
 import LeaderboardCard from '@/components/dashboard/LeaderboardCard';
@@ -15,6 +15,7 @@ export default function Roadmap() {
   const [actionPending, setActionPending] = useState(false);
   const [justUnlockedId, setJustUnlockedId] = useState(null);
   const [banner, setBanner] = useState(null);
+  const [recommendation, setRecommendation] = useState(null);
 
   useEffect(() => {
     getRoadmap()
@@ -24,6 +25,10 @@ export default function Roadmap() {
         setSelected(current || null);
       })
       .finally(() => setLoading(false));
+
+    getRecommendation()
+      .then(setRecommendation)
+      .catch(() => setRecommendation(null));
   }, []);
 
   const handleStart = async (node) => {
@@ -84,6 +89,16 @@ export default function Roadmap() {
         </div>
       )}
 
+      {recommendation?.recommended_topic && (
+        <div className="flex items-start gap-3 rounded-input border border-emerald/30 bg-emerald/5 px-4 py-3 text-sm text-text-secondary animate-fade-in">
+          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-emerald" />
+          <span>
+            <strong className="text-emerald">Recommended next: {recommendation.recommended_topic}.</strong>{' '}
+            {recommendation.reason}
+          </span>
+        </div>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div className="flex flex-col">
           {nodes.map((node, i) => (
@@ -94,6 +109,7 @@ export default function Roadmap() {
               isSelected={selected?.id === node.id}
               onSelect={setSelected}
               justUnlocked={justUnlockedId === node.id}
+              recommended={recommendation?.recommended_topic === node.topic}
             />
           ))}
         </div>
