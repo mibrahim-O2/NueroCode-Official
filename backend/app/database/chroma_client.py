@@ -26,6 +26,13 @@ def documents_collection():
     return get_collection("neurocode_documents")
 
 
+def get_embedding_fn():
+    """Exposes the shared sentence-transformer instance so other services
+    (e.g. the recommendation engine) can embed text without loading the
+    model a second time."""
+    return _embedding_fn
+
+
 def chroma_health_check() -> bool:
     try:
         _client.heartbeat()
