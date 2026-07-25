@@ -255,7 +255,7 @@ def save_generated_problem(user_id: str, topic: str, difficulty: str, problem: d
     return supabase.table("problems").insert(data).execute().data[0]
 
 
- def get_recent_submissions(user_id: str, limit: int = 10) -> list[dict]:
+def get_recent_submissions(user_id: str, limit: int = 10) -> list[dict]:
     result = (
         supabase.table("submissions")
         .select("*")
