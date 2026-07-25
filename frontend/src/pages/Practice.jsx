@@ -8,6 +8,7 @@ import CodeEditor, { DEFAULT_SNIPPETS } from '@/components/editor/CodeEditor';
 import Timer from '@/components/editor/Timer';
 import TestResultsPanel from '@/components/editor/TestResultsPanel';
 import AnalysisPanel from '@/components/editor/AnalysisPanel';
+import ChatWidget from '@/components/editor/ChatWidget';
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
 const LANGUAGES = ['python', 'javascript', 'cpp'];
@@ -170,6 +171,8 @@ export default function Practice() {
           </div>
         </div>
       )}
+
+      {problem && <ChatWidget topic={problem.topic} />}
     </div>
   );
 }
