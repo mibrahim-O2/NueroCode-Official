@@ -27,7 +27,18 @@ function defineNeuroCodeTheme(monaco) {
   });
 }
 
-export default function CodeEditor({ language, value, onChange }) {
+export default function CodeEditor({ language, value, onChange, onPasteDetected }) {
+  const handleMount = (editor) => {
+    if (!onPasteDetected) return;
+    // Monaco's own paste event — fires reliably regardless of whether the
+    // browser's native ClipboardEvent bubbles to document, unlike a raw
+    // document-level 'paste' listener which Monaco can bypass internally.
+    editor.onDidPaste((e) => {
+      const pastedText = editor.getModel()?.getValueInRange(e.range) ?? '';
+      onPasteDetected(pastedText.length);
+    });
+  };
+
   return (
     <div className="overflow-hidden rounded-card border border-border shadow-card">
       <Editor
@@ -37,6 +48,7 @@ export default function CodeEditor({ language, value, onChange }) {
         value={value}
         onChange={(v) => onChange(v ?? '')}
         beforeMount={defineNeuroCodeTheme}
+        onMount={handleMount}
         options={{
           fontFamily: "'JetBrains Mono', monospace",
           fontSize: 13,
