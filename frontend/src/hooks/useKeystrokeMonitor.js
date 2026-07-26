@@ -4,11 +4,18 @@ import { checkKeystrokeRhythm } from '@/services/proctoringService';
 const BATCH_INTERVAL_MS = 30000;
 const MIN_SAMPLES = 6;
 
+const MODIFIER_KEYS = new Set(['Control', 'Meta', 'Shift', 'Alt']);
+
 export function useKeystrokeMonitor(onAnomaly) {
   const timestamps = useRef([]);
 
   useEffect(() => {
-    const handleKeydown = () => {
+    const handleKeydown = (e) => {
+      // Modifier keys and Ctrl/Cmd+<key> shortcuts (paste, copy, undo, etc.)
+      // aren't characters being typed — including them contaminates the
+      // rhythm sample with artificial near-zero intervals that look like
+      // anomalies but are really just a keyboard shortcut being pressed.
+      if (MODIFIER_KEYS.has(e.key) || e.ctrlKey || e.metaKey) return;
       timestamps.current.push(Date.now());
     };
     document.addEventListener('keydown', handleKeydown);
