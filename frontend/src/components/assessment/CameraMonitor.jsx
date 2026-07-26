@@ -23,8 +23,17 @@ export default function CameraMonitor({ onAlert }) {
     return () => stream?.getTracks().forEach((t) => t.stop());
   }, []);
 
+  const hasAlertedDenied = useRef(false);
+
   useEffect(() => {
-    if (status === 'denied') onAlert({ reason: 'camera_denied' });
+    if (status === 'denied' && !hasAlertedDenied.current) {
+      hasAlertedDenied.current = true;
+      onAlert({ reason: 'camera_denied' });
+    }
+    if (status === 'active') {
+      // Permission was restored — allow a fresh alert if it's denied again later.
+      hasAlertedDenied.current = false;
+    }
   }, [status, onAlert]);
 
   const runCheck = useCallback(async () => {
