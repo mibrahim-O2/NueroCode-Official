@@ -39,6 +39,13 @@ const PENALTIES = {
   keystroke_alert: 6,
 };
 
+// Minimum time between counted occurrences of the same event type within a
+// session — treats a persistent condition (e.g. camera still covered/denied)
+// as one ongoing incident rather than a new incident every detection tick.
+const COOLDOWNS_MS = {
+  'proctor:camera_alert': 12000,
+};
+
 const SEVERITY = {
   tab_switch: 'medium',
   paste: 'high',
@@ -55,6 +62,7 @@ function getOrCreateSession(sessionId) {
       keystrokeAlerts: 0,
       score: 100,
       log: [],
+      lastEventAt: {},
     });
   }
   return sessions.get(sessionId);
@@ -98,6 +106,15 @@ io.on('connection', (socket) => {
     socket.on(eventName, ({ sessionId }) => {
       if (!sessionId) return;
       const session = getOrCreateSession(sessionId);
+
+      const cooldown = COOLDOWNS_MS[eventName] || 0;
+      const now = Date.now();
+      const lastAt = session.lastEventAt[eventName] || 0;
+      if (cooldown > 0 && now - lastAt < cooldown) {
+        return; // Within cooldown — same ongoing incident, not a new one
+      }
+      session.lastEventAt[eventName] = now;
+
       session[counterKey] += 1;
       const score = recomputeScore(session);
       const entry = pushLog(session, eventName, messageBuilder(session), SEVERITY[counterKey.replace('Count', '').replace('Alerts', '_alert')] || 'medium');
