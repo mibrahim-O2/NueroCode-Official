@@ -6,7 +6,6 @@ import IntegrityScoreBadge from '@/components/assessment/IntegrityScoreBadge';
 import ProctoringLogFeed from '@/components/assessment/ProctoringLogFeed';
 import { useProctoringSocket } from '@/hooks/useProctoringSocket';
 import { useTabVisibility } from '@/hooks/useTabVisibility';
-import { usePasteDetection } from '@/hooks/usePasteDetection';
 import { useKeystrokeMonitor } from '@/hooks/useKeystrokeMonitor';
 
 export default function Assessment() {
@@ -17,9 +16,16 @@ export default function Assessment() {
   const { score, log, connected, emitTabSwitch, emitPaste, emitCameraAlert, emitKeystrokeAlert } =
     useProctoringSocket(sessionActive ? sessionId : null);
 
-  useTabVisibility(useCallback(() => sessionActive && emitTabSwitch(), [sessionActive, emitTabSwitch]));
-  usePasteDetection(useCallback(() => sessionActive && emitPaste(), [sessionActive, emitPaste]));
-  useKeystrokeMonitor(useCallback(() => sessionActive && emitKeystrokeAlert(), [sessionActive, emitKeystrokeAlert]));
+useTabVisibility(useCallback(() => sessionActive && emitTabSwitch(), [sessionActive, emitTabSwitch]));
+useKeystrokeMonitor(useCallback(() => sessionActive && emitKeystrokeAlert(), [sessionActive, emitKeystrokeAlert]));
+
+  const LARGE_PASTE_THRESHOLD = 30;
+  const handlePasteDetected = useCallback(
+    (pastedLength) => {
+      if (sessionActive && pastedLength >= LARGE_PASTE_THRESHOLD) emitPaste();
+    },
+    [sessionActive, emitPaste]
+  );
 
   const handleCameraAlert = useCallback(() => {
     if (sessionActive) emitCameraAlert();
@@ -64,7 +70,7 @@ export default function Assessment() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
-        <CodeEditor language="python" value={code} onChange={setCode} />
+        <CodeEditor language="python" value={code} onChange={setCode} onPasteDetected={handlePasteDetected} />
         <div className="flex flex-col gap-4">
           <CameraMonitor onAlert={handleCameraAlert} />
           <ProctoringLogFeed log={log} />
