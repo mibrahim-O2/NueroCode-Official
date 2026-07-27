@@ -27,6 +27,19 @@ class PistonExecutionError(Exception):
     """
 
 
+class PistonRuntimeUnavailableError(PistonExecutionError):
+    """Piston responded successfully, but has no runtime installed for the
+    requested language (or no runtimes at all) — a distinct condition from
+    being unreachable. GET /api/v2/runtimes returning [] is the tell.
+
+    Observed fix: `docker-compose up -d --force-recreate api` in the
+    Piston project directory forces the runtime install step to rerun.
+    This is a Piston/Docker runtime-volume issue, not an AI or code
+    correctness problem, and callers should report it as such rather
+    than as a generic failure.
+    """
+
+
 # Internal language name -> Piston's canonical `language` value + pinned
 # runtime version. Piston's /api/v2/runtimes lists "aliases" (e.g. "cpp" is
 # an alias of "c++"), but aliases are only guaranteed to resolve for
@@ -104,6 +117,56 @@ def execute_code(language: str, source_code: str, stdin: str = "") -> dict:
     if "message" in result and "run" not in result:
         # Piston's own top-level error shape (e.g. unknown language/version),
         # as opposed to a normal compile/run result.
-        raise PistonExecutionError(f"Piston rejected the request: {result['message']}")
+        message = result["message"]
+        if "runtime" in message.lower() or "language" in message.lower():
+            raise PistonRuntimeUnavailableError(
+                f"Piston has no runtime available for '{config['piston_language']}' "
+                f"{config['version']}: {message}. Try `docker-compose up -d --force-recreate api` "
+                f"in your Piston project directory."
+            )
+        raise PistonExecutionError(f"Piston rejected the request: {message}")
 
     return result
+
+
+def get_available_runtimes() -> list[dict]:
+    """Returns Piston's currently loaded runtimes. An empty list means
+    Piston is up but has no language runtimes installed — /execute will
+    fail for every language until the container is recreated."""
+    try:
+        with httpx.Client(timeout=10.0) as client:
+            response = client.get(f"{settings.PISTON_API}/runtimes")
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPError as exc:
+        raise PistonExecutionError(f"Could not reach Piston to check runtimes: {exc}") from exc
+
+
+def ensure_runtime_available(language: str) -> None:
+    """Fails fast, with a specific diagnosis, BEFORE spending an AI
+    generation call — no point generating a question if Piston can't
+    validate it. Distinguishes "no runtimes at all" from "runtimes
+    loaded, just not for this language" for a more precise message.
+    """
+    config = LANGUAGE_CONFIG.get(language)
+    if config is None:
+        raise PistonExecutionError(f"Unsupported language: '{language}'")
+
+    runtimes = get_available_runtimes()
+    if not runtimes:
+        raise PistonRuntimeUnavailableError(
+            "Piston has no runtimes loaded at all (GET /api/v2/runtimes returned an empty list). "
+            "This is a known Piston/Docker issue, not an AI or code problem — fix with: "
+            "`docker-compose up -d --force-recreate api` in your Piston project directory."
+        )
+
+    piston_language = config["piston_language"]
+    match = next(
+        (r for r in runtimes if r.get("language") == piston_language or piston_language in r.get("aliases", [])),
+        None,
+    )
+    if match is None:
+        raise PistonRuntimeUnavailableError(
+            f"Piston has runtimes loaded, but none for '{piston_language}'. Try "
+            f"`docker-compose up -d --force-recreate api` in your Piston project directory."
+        )
