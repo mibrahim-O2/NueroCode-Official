@@ -11,9 +11,11 @@ from app.routes import (
     recommendation_routes,
     chatbot_routes,
     proctoring_routes,
+    assessment_routes,
 )
 from app.database.chroma_client import chroma_health_check
 from app.services.supabase_service import supabase
+from app.services.piston_service import get_available_runtimes, PistonExecutionError
 
 app = FastAPI(
     title="NeuroCode API",
@@ -38,7 +40,7 @@ app.include_router(submission_routes.router)
 app.include_router(recommendation_routes.router)
 app.include_router(chatbot_routes.router)
 app.include_router(proctoring_routes.router)
-
+app.include_router(assessment_routes.router)
 
 @app.get("/health")
 def health_check():
@@ -50,10 +52,17 @@ def health_check():
 
     chroma_status = "connected" if chroma_health_check() else "unreachable"
 
+    try:
+        runtimes = get_available_runtimes()
+        piston_status = "connected" if runtimes else "connected but no runtimes loaded"
+    except PistonExecutionError:
+        piston_status = "unreachable"
+
     return {
         "status": "ok",
         "supabase": supabase_status,
         "chromadb": chroma_status,
+        "piston": piston_status,
     }
 
 
