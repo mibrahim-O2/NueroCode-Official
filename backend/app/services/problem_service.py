@@ -3,7 +3,7 @@ import logging
 import re
 
 from app.ai.provider_factory import get_ai_provider
-from app.services.piston_service import execute_code, PistonExecutionError
+from app.services.piston_service import execute_code, ensure_runtime_available, PistonExecutionError
 from app.database.repositories import get_recent_problem_titles, save_generated_problem
 
 logger = logging.getLogger(__name__)
@@ -83,6 +83,11 @@ def _validate_canonical_solution(problem: dict) -> dict:
 
 
 def generate_problem(user_id: str, topic: str, difficulty: str) -> dict:
+    # Fail fast, before spending an AI call, if Piston can't validate
+    # anything right now — this is the check that would have immediately
+    # surfaced "no runtimes loaded" instead of 3 wasted AI generations.
+    ensure_runtime_available("python")
+
     provider = get_ai_provider()
     avoid_titles = get_recent_problem_titles(user_id, topic, limit=5)
 

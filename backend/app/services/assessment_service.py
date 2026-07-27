@@ -20,7 +20,7 @@ from app.ai.provider_factory import get_ai_provider
 from app.ai.code_analysis import analyze_code
 from app.services.problem_service import _extract_json, _validate_canonical_solution
 from app.services.execution_service import run_submission
-from app.services.piston_service import PistonExecutionError
+from app.services.piston_service import ensure_runtime_available, PistonExecutionError, PistonRuntimeUnavailableError
 
 logger = logging.getLogger(__name__)
 from app.database.repositories import (
@@ -132,10 +132,12 @@ def start_assessment(user_id: str, cluster_name: str) -> dict:
 
     duration = settings.ASSESSMENT_DURATION_SECONDS
 
-    # TEST_MODE bypasses ONLY the AI generation step with a fixed, known-
-    # correct question. Grading, execution, proctoring, integrity scoring,
-    # and credential issuance all run through the exact same code path as
-    # production — nothing downstream of this branch is different.
+    # TEST_MODE skips the AI generation call, but grading (submit_assessment)
+    # still calls Piston to run the submitted solution — so Piston health is
+    # checked either way. Failing here also means a broken Piston is caught
+    # immediately, before the student even starts, rather than at submit time.
+    ensure_runtime_available("python")
+
     if settings.TEST_MODE:
         logger.warning(
             "TEST_MODE active — using fixed deterministic question (user=%s, cluster=%s)", user_id, cluster_name
