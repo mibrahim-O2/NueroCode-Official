@@ -49,15 +49,32 @@ def _extract_json(raw_text: str) -> dict:
 
 
 def _validate_canonical_solution(problem: dict) -> dict:
-    """Runs the canonical solution against its own test cases.
+    """Runs the canonical solution against each test case's INPUT and uses
+    the actual execution output as ground truth — it does NOT compare
+    against the AI's self-predicted expected_output.
 
-    Returns a detailed result instead of a bare bool so callers (and logs)
-    can report exactly which test case failed and why — a wrong-output
-    mismatch is a genuinely different failure from a runtime error, and
-    both are different from execute_code() raising PistonExecutionError
-    (infrastructure), which callers should catch separately.
+    Why: LLMs don't execute code when generating it — they predict what a
+    solution "should" produce by reasoning about it, and this
+    self-prediction is unreliable for anything beyond simple logic, even
+    when the solution code itself is correct. Comparing real execution
+    against a hallucinated expected value caused a high false-rejection
+    rate on genuinely correct solutions (confirmed in production logs:
+    multi-topic assessment problems with permutations/nested string logic
+    failed validation repeatedly with plausible-but-wrong predicted
+    values). Deriving expected_output from actual execution removes this
+    failure class entirely — the only way to fail now is the solution
+    itself crashing, or every test case degenerately producing the same
+    output (a sign the solution doesn't meaningfully discriminate
+    between different inputs, which usually means it's buggy in a
+    different way — e.g. always returning a default/empty value).
+
+    Mutates problem["test_cases"][i]["expected_output"] in place with the
+    real computed values — callers should use `problem` after this call,
+    not the original AI-authored test_cases.
     """
     solution_code = problem["canonical_solution"]
+    computed_outputs = []
+
     for i, case in enumerate(problem["test_cases"]):
         args_repr = ", ".join(repr(a) for a in case["input"])
         harness = f"{solution_code}\n\nprint(solve({args_repr}))"
@@ -66,18 +83,21 @@ def _validate_canonical_solution(problem: dict) -> dict:
         run_info = result.get("run", {})
         actual_output = (run_info.get("stdout") or "").strip()
         stderr = (run_info.get("stderr") or "").strip()
-        expected_output = str(case["expected_output"]).strip()
 
         if stderr:
             return {
                 "valid": False, "failing_case_index": i,
-                "expected": expected_output, "actual": stderr, "reason": "runtime_error",
+                "expected": None, "actual": stderr, "reason": "runtime_error",
             }
-        if actual_output != expected_output:
-            return {
-                "valid": False, "failing_case_index": i,
-                "expected": expected_output, "actual": actual_output, "reason": "wrong_output",
-            }
+
+        case["expected_output"] = actual_output
+        computed_outputs.append(actual_output)
+
+    if len(computed_outputs) > 1 and len(set(computed_outputs)) == 1:
+        return {
+            "valid": False, "failing_case_index": None,
+            "expected": None, "actual": computed_outputs[0], "reason": "degenerate_outputs",
+        }
 
     return {"valid": True, "failing_case_index": None, "expected": None, "actual": None, "reason": None}
 
