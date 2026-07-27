@@ -24,5 +24,12 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o-mini"
 
+    # Development/testing-only overrides. All default to production values —
+    # TEST_MODE=false, real thresholds, real 45-minute timer — so the app
+    # behaves identically to before unless these are explicitly set.
+    TEST_MODE: bool = False
+    INTEGRITY_PASS_THRESHOLD: float = 60
+    ASSESSMENT_DURATION_SECONDS: int = 2700  # 45 minutes
+
 
 settings = Settings()
