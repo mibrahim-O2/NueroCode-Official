@@ -25,7 +25,8 @@ async def execute_submission(payload: SubmitRequest, current_user: dict = Depend
     outcome = run_submission(problem, payload.language, payload.source_code)
 
     if "error" in outcome:
-        raise HTTPException(status_code=400, detail=outcome["error"])
+        status = 503 if outcome.get("error_type") == "infrastructure" else 400
+        raise HTTPException(status_code=status, detail=outcome["error"])
 
     saved_submission = create_submission(
         user_id=current_user["id"],
