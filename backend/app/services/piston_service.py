@@ -7,9 +7,14 @@ work exclusively in NeuroCode's internal language names ("python",
 is intentionally not exposed outside this file.
 """
 
+import logging
+import time
+
 import httpx
 
 from app.config.settings import settings
+
+logger = logging.getLogger(__name__)
 
 
 class PistonExecutionError(Exception):
@@ -63,19 +68,38 @@ def execute_code(language: str, source_code: str, stdin: str = "") -> dict:
         "stdin": stdin,
     }
 
-    try:
-        with httpx.Client(timeout=15.0) as client:
-            response = client.post(f"{settings.PISTON_API}/execute", json=payload)
-            response.raise_for_status()
-            result = response.json()
-    except httpx.TimeoutException as exc:
-        raise PistonExecutionError("Piston execution timed out") from exc
-    except httpx.ConnectError as exc:
+    # A single automatic retry for connection errors only — this targets a
+    # known, diagnosed cause: WSL2's localhost port-forwarding relay can
+    # intermittently drop and reconnect within under a second. This does
+    # NOT retry timeouts, HTTP errors, or anything about the submitted
+    # code itself — only the transport-level connection attempt.
+    result = None
+    last_connect_error = None
+    for attempt in range(2):
+        try:
+            with httpx.Client(timeout=15.0) as client:
+                response = client.post(f"{settings.PISTON_API}/execute", json=payload)
+                response.raise_for_status()
+                result = response.json()
+            break
+        except httpx.ConnectError as exc:
+            last_connect_error = exc
+            logger.warning(
+                "Piston connection attempt %d/2 failed (language=%s): %s", attempt + 1, language, exc
+            )
+            if attempt == 0:
+                time.sleep(0.5)
+            continue
+        except httpx.TimeoutException as exc:
+            raise PistonExecutionError("Piston execution timed out") from exc
+        except httpx.HTTPStatusError as exc:
+            raise PistonExecutionError(f"Piston returned an error: {exc.response.text}") from exc
+
+    if result is None:
         raise PistonExecutionError(
-            "Could not reach the Piston execution service — is it running?"
-        ) from exc
-    except httpx.HTTPStatusError as exc:
-        raise PistonExecutionError(f"Piston returned an error: {exc.response.text}") from exc
+            f"Could not reach the Piston execution service after retrying — is it running? "
+            f"(last error: {last_connect_error})"
+        ) from last_connect_error
 
     if "message" in result and "run" not in result:
         # Piston's own top-level error shape (e.g. unknown language/version),
