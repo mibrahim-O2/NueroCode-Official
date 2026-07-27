@@ -88,14 +88,17 @@ def _build_harness(
 
     if language == "cpp":
         if isinstance(expected_output, list):
-            return None, (
-                "C++ execution currently supports scalar return types (numbers, strings, "
-                "booleans) only. This problem expects a list result — please solve it in "
-                "Python or JavaScript for now."
-            )
+            return None, {
+                "message": (
+                    "C++ execution currently supports scalar return types (numbers, strings, "
+                    "booleans) only. This problem expects a list result — please solve it in "
+                    "Python or JavaScript for now."
+                ),
+                "error_type": "invalid_request",
+            }
         return _build_cpp_harness(source_code, args, expected_output), None
 
-    return None, f"Unsupported language: {language}"
+    return None, {"message": f"Unsupported language: {language}", "error_type": "invalid_request"}
 
 
 def _run_case(language: str, harness: str, case_number: int, args: list, expected_str: str) -> dict:
@@ -140,12 +143,14 @@ def run_submission(problem: dict, language: str, source_code: str) -> dict:
     """Grades a submission against a problem's stored test cases.
 
     Returns either:
-      {"error": "..."} — could not be graded at all (unsupported
-        language/return type, or Piston itself unreachable/erroring)
+      {"error": "...", "error_type": "invalid_request" | "infrastructure"} —
+        could not be graded at all. "invalid_request" means bad input on
+        the student's end (unsupported language/return type); "infrastructure"
+        means Piston itself is unreachable or has no runtimes loaded.
       {"results": [...], "passed_count": int, "total_count": int, "all_passed": bool}
     """
     if language not in SUPPORTED_LANGUAGES:
-        return {"error": f"Unsupported language: {language}"}
+        return {"error": f"Unsupported language: {language}", "error_type": "invalid_request"}
 
     test_cases = problem["test_cases"]
     results = []
@@ -158,7 +163,7 @@ def run_submission(problem: dict, language: str, source_code: str) -> dict:
 
             harness, error = _build_harness(language, source_code, args, case["expected_output"])
             if error:
-                return {"error": error}
+                return {"error": error["message"], "error_type": error["error_type"]}
 
             case_result = _run_case(language, harness, i, args, expected_str)
             results.append(case_result)
@@ -172,7 +177,7 @@ def run_submission(problem: dict, language: str, source_code: str) -> dict:
                 # for every remaining test case.
                 break
     except PistonExecutionError as exc:
-        return {"error": str(exc)}
+        return {"error": str(exc), "error_type": "infrastructure"}
 
     return {
         "results": results,
