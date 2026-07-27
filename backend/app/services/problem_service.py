@@ -1,9 +1,12 @@
 import json
+import logging
 import re
 
 from app.ai.provider_factory import get_ai_provider
-from app.services.piston_service import execute_code
+from app.services.piston_service import execute_code, PistonExecutionError
 from app.database.repositories import get_recent_problem_titles, save_generated_problem
+
+logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """You are NeuroCode's coding problem generator. You create original, high-quality \
 programming practice problems for a computer science education platform.
@@ -45,25 +48,48 @@ def _extract_json(raw_text: str) -> dict:
     return json.loads(text)
 
 
-def _validate_canonical_solution(problem: dict) -> bool:
+def _validate_canonical_solution(problem: dict) -> dict:
+    """Runs the canonical solution against its own test cases.
+
+    Returns a detailed result instead of a bare bool so callers (and logs)
+    can report exactly which test case failed and why — a wrong-output
+    mismatch is a genuinely different failure from a runtime error, and
+    both are different from execute_code() raising PistonExecutionError
+    (infrastructure), which callers should catch separately.
+    """
     solution_code = problem["canonical_solution"]
-    for case in problem["test_cases"]:
-        args_repr = ", ".join(repr(arg) for arg in case["input"])
+    for i, case in enumerate(problem["test_cases"]):
+        args_repr = ", ".join(repr(a) for a in case["input"])
         harness = f"{solution_code}\n\nprint(solve({args_repr}))"
-        result = execute_code("python", harness)
-        actual_output = (result.get("run", {}).get("stdout") or "").strip()
+        result = execute_code("python", harness)  # may raise PistonExecutionError — let it propagate
+
+        run_info = result.get("run", {})
+        actual_output = (run_info.get("stdout") or "").strip()
+        stderr = (run_info.get("stderr") or "").strip()
         expected_output = str(case["expected_output"]).strip()
+
+        if stderr:
+            return {
+                "valid": False, "failing_case_index": i,
+                "expected": expected_output, "actual": stderr, "reason": "runtime_error",
+            }
         if actual_output != expected_output:
-            return False
-    return True
+            return {
+                "valid": False, "failing_case_index": i,
+                "expected": expected_output, "actual": actual_output, "reason": "wrong_output",
+            }
+
+    return {"valid": True, "failing_case_index": None, "expected": None, "actual": None, "reason": None}
 
 
 def generate_problem(user_id: str, topic: str, difficulty: str) -> dict:
     provider = get_ai_provider()
     avoid_titles = get_recent_problem_titles(user_id, topic, limit=5)
 
-    last_error = None
-    for _ in range(3):
+    attempt_summaries: list[str] = []
+
+    for attempt in range(1, 4):
+        raw = None
         try:
             raw = provider.generate(SYSTEM_PROMPT, _build_user_prompt(topic, difficulty, avoid_titles))
             problem = _extract_json(raw)
@@ -73,12 +99,30 @@ def generate_problem(user_id: str, topic: str, difficulty: str) -> dict:
                 "expected_complexity", "canonical_solution", "test_cases",
             }
             if not required_keys.issubset(problem.keys()):
-                raise ValueError("AI response missing required fields")
+                logger.warning(
+                    "[attempt %d/3] AI response missing required fields | topic=%s difficulty=%s\nraw:\n%s",
+                    attempt, topic, difficulty, raw,
+                )
+                attempt_summaries.append(f"attempt {attempt}: malformed response (missing fields)")
+                continue
 
-            if not _validate_canonical_solution(problem):
-                raise ValueError("Canonical solution failed its own test cases")
+            validation = _validate_canonical_solution(problem)
+            if not validation["valid"]:
+                logger.warning(
+                    "[attempt %d/3] validation failed | topic=%s difficulty=%s title=%r reason=%s "
+                    "failing_case=%s expected=%r actual=%r\ncanonical_solution:\n%s\ntest_cases:\n%s",
+                    attempt, topic, difficulty, problem.get("title"), validation["reason"],
+                    validation["failing_case_index"], validation["expected"], validation["actual"],
+                    problem.get("canonical_solution"), problem.get("test_cases"),
+                )
+                attempt_summaries.append(
+                    f"attempt {attempt}: validation failed on test case {validation['failing_case_index']} "
+                    f"({validation['reason']})"
+                )
+                continue
 
             saved = save_generated_problem(user_id, topic, difficulty, problem)
+            logger.info("[attempt %d/3] problem generated and validated successfully | title=%r", attempt, problem["title"])
             return {
                 "id": saved["id"],
                 "topic": topic,
@@ -89,8 +133,18 @@ def generate_problem(user_id: str, topic: str, difficulty: str) -> dict:
                 "constraints": problem["constraints"],
                 "expected_complexity": problem["expected_complexity"],
             }
-        except Exception as exc:  # noqa: BLE001 - intentional broad catch for retry loop
-            last_error = exc
+
+        except PistonExecutionError as exc:
+            logger.warning("[attempt %d/3] infrastructure error (Piston unreachable): %s", attempt, exc)
+            attempt_summaries.append(f"attempt {attempt}: infrastructure error — {exc}")
+            continue
+        except json.JSONDecodeError as exc:
+            logger.warning("[attempt %d/3] invalid JSON from AI provider: %s\nraw:\n%s", attempt, exc, raw)
+            attempt_summaries.append(f"attempt {attempt}: malformed JSON response")
+            continue
+        except Exception as exc:  # noqa: BLE001 - final safety net, still logged with full context
+            logger.exception("[attempt %d/3] unexpected error during problem generation", attempt)
+            attempt_summaries.append(f"attempt {attempt}: unexpected error — {exc}")
             continue
 
-    raise RuntimeError(f"Problem generation failed after 3 attempts: {last_error}")
+    raise RuntimeError("Problem generation failed after 3 attempts. " + "; ".join(attempt_summaries))
