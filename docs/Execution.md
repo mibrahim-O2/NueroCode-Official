@@ -4,18 +4,19 @@
 </div>
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,30:00A676,70:D4AF37,100:1a1a1a&height=2" width="100%"/>
 
-## Overview
-
-Running NeuroCode locally requires **four terminals**, each dedicated to a specific service.
-
 <div align="center">
 
-| Terminal | Purpose | Shell |
-|:---:|---|:---:|
-| **Terminal 1** | Piston API (WSL2 + Docker) | PowerShell → Bash |
-| **Terminal 2** | FastAPI Backend | PowerShell |
-| **Terminal 3** | Vite Frontend | PowerShell |
-| **Terminal 4** | Optional — Testing / Git / Logs | Bash |
+## Overview
+
+Running NeuroCode locally requires **five terminals**, each dedicated to a specific service.
+
+| Terminal | Purpose | Jump To |
+|---|---|:---:|
+| Terminal 1 | Piston API (WSL2 + Docker) | [Go →](#terminal-1) |
+| Terminal 2 | FastAPI Backend | [Go →](#terminal-2) |
+| Terminal 3 | Realtime Server (Node.js + Socket.io) | [Go →](#terminal-3) |
+| Terminal 4 | Vite Frontend | [Go →](#terminal-4) |
+| Terminal 5 | Optional (Testing / Git / Logs) | [Go →](#terminal-5) |
 
 </div>
 
