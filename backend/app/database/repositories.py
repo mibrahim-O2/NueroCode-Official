@@ -267,6 +267,35 @@ def get_recent_submissions(user_id: str, limit: int = 10) -> list[dict]:
     return result.data
 
 
+def get_credentials_for_user(user_id: str) -> list[dict]:
+    result = (
+        supabase.table("credentials")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+    return result.data
+
+
+def get_user_by_id(user_id: str) -> dict | None:
+    result = supabase.table("users").select("id,name,role").eq("id", user_id).execute()
+    return result.data[0] if result.data else None
+
+
+def get_credential_with_owner(verify_uuid: str) -> dict | None:
+    """Public-facing lookup for the /verify/:uuid page. Deliberately
+    returns only the credential and the owner's name — no email or other
+    account details — since this endpoint has no auth requirement by
+    design (a recruiter with just the link should be able to verify it).
+    """
+    credential = get_credential_by_verify_uuid(verify_uuid)
+    if not credential:
+        return None
+    owner = get_user_by_id(credential["user_id"])
+    return {"credential": credential, "owner_name": owner["name"] if owner else "NeuroCode Student"}
+
+
 def get_leaderboard(limit: int = 20) -> list[dict]:
     result = (
         supabase.table("users")
