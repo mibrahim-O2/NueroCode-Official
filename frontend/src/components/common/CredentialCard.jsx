@@ -1,4 +1,5 @@
-import { Award, ShieldCheck, Calendar, ExternalLink, Download } from 'lucide-react';
+import { Award, Calendar, Eye } from 'lucide-react';
+import { getAssessmentTitle } from '@/utils/certificateShare';
 import { cn } from '@/lib/utils';
 
 const BADGE_STYLES = {
@@ -8,82 +9,39 @@ const BADGE_STYLES = {
   platinum: 'text-mint border-mint/40 bg-mint/10',
 };
 
-export default function CredentialCard({
-  credential,
-  ownerName,
-  qrDataUrl,
-  verifyUrl,
-  showActions = false,
-  onExportPdf,
-}) {
+export default function CredentialCard({ credential, onView }) {
   const badgeStyle = BADGE_STYLES[credential.badge_level] || BADGE_STYLES.bronze;
+  const title = getAssessmentTitle(credential.topics_mastered);
 
   return (
-    <div className="flex flex-col gap-5 rounded-card border border-border bg-card p-6 shadow-card">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className={cn('flex h-12 w-12 items-center justify-center rounded-full border', badgeStyle)}>
-            <Award className="h-6 w-6" />
-          </div>
-          <div>
-            <p className={cn('text-xs font-body uppercase tracking-wide', badgeStyle.split(' ')[0])}>
-              {credential.badge_level} Credential
-            </p>
-            <h3 className="font-heading font-semibold text-text-primary">{ownerName}</h3>
-          </div>
+    <div className="flex flex-col gap-4 rounded-card border border-border bg-card p-5 shadow-card">
+      <div className="flex items-center gap-3">
+        <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full border', badgeStyle)}>
+          <Award className="h-5 w-5" />
         </div>
-        {qrDataUrl && (
-          <img src={qrDataUrl} alt="Verification QR code" className="h-16 w-16 rounded-input border border-border bg-white p-1" />
-        )}
-      </div>
-
-      <div>
-        <p className="text-xs text-text-muted">Topics Mastered</p>
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {credential.topics_mastered.map((t) => (
-            <span key={t} className="rounded-badge border border-emerald/30 bg-emerald/10 px-2.5 py-1 text-xs text-emerald">
-              {t}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <p className="text-xs text-text-muted">Assessment Score</p>
-          <p className="font-heading font-bold text-lg text-text-primary">{credential.assessment_score}%</p>
-        </div>
-        <div>
-          <p className="flex items-center gap-1 text-xs text-text-muted">
-            <ShieldCheck className="h-3 w-3" /> Integrity Score
+        <div className="min-w-0">
+          <p className={cn('text-[10px] font-body uppercase tracking-wide', badgeStyle.split(' ')[0])}>
+            {credential.badge_level} Credential
           </p>
-          <p className="font-heading font-bold text-lg text-text-primary">{credential.integrity_score}%</p>
+          <h3 className="truncate font-heading font-semibold text-text-primary">{title}</h3>
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 text-xs text-text-muted">
-        <Calendar className="h-3.5 w-3.5" />
-        Earned {new Date(credential.created_at).toLocaleDateString()}
+      <div className="flex items-center justify-between text-xs text-text-muted">
+        <span>
+          Score: <span className="text-emerald">{credential.assessment_score}%</span>
+        </span>
+        <span className="flex items-center gap-1">
+          <Calendar className="h-3 w-3" /> {new Date(credential.created_at).toLocaleDateString()}
+        </span>
       </div>
 
-      {showActions && (
-        <div className="flex flex-wrap gap-2 border-t border-border pt-4">
-          <a
-            href={verifyUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-1.5 rounded-button border border-border px-3 py-2 text-xs text-text-secondary transition-colors duration-200 hover:border-emerald hover:text-emerald"
-          >
-            <ExternalLink className="h-3.5 w-3.5" /> Verification Link
-          </a>
-          <button
-            onClick={onExportPdf}
-            className="flex items-center gap-1.5 rounded-button bg-emerald px-3 py-2 text-xs text-white shadow-button transition-colors duration-200 hover:bg-emerald-hover"
-          >
-            <Download className="h-3.5 w-3.5" /> Export PDF
-          </button>
-        </div>
-      )}
+      <button
+        onClick={onView}
+        className="flex items-center justify-center gap-1.5 rounded-button border border-border py-2 text-xs text-text-secondary transition-colors duration-200 hover:border-emerald hover:text-emerald"
+      >
+        <Eye className="h-3.5 w-3.5" /> View Certificate
+      </button>
     </div>
   );
 }
