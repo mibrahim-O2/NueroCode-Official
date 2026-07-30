@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
-import jsPDF from 'jspdf';
 import { Award, Loader2 } from 'lucide-react';
 import { getMyCredentials } from '@/services/credentialService';
 import CredentialCard from '@/components/common/CredentialCard';
+import CertificateModal from '@/components/common/CertificateModal';
 import EmptyState from '@/components/common/EmptyState';
 import { useAuth } from '@/context/AuthContext';
 
@@ -14,6 +14,7 @@ export default function Credential() {
   const [credentials, setCredentials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [qrCodes, setQrCodes] = useState({});
+  const [selected, setSelected] = useState(null);
 
   useEffect(() => {
     getMyCredentials()
@@ -22,31 +23,12 @@ export default function Credential() {
         const codes = {};
         for (const cred of data) {
           const url = `${VERIFY_BASE_URL}/verify/${cred.verify_uuid}`;
-          codes[cred.id] = await QRCode.toDataURL(url, { margin: 1, width: 160 });
+          codes[cred.id] = await QRCode.toDataURL(url, { margin: 1, width: 200 });
         }
         setQrCodes(codes);
       })
       .finally(() => setLoading(false));
   }, []);
-
-  const handleExportPdf = (credential) => {
-    const doc = new jsPDF();
-    doc.setFontSize(20);
-    doc.text('NeuroCode Credential', 20, 25);
-    doc.setFontSize(12);
-    doc.text(`Awarded to: ${user?.name}`, 20, 40);
-    doc.text(`Badge Level: ${credential.badge_level.toUpperCase()}`, 20, 50);
-    doc.text(`Topics Mastered: ${credential.topics_mastered.join(', ')}`, 20, 60);
-    doc.text(`Assessment Score: ${credential.assessment_score}%`, 20, 70);
-    doc.text(`Integrity Score: ${credential.integrity_score}%`, 20, 80);
-    doc.text(`Date Earned: ${new Date(credential.created_at).toLocaleDateString()}`, 20, 90);
-    doc.text(`Verify at: ${VERIFY_BASE_URL}/verify/${credential.verify_uuid}`, 20, 100);
-
-    const qrDataUrl = qrCodes[credential.id];
-    if (qrDataUrl) doc.addImage(qrDataUrl, 'PNG', 140, 30, 50, 50);
-
-    doc.save(`neurocode-credential-${credential.badge_level}.pdf`);
-  };
 
   if (loading) {
     return (
@@ -70,19 +52,21 @@ export default function Credential() {
           description="Pass a proctored assessment to earn your first verifiable credential."
         />
       ) : (
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {credentials.map((cred) => (
-            <CredentialCard
-              key={cred.id}
-              credential={cred}
-              ownerName={user?.name}
-              qrDataUrl={qrCodes[cred.id]}
-              verifyUrl={`${VERIFY_BASE_URL}/verify/${cred.verify_uuid}`}
-              showActions
-              onExportPdf={() => handleExportPdf(cred)}
-            />
+            <CredentialCard key={cred.id} credential={cred} onView={() => setSelected(cred)} />
           ))}
         </div>
+      )}
+
+      {selected && (
+        <CertificateModal
+          credential={selected}
+          ownerName={user?.name}
+          qrDataUrl={qrCodes[selected.id]}
+          verifyUrl={`${VERIFY_BASE_URL}/verify/${selected.verify_uuid}`}
+          onClose={() => setSelected(null)}
+        />
       )}
     </div>
   );
