@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import QRCode from 'qrcode';
 import { ShieldCheck, Play, Loader2, Lock, CheckCircle2, Award, XCircle, AlertCircle } from 'lucide-react';
 import {
   getAvailableClusters,
@@ -6,6 +8,8 @@ import {
   submitAssessment,
   logProctoringEvent,
 } from '@/services/assessmentService';
+import { useAuth } from '@/context/AuthContext';
+import CredentialCard from '@/components/common/CredentialCard';
 import ProblemPanel from '@/components/editor/ProblemPanel';
 import CodeEditor, { DEFAULT_SNIPPETS } from '@/components/editor/CodeEditor';
 import Timer from '@/components/editor/Timer';
@@ -18,9 +22,13 @@ import { useKeystrokeMonitor } from '@/hooks/useKeystrokeMonitor';
 
 const LARGE_PASTE_THRESHOLD = 30;
 
+const VERIFY_BASE_URL = window.location.origin;
+
 export default function Assessment() {
+  const { user } = useAuth();
   const [clusters, setClusters] = useState([]);
   const [loadingClusters, setLoadingClusters] = useState(true);
+  const [credentialQr, setCredentialQr] = useState(null);
 
   const [stage, setStage] = useState('select'); // select | starting | active | result
   const [question, setQuestion] = useState(null);
@@ -91,6 +99,12 @@ export default function Assessment() {
     try {
       const outcome = await submitAssessment(question.id, language, code, score);
       setResult(outcome);
+      if (outcome.credential) {
+        const url = `${VERIFY_BASE_URL}/verify/${outcome.credential.verify_uuid}`;
+        QRCode.toDataURL(url, { margin: 1, width: 160 })
+          .then(setCredentialQr)
+          .catch(() => setCredentialQr(null));
+      }
       setStage('result');
     } catch (err) {
       setStartError(err.message || 'Submission failed.');
@@ -182,14 +196,20 @@ export default function Assessment() {
           <>
             <Award className="h-12 w-12 text-gold" />
             <h2 className="font-heading font-semibold text-xl text-text-primary">Assessment Passed</h2>
-            <p className="max-w-sm text-sm text-text-muted">
-              Score: {result.assessment_score}% • Integrity: {result.integrity_score}%
-            </p>
             {result.credential && (
-              <p className="text-sm text-emerald">
-                {result.credential.badge_level.toUpperCase()} credential earned for this cluster
-              </p>
+              <div className="w-full max-w-sm text-left">
+                <CredentialCard
+                  credential={result.credential}
+                  ownerName={user?.name}
+                  qrDataUrl={credentialQr}
+                  verifyUrl={`${VERIFY_BASE_URL}/verify/${result.credential.verify_uuid}`}
+                  showActions={false}
+                />
+              </div>
             )}
+            <Link to="/credential" className="text-xs text-emerald hover:underline">
+              View all your credentials
+            </Link>
           </>
         ) : (
           <>
