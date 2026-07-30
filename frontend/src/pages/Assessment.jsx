@@ -72,6 +72,9 @@ export default function Assessment() {
   const handleStart = async (clusterName) => {
     setStage('starting');
     setStartError(null);
+    setResult(null);
+    setCredentialQr(null);
+    setCode(DEFAULT_SNIPPETS.python);
     try {
       const q = await startAssessment(clusterName);
       setQuestion(q);
@@ -97,9 +100,16 @@ export default function Assessment() {
   };
 
   const backToClusters = () => {
+    // Full reset — leftover state from a completed session (code, a
+    // stuck submitting flag, a stale credential QR, a previous error)
+    // must not bleed into the next attempt.
     setStage('select');
     setQuestion(null);
     setResult(null);
+    setCode(DEFAULT_SNIPPETS.python);
+    setSubmitting(false);
+    setCredentialQr(null);
+    setStartError(null);
     setLoadingClusters(true);
     getAvailableClusters()
       .then(setClusters)
