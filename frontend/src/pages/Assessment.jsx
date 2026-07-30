@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import QRCode from 'qrcode';
-import { ShieldCheck, Play, Loader2, Lock, CheckCircle2, Award, XCircle, AlertCircle } from 'lucide-react';
+import { ShieldCheck, Play, Loader2, Lock, CheckCircle2, Award, XCircle, AlertCircle, Download, Linkedin } from 'lucide-react';
 import {
   getAvailableClusters,
   startAssessment,
@@ -9,7 +9,8 @@ import {
   logProctoringEvent,
 } from '@/services/assessmentService';
 import { useAuth } from '@/context/AuthContext';
-import CredentialCard from '@/components/common/CredentialCard';
+import CertificateTemplate from '@/components/common/CertificateTemplate';
+import { exportCertificatePdf, buildLinkedInCaption, buildLinkedInShareUrl } from '@/utils/certificateShare';
 import ProblemPanel from '@/components/editor/ProblemPanel';
 import CodeEditor, { DEFAULT_SNIPPETS } from '@/components/editor/CodeEditor';
 import Timer from '@/components/editor/Timer';
@@ -21,14 +22,12 @@ import { useTabVisibility } from '@/hooks/useTabVisibility';
 import { useKeystrokeMonitor } from '@/hooks/useKeystrokeMonitor';
 
 const LARGE_PASTE_THRESHOLD = 30;
-
 const VERIFY_BASE_URL = window.location.origin;
 
 export default function Assessment() {
   const { user } = useAuth();
   const [clusters, setClusters] = useState([]);
   const [loadingClusters, setLoadingClusters] = useState(true);
-  const [credentialQr, setCredentialQr] = useState(null);
 
   const [stage, setStage] = useState('select'); // select | starting | active | result
   const [question, setQuestion] = useState(null);
@@ -37,6 +36,10 @@ export default function Assessment() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
   const [startError, setStartError] = useState(null);
+  const [credentialQr, setCredentialQr] = useState(null);
+  const [copiedCaption, setCopiedCaption] = useState(false);
+
+  const certRef = useRef(null);
 
   const sessionId = question?.id || null;
   const { score, log, connected, emitTabSwitch, emitPaste, emitCameraAlert, emitKeystrokeAlert } =
@@ -101,7 +104,7 @@ export default function Assessment() {
       setResult(outcome);
       if (outcome.credential) {
         const url = `${VERIFY_BASE_URL}/verify/${outcome.credential.verify_uuid}`;
-        QRCode.toDataURL(url, { margin: 1, width: 160 })
+        QRCode.toDataURL(url, { margin: 1, width: 200 })
           .then(setCredentialQr)
           .catch(() => setCredentialQr(null));
       }
@@ -114,9 +117,6 @@ export default function Assessment() {
   };
 
   const backToClusters = () => {
-    // Full reset — leftover state from a completed session (code, a
-    // stuck submitting flag, a stale credential QR, a previous error)
-    // must not bleed into the next attempt.
     setStage('select');
     setQuestion(null);
     setResult(null);
@@ -128,6 +128,25 @@ export default function Assessment() {
     getAvailableClusters()
       .then(setClusters)
       .finally(() => setLoadingClusters(false));
+  };
+
+  const handleExportPdf = () => {
+    if (!result?.credential) return;
+    exportCertificatePdf(certRef, `neurocode-credential-${result.credential.badge_level}.pdf`);
+  };
+
+  const handleShareLinkedIn = async () => {
+    if (!result?.credential) return;
+    const verifyUrl = `${VERIFY_BASE_URL}/verify/${result.credential.verify_uuid}`;
+    const caption = buildLinkedInCaption(result.credential, user?.name, verifyUrl);
+    try {
+      await navigator.clipboard.writeText(caption);
+      setCopiedCaption(true);
+      setTimeout(() => setCopiedCaption(false), 4000);
+    } catch {
+      // Non-critical — the share window still opens without the caption copied.
+    }
+    window.open(buildLinkedInShareUrl(verifyUrl), '_blank', 'noopener,noreferrer,width=600,height=600');
   };
 
   if (loadingClusters) {
@@ -196,17 +215,40 @@ export default function Assessment() {
           <>
             <Award className="h-12 w-12 text-gold" />
             <h2 className="font-heading font-semibold text-xl text-text-primary">Assessment Passed</h2>
+
             {result.credential && (
-              <div className="w-full max-w-sm text-left">
-                <CredentialCard
-                  credential={result.credential}
-                  ownerName={user?.name}
-                  qrDataUrl={credentialQr}
-                  verifyUrl={`${VERIFY_BASE_URL}/verify/${result.credential.verify_uuid}`}
-                  showActions={false}
-                />
-              </div>
+              <>
+                <div className="w-full max-w-3xl">
+                  <CertificateTemplate
+                    ref={certRef}
+                    credential={result.credential}
+                    ownerName={user?.name}
+                    qrDataUrl={credentialQr}
+                    verifyUrl={`${VERIFY_BASE_URL}/verify/${result.credential.verify_uuid}`}
+                  />
+                </div>
+
+                {copiedCaption && (
+                  <p className="text-xs text-emerald">Suggested LinkedIn caption copied — paste it into your post!</p>
+                )}
+
+                <div className="flex flex-wrap justify-center gap-2">
+                  <button
+                    onClick={handleExportPdf}
+                    className="flex items-center gap-1.5 rounded-button bg-emerald px-4 py-2 text-xs text-white shadow-button transition-colors duration-200 hover:bg-emerald-hover"
+                  >
+                    <Download className="h-3.5 w-3.5" /> Export PDF
+                  </button>
+                  <button
+                    onClick={handleShareLinkedIn}
+                    className="flex items-center gap-1.5 rounded-button border border-[#0A66C2] px-4 py-2 text-xs text-[#0A66C2] transition-colors duration-200 hover:bg-[#0A66C2]/10"
+                  >
+                    <Linkedin className="h-3.5 w-3.5" /> Share on LinkedIn
+                  </button>
+                </div>
+              </>
             )}
+
             <Link to="/credential" className="text-xs text-emerald hover:underline">
               View all your credentials
             </Link>
@@ -242,7 +284,6 @@ export default function Assessment() {
           <h1 className="font-heading font-semibold text-2xl text-text-primary">{question.title}</h1>
           <p className="mt-1 font-body text-sm text-text-muted">
             {connected ? 'Proctoring active — chatbot disabled' : 'Connecting…'}
-            {question.test_mode && <span className="ml-2 text-status-warning">[TEST MODE]</span>}
           </p>
         </div>
         <div className="flex items-center gap-3">
