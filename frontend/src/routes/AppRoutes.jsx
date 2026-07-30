@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import Home from '@/pages/Home';
 import LogoTest from '@/pages/LogoTest';
 import Login from '@/pages/Login';
+import VerifyCredential from '@/pages/VerifyCredential';
 import NotFound from '@/pages/NotFound';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -21,6 +22,7 @@ export default function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/logo-test" element={<LogoTest />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/verify/:uuid" element={<VerifyCredential />} />
 
       <Route
         element={
