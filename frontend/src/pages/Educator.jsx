@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Users, AlertTriangle, TrendingUp, Loader2 } from 'lucide-react';
 import { getCohortOverview, getSkillGaps, getClassLeaderboard } from '@/services/adminService';
+import ViolationBadges from '@/components/common/ViolationBadges';
 import { cn } from '@/lib/utils';
-
 export default function Educator() {
   const navigate = useNavigate();
   const [students, setStudents] = useState([]);
@@ -108,8 +108,15 @@ export default function Educator() {
                   <td className="px-5 py-3 text-text-secondary">{s.xp}</td>
                   <td className="px-5 py-3 text-text-secondary">{s.level}</td>
                   <td className="px-5 py-3 text-text-secondary">{s.topics_completed}</td>
-                  <td className={cn('px-5 py-3', s.integrity_flags > 0 ? 'font-semibold text-status-error' : 'text-text-secondary')}>
-                    {s.integrity_flags}
+                  <td className="px-5 py-3">
+                    {s.integrity_flags > 0 ? (
+                      <div className="flex flex-col gap-1.5">
+                        <span className="font-semibold text-status-error">{s.integrity_flags}</span>
+                        <ViolationBadges violations={s.violation_types} />
+                      </div>
+                    ) : (
+                      <span className="text-text-secondary">0</span>
+                    )}
                   </td>
                 </tr>
               ))}
