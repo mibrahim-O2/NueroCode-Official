@@ -307,6 +307,114 @@ def get_leaderboard(limit: int = 20) -> list[dict]:
     return result.data
 
 
+# --- Admin / Educator -------------------------------------------------
+
+def get_all_users(role: str | None = None) -> list[dict]:
+    query = supabase.table("users").select("id,name,email,role,xp,level,streak,created_at")
+    if role:
+        query = query.eq("role", role)
+    return query.order("created_at", desc=True).execute().data
+
+
+def update_user_role(user_id: str, new_role: str) -> dict:
+    return supabase.table("users").update({"role": new_role}).eq("id", user_id).execute().data[0]
+
+
+def get_cohort_overview() -> list[dict]:
+    students = get_all_users(role="student")
+    if not students:
+        return []
+    student_ids = [s["id"] for s in students]
+
+    nodes = supabase.table("roadmap_nodes").select("user_id,status").in_("user_id", student_ids).execute().data
+    assessments = (
+        supabase.table("assessments").select("user_id,status").in_("user_id", student_ids).execute().data
+    )
+
+    completed_counts: dict[str, int] = {}
+    for n in nodes:
+        if n["status"] == "completed":
+            completed_counts[n["user_id"]] = completed_counts.get(n["user_id"], 0) + 1
+
+    flagged_counts: dict[str, int] = {}
+    for a in assessments:
+        if a["status"] == "flagged":
+            flagged_counts[a["user_id"]] = flagged_counts.get(a["user_id"], 0) + 1
+
+    for s in students:
+        s["topics_completed"] = completed_counts.get(s["id"], 0)
+        s["integrity_flags"] = flagged_counts.get(s["id"], 0)
+
+    return students
+
+
+def get_student_timeline(user_id: str) -> dict:
+    roadmap = get_roadmap_for_user(user_id)
+    submissions = get_recent_submissions(user_id, limit=20)
+    assessments_result = (
+        supabase.table("assessments").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
+    )
+    credentials_result = (
+        supabase.table("credentials").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
+    )
+    return {
+        "roadmap": roadmap,
+        "submissions": submissions,
+        "assessments": assessments_result.data,
+        "credentials": credentials_result.data,
+    }
+
+
+def get_skill_gap_summary() -> list[dict]:
+    """Aggregates weak_topics across all students' learning_analytics rows
+    into a frequency count, for the 'common error patterns' chart."""
+    rows = supabase.table("learning_analytics").select("weak_topics").execute().data
+    counts: dict[str, int] = {}
+    for row in rows:
+        for topic in row.get("weak_topics") or []:
+            counts[topic] = counts.get(topic, 0) + 1
+    return [{"topic": topic, "count": count} for topic, count in sorted(counts.items(), key=lambda x: -x[1])]
+
+
+def get_flagged_assessments() -> list[dict]:
+    result = (
+        supabase.table("assessments")
+        .select("id,user_id,topic_cluster,assessment_score,integrity_score,created_at,status")
+        .eq("status", "flagged")
+        .order("created_at", desc=True)
+        .execute()
+    )
+    flagged = result.data
+    if not flagged:
+        return []
+    user_ids = list({row["user_id"] for row in flagged})
+    users = supabase.table("users").select("id,name").in_("id", user_ids).execute().data
+    name_map = {u["id"]: u["name"] for u in users}
+    for row in flagged:
+        row["student_name"] = name_map.get(row["user_id"], "Unknown")
+    return flagged
+
+
+def get_all_credentials_admin() -> list[dict]:
+    result = supabase.table("credentials").select("*").order("created_at", desc=True).execute()
+    credentials = result.data
+    if not credentials:
+        return []
+    user_ids = list({c["user_id"] for c in credentials})
+    users = supabase.table("users").select("id,name").in_("id", user_ids).execute().data
+    name_map = {u["id"]: u["name"] for u in users}
+    for c in credentials:
+        c["student_name"] = name_map.get(c["user_id"], "Unknown")
+    return credentials
+
+
+def reset_student_roadmap(user_id: str) -> list[dict]:
+    """Deletes a student's current roadmap and reseeds it fresh from
+    position 0 — used by admins to give a student a clean restart."""
+    supabase.table("roadmap_nodes").delete().eq("user_id", user_id).execute()
+    return seed_default_roadmap(user_id)
+
+
 # --- Submissions ---------------------------------------------------------
 
 def create_submission(user_id: str, language: str, topic: str, difficulty: str, source_code: str,
