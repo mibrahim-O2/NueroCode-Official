@@ -12,6 +12,7 @@ import Practice from '@/pages/Practice';
 import Assessment from '@/pages/Assessment';
 import Credential from '@/pages/Credential';
 import Educator from '@/pages/Educator';
+import StudentTimeline from '@/pages/StudentTimeline';
 import Admin from '@/pages/Admin';
 import Profile from '@/pages/Profile';
 import Settings from '@/pages/Settings';
@@ -43,6 +44,14 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute roles={['educator', 'admin']}>
               <Educator />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/educator/students/:userId"
+          element={
+            <ProtectedRoute roles={['educator', 'admin']}>
+              <StudentTimeline />
             </ProtectedRoute>
           }
         />
