@@ -320,6 +320,27 @@ def update_user_role(user_id: str, new_role: str) -> dict:
     return supabase.table("users").update({"role": new_role}).eq("id", user_id).execute().data[0]
 
 
+# Human-readable labels for proctoring_logs.event_type — display-layer
+# mapping only, does not touch the values actually written by Phase 11's
+# frontend hooks or Phase 12's persisted rows.
+VIOLATION_TYPE_LABELS = {
+    "tab_switch": "Tab Switching",
+    "paste": "Large Paste Detected",
+    "camera_alert": "Camera Disabled / No Face Detected",
+    "keystroke_alert": "Unusual Typing Rhythm",
+}
+
+
+def _summarize_violation_types(logs: list[dict]) -> list[dict]:
+    counts: dict[str, int] = {}
+    for log in logs:
+        counts[log["event_type"]] = counts.get(log["event_type"], 0) + 1
+    return [
+        {"event_type": event_type, "label": VIOLATION_TYPE_LABELS.get(event_type, event_type), "count": count}
+        for event_type, count in sorted(counts.items(), key=lambda x: -x[1])
+    ]
+
+
 def get_cohort_overview() -> list[dict]:
     students = get_all_users(role="student")
     if not students:
@@ -328,7 +349,7 @@ def get_cohort_overview() -> list[dict]:
 
     nodes = supabase.table("roadmap_nodes").select("user_id,status").in_("user_id", student_ids).execute().data
     assessments = (
-        supabase.table("assessments").select("user_id,status").in_("user_id", student_ids).execute().data
+        supabase.table("assessments").select("id,user_id,status").in_("user_id", student_ids).execute().data
     )
 
     completed_counts: dict[str, int] = {}
@@ -337,13 +358,34 @@ def get_cohort_overview() -> list[dict]:
             completed_counts[n["user_id"]] = completed_counts.get(n["user_id"], 0) + 1
 
     flagged_counts: dict[str, int] = {}
+    flagged_ids_by_user: dict[str, list[str]] = {}
     for a in assessments:
         if a["status"] == "flagged":
             flagged_counts[a["user_id"]] = flagged_counts.get(a["user_id"], 0) + 1
+            flagged_ids_by_user.setdefault(a["user_id"], []).append(a["id"])
+
+    # Batch-fetch proctoring_logs for every flagged assessment across the
+    # whole cohort in a single query, then group by student — avoids N+1
+    # queries as the cohort grows.
+    all_flagged_ids = [aid for ids in flagged_ids_by_user.values() for aid in ids]
+    logs_by_assessment: dict[str, list[dict]] = {}
+    if all_flagged_ids:
+        logs_result = (
+            supabase.table("proctoring_logs")
+            .select("assessment_id,event_type")
+            .in_("assessment_id", all_flagged_ids)
+            .execute()
+        )
+        for log in logs_result.data:
+            logs_by_assessment.setdefault(log["assessment_id"], []).append(log)
 
     for s in students:
         s["topics_completed"] = completed_counts.get(s["id"], 0)
         s["integrity_flags"] = flagged_counts.get(s["id"], 0)
+        student_logs = [
+            log for aid in flagged_ids_by_user.get(s["id"], []) for log in logs_by_assessment.get(aid, [])
+        ]
+        s["violation_types"] = _summarize_violation_types(student_logs)
 
     return students
 
@@ -354,13 +396,27 @@ def get_student_timeline(user_id: str) -> dict:
     assessments_result = (
         supabase.table("assessments").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
     )
+    assessments = assessments_result.data
+
+    assessment_ids = [a["id"] for a in assessments]
+    logs_by_assessment: dict[str, list[dict]] = {}
+    if assessment_ids:
+        logs_result = (
+            supabase.table("proctoring_logs").select("*").in_("assessment_id", assessment_ids).execute()
+        )
+        for log in logs_result.data:
+            logs_by_assessment.setdefault(log["assessment_id"], []).append(log)
+
+    for a in assessments:
+        a["violation_types"] = _summarize_violation_types(logs_by_assessment.get(a["id"], []))
+
     credentials_result = (
         supabase.table("credentials").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
     )
     return {
         "roadmap": roadmap,
         "submissions": submissions,
-        "assessments": assessments_result.data,
+        "assessments": assessments,
         "credentials": credentials_result.data,
     }
 
