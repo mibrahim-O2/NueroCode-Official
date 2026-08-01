@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import TestModePanel from '@/components/common/TestModePanel';
+import { useTestMode } from '@/context/TestModeContext';
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const testModeEnabled = useTestMode();
 
   return (
     <div className="flex min-h-screen bg-obsidian">
@@ -15,6 +18,7 @@ export default function DashboardLayout() {
           <Outlet />
         </main>
       </div>
+      {testModeEnabled && <TestModePanel />}
     </div>
   );
 }
