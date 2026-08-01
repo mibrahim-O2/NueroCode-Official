@@ -466,9 +466,116 @@ def get_all_credentials_admin() -> list[dict]:
 
 def reset_student_roadmap(user_id: str) -> list[dict]:
     """Deletes a student's current roadmap and reseeds it fresh from
-    position 0 — used by admins to give a student a clean restart."""
+    position 0 — used by admins (Phase 14) to give a student a clean
+    restart, and reused unchanged by Test Mode's roadmap reset."""
     supabase.table("roadmap_nodes").delete().eq("user_id", user_id).execute()
     return seed_default_roadmap(user_id)
+
+
+# --- Test Mode ---------------------------------------------------------
+# Everything below is only ever called from routes gated by
+# settings.TEST_MODE (see test_mode_routes.py) — these functions have no
+# gating of their own, by design, so they stay simple and reusable; the
+# safety boundary lives entirely at the route layer.
+
+def set_roadmap_node_status(node_id: str, user_id: str, status: str) -> dict | None:
+    existing = supabase.table("roadmap_nodes").select("id").eq("id", node_id).eq("user_id", user_id).execute()
+    if not existing.data:
+        return None
+    now = datetime.now(timezone.utc).isoformat()
+    update_data = {"status": status}
+    if status == "unlocked":
+        update_data["unlocked_at"] = now
+    if status == "completed":
+        update_data["completed_at"] = now
+    return supabase.table("roadmap_nodes").update(update_data).eq("id", node_id).execute().data[0]
+
+
+def unlock_all_roadmap_nodes(user_id: str) -> list[dict]:
+    now = datetime.now(timezone.utc).isoformat()
+    supabase.table("roadmap_nodes").update({"status": "unlocked", "unlocked_at": now}).eq(
+        "user_id", user_id
+    ).neq("status", "completed").execute()
+    return get_roadmap_for_user(user_id)
+
+
+def complete_roadmap_through_position(user_id: str, position: int) -> list[dict]:
+    now = datetime.now(timezone.utc).isoformat()
+    nodes = get_roadmap_for_user(user_id)
+    for n in nodes:
+        if n["position"] <= position:
+            supabase.table("roadmap_nodes").update({
+                "status": "completed",
+                "completed_at": now,
+                "xp_earned": XP_REWARDS.get(n["difficulty"], 50),
+            }).eq("id", n["id"]).execute()
+        elif n["position"] == position + 1:
+            supabase.table("roadmap_nodes").update({"status": "unlocked", "unlocked_at": now}).eq(
+                "id", n["id"]
+            ).execute()
+    return get_roadmap_for_user(user_id)
+
+
+def set_user_stats(user_id: str, xp: int | None, level: int | None, streak: int | None) -> dict:
+    update_data = {k: v for k, v in {"xp": xp, "level": level, "streak": streak}.items() if v is not None}
+    if not update_data:
+        return supabase.table("users").select("*").eq("id", user_id).execute().data[0]
+    return supabase.table("users").update(update_data).eq("id", user_id).execute().data[0]
+
+
+def create_test_assessment_and_credential(
+    user_id: str, badge_level: str, cluster_name: str, topics: list[str], score: float, integrity: float
+) -> dict:
+    """Creates a companion assessment row (required by credentials'
+    assessment_id NOT NULL FK — same constraint the real flow satisfies)
+    and a real credential row via the SAME create_credential() function
+    the production assessment-pass path uses. cluster_name is prefixed
+    with '[TEST MODE]' so these rows are identifiable and safely
+    cleanable via clear_simulated_credentials, without changing schema.
+    """
+    assessment = supabase.table("assessments").insert({
+        "user_id": user_id,
+        "topic_cluster": cluster_name,
+        "generated_question": {
+            "title": f"{cluster_name} Demo Assessment",
+            "description": "Simulated assessment generated via NeuroCode Test Mode for demonstration purposes.",
+        },
+        "assessment_score": score,
+        "integrity_score": integrity,
+        "duration": 600,
+        "status": "completed",
+    }).execute().data[0]
+
+    return create_credential(
+        user_id=user_id,
+        assessment_id=assessment["id"],
+        badge_level=badge_level,
+        topics_mastered=topics,
+        assessment_score=score,
+        integrity_score=integrity,
+    )
+
+
+def clear_simulated_credentials(user_id: str) -> dict:
+    """Deletes every credential (and its companion assessment) created
+    via the Test Mode simulator for this user — identified purely by the
+    '[TEST MODE]' prefix on the linked assessment's topic_cluster.
+    Leaves every real credential completely untouched."""
+    credentials = supabase.table("credentials").select("id,assessment_id").eq("user_id", user_id).execute().data
+    if not credentials:
+        return {"deleted": 0}
+
+    assessment_ids = [c["assessment_id"] for c in credentials]
+    assessments = supabase.table("assessments").select("id,topic_cluster").in_("id", assessment_ids).execute().data
+    test_assessment_ids = {a["id"] for a in assessments if (a.get("topic_cluster") or "").startswith("[TEST MODE]")}
+
+    to_delete = [c["id"] for c in credentials if c["assessment_id"] in test_assessment_ids]
+    if not to_delete:
+        return {"deleted": 0}
+
+    supabase.table("credentials").delete().in_("id", to_delete).execute()
+    supabase.table("assessments").delete().in_("id", list(test_assessment_ids)).execute()
+    return {"deleted": len(to_delete)}
 
 
 # --- Submissions ---------------------------------------------------------
