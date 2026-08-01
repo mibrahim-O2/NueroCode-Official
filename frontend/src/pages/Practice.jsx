@@ -3,6 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { Sparkles, Loader2, AlertCircle, RefreshCw, Play } from 'lucide-react';
 import { generateProblem } from '@/services/problemService';
 import { submitCode } from '@/services/submissionService';
+import { getInstantProblem, simulateSubmission as simulateSubmissionTestMode } from '@/services/testModeService';
+import { useTestMode } from '@/context/TestModeContext';
 import ProblemPanel from '@/components/editor/ProblemPanel';
 import CodeEditor, { DEFAULT_SNIPPETS } from '@/components/editor/CodeEditor';
 import Timer from '@/components/editor/Timer';
@@ -15,6 +17,7 @@ const LANGUAGES = ['python', 'javascript', 'cpp'];
 const ROADMAP_DIFFICULTY_MAP = { beginner: 'easy', intermediate: 'medium', advanced: 'hard' };
 
 export default function Practice() {
+  const testModeEnabled = useTestMode();
   const [searchParams] = useSearchParams();
   const rawDifficulty = searchParams.get('difficulty');
 
@@ -67,6 +70,36 @@ export default function Practice() {
     }
   };
 
+  const handleInstantProblem = async () => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    try {
+      const newProblem = await getInstantProblem(topic, difficulty);
+      setProblem(newProblem);
+      setLanguage('python');
+      setCode(DEFAULT_SNIPPETS.python);
+    } catch (err) {
+      setError(err.message || 'Instant problem failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSimulate = async (outcome) => {
+    if (!problem) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const simulated = await simulateSubmissionTestMode(problem.topic, problem.difficulty, language, outcome, true);
+      setResult(simulated);
+    } catch (err) {
+      setSubmitError(err.message || 'Simulation failed.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -107,6 +140,15 @@ export default function Practice() {
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
           {problem ? 'Generate Another' : 'Generate Problem'}
         </button>
+        {testModeEnabled && (
+          <button
+            onClick={handleInstantProblem}
+            disabled={loading || !topic.trim()}
+            className="flex items-center gap-2 rounded-button border border-status-warning/40 px-4 py-2.5 text-sm font-body text-status-warning transition-colors duration-200 hover:bg-status-warning/10 disabled:opacity-50"
+          >
+            Instant Problem (Test Mode)
+          </button>
+        )}
       </div>
 
       {error && (
@@ -168,6 +210,25 @@ export default function Practice() {
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4 fill-current" />}
               {submitting ? 'Running…' : 'Submit Solution'}
             </button>
+
+            {testModeEnabled && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleSimulate('pass')}
+                  disabled={submitting}
+                  className="flex-1 rounded-button border border-emerald/40 px-3 py-2 text-xs text-emerald transition-colors duration-200 hover:bg-emerald/10 disabled:opacity-50"
+                >
+                  Simulate Pass
+                </button>
+                <button
+                  onClick={() => handleSimulate('fail')}
+                  disabled={submitting}
+                  className="flex-1 rounded-button border border-status-error/40 px-3 py-2 text-xs text-status-error transition-colors duration-200 hover:bg-status-error/10 disabled:opacity-50"
+                >
+                  Simulate Fail
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
