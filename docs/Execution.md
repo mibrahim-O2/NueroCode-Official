@@ -20,10 +20,9 @@ Running NeuroCode locally requires **five terminals**, each dedicated to a speci
 
 </div>
 
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
-
 <div align="center">
-  
+
+<a id="terminal-1"></a>
 ## Terminal 1 Starting Piston (WSL2)
 
 <p align="center">
@@ -32,29 +31,32 @@ Running NeuroCode locally requires **five terminals**, each dedicated to a speci
 
 </div>
 
-### Step 1 — Verify Docker Desktop
+### Step 1 Start Docker Desktop
+
+**PowerShell (Windows):**
+
+```powershell
+docker desktop start
+```
+
+**Expected:**
+> ✓ Starting Docker Desktop
+
+> **Note:** Wait until Docker Desktop is fully started before proceeding.
+
+### Step 2 Verify Docker Desktop
 
 **PowerShell (Windows):**
 
 ```powershell
 docker desktop status
 ```
-
 **Expected:**
-```
-Status : running
-```
-
-If Docker Desktop is not running:
-
-```powershell
-docker desktop start
-```
-
-> **Note:** Wait until Docker Desktop is fully started before proceeding.
+>Status : running
 
 ---
-### Step 2 — Open WSL
+
+### Step 3 Open WSL
 
 **PowerShell (Windows):**
 
@@ -62,11 +64,11 @@ docker desktop start
 wsl
 ```
 
-This launches the Bash environment — all following commands in Terminal 1 run inside WSL.
+This launches the Bash environment all following commands in Terminal 1 run inside WSL.
 
 ---
 
-### Step 3 — Navigate to the Piston Directory
+### Step 4 Navigate to the Piston Directory
 
 **Bash (WSL2):**
 
@@ -81,60 +83,22 @@ pwd
 ```
 
 **Expected:**
-```text
-/home/mibrahim/piston
-```
+>/home/mibrahim/piston
 
 ---
 
-### Step 4 — Start the Piston Container
-
-**Bash (WSL2):**
+## Step 5 Start Piston
 
 ```bash
-docker-compose up -d api
+docker compose up -d
 ```
 
 **Expected:**
-```
-Container piston_api Running
-```
+>Container piston_api Started
 
 ---
 
-### Step 5 — Verify the Runtime
-
-**Bash (WSL2):**
-
-```bash
-curl http://localhost:2000/api/v2/runtimes
-```
-**If the output is:**
-
-```json
-[
-  {
-    "language": "python",
-    "version": "3.12.0"
-  }
-]
-```
-
-Everything is OK — proceed to the Backend.
-
-**If the output is:**
-
-```json
-[]
-```
-
-Run:
-
-```bash
-docker-compose up -d --force-recreate api
-```
-
-Wait a few seconds, then verify again:
+## Step 6 Verify Installed Runtimes
 
 ```bash
 curl http://localhost:2000/api/v2/runtimes
@@ -147,15 +111,26 @@ Expected:
   {
     "language": "python",
     "version": "3.12.0"
+  },
+  {
+    "language": "javascript",
+    "version": "20.11.1"
+  },
+  {
+    "language": "c",
+    "version": "10.2.0"
   }
 ]
 ```
 
+If all runtimes appear, Piston is ready.
 > **Only proceed to the Backend after this check passes.**
 
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
-
 <div align="center">
+
+[⬆ Back to Overview](#overview)
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
 
 ## Terminal 2 Backend
 
