@@ -173,10 +173,52 @@ http://localhost:8000
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
 
-  
-## Terminal 3 Frontend
+<a id="terminal-3"></a>
+## Terminal 3 Realtime Server
 
 <p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
+</p>
+
+</div>
+
+**PowerShell (Windows):**
+
+```powershell
+cd realtime
+```
+
+Run:
+
+```powershell
+npm run dev
+```
+
+**Expected:**
+
+```
+> neurocode-realtime@0.1.0 dev
+> nodemon server.js
+
+[nodemon] 3.1.14
+[nodemon] to restart at any time, enter `rs`
+[nodemon] watching path(s): *.*
+[nodemon] watching extensions: js,mjs,cjs,json
+[nodemon] starting `node server.js`
+NeuroCode realtime server running on port 3001
+```
+
+Realtime Server URL:
+
+```
+http://localhost:3001
+```
+<div align="center">
+
+[⬆ Back to Overview](#overview)
+
+## Terminal 4 Frontend
+
   <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
 </p>
 
@@ -204,7 +246,7 @@ http://localhost:5173
 
 <div align="center">
 
-## Terminal 4 Optional (Testing / Git / Logs)
+## Terminal 5 Optional (Testing / Git / Logs)
 
 <p align="center">
   <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
