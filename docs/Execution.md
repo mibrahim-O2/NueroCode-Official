@@ -217,6 +217,9 @@ http://localhost:3001
 
 [⬆ Back to Overview](#overview)
 
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+
+<a id="terminal-4"></a> 
 ## Terminal 4 Frontend
 
   <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
@@ -238,7 +241,6 @@ npm run dev
 
 **Expected:**
 ```
-Local:
 http://localhost:5173
 ```
 
