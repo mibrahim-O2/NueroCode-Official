@@ -37,7 +37,7 @@ export default function TestModePanel() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 left-6 z-40 flex items-center gap-2 rounded-full border border-status-warning/50 bg-charcoal px-4 py-2.5 text-xs font-body text-status-warning shadow-dialog transition-colors duration-200 hover:bg-status-warning/10"
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border border-gold/50 bg-charcoal px-4 py-2.5 text-xs font-body text-gold shadow-dialog transition-colors duration-200 hover:bg-gold/10"
       >
         <FlaskConical className="h-4 w-4" /> Test Mode
       </button>
@@ -45,9 +45,9 @@ export default function TestModePanel() {
   }
 
   return (
-    <div className="fixed bottom-6 left-6 z-40 flex w-80 flex-col gap-3 rounded-dialog border border-status-warning/40 bg-charcoal p-4 shadow-dialog">
+    <div className="fixed bottom-24 right-6 z-40 flex w-80 flex-col gap-3 rounded-dialog border border-gold/40 bg-charcoal p-4 shadow-dialog">
       <div className="flex items-center justify-between">
-        <span className="flex items-center gap-2 font-heading text-sm font-semibold text-status-warning">
+        <span className="flex items-center gap-2 font-heading text-sm font-semibold text-gold">
           <FlaskConical className="h-4 w-4" /> Test Mode
         </span>
         <button onClick={() => setOpen(false)} className="text-text-muted hover:text-text-primary">
@@ -62,7 +62,7 @@ export default function TestModePanel() {
             onClick={() => setTab(t)}
             className={cn(
               'flex-1 py-1.5',
-              tab === t ? 'bg-status-warning/20 text-status-warning' : 'text-text-muted hover:text-text-primary'
+              tab === t ? 'bg-gold/20 text-gold' : 'text-text-muted hover:text-text-primary'
             )}
           >
             {t}
