@@ -255,9 +255,7 @@ http://localhost:5173
 <a id="terminal-5"></a>
 ## Terminal 5 Optional (Testing / Git / Logs)
 
-<p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
-</p>
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
 
 </div>
 
@@ -279,6 +277,7 @@ git status
 [⬆ Back to Overview](#overview)
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+</div>
 
 ## Project Architecture
 
