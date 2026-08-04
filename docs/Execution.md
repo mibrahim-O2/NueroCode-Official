@@ -298,23 +298,22 @@ VS Code
 └── Piston API (Docker + WSL2)
        localhost:2000
 ```
-
 **Communication Flow**
 
 ```
 Frontend
    │
-   ▼
-Backend
+   ├──▶ Backend
+   │       │
+   │       ▼
+   │    Piston API
+   │       │
+   │       ▼
+   │    Python Runtime
    │
-   ▼
-Piston API
-   │
-   ▼
-Python Runtime
+   └──▶ Realtime Server (Socket.io)
 ```
-
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+---
 
 ## Important Notes
 
