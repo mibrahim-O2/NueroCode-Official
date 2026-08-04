@@ -248,6 +248,12 @@ http://localhost:5173
 
 <div align="center">
 
+
+[⬆ Back to Overview](#overview)
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+
+<a id="terminal-5"></a>
 ## Terminal 5 Optional (Testing / Git / Logs)
 
 <p align="center">
