@@ -277,9 +277,11 @@ git status
 [⬆ Back to Overview](#overview)
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
-</div>
+ 
 
 ## Project Architecture
+
+</div>
 
 ```
 VS Code
@@ -289,6 +291,9 @@ VS Code
 │
 ├── Backend (FastAPI)
 │      localhost:8000
+│
+├── Realtime Server (Node.js + Socket.io)
+│      localhost:3001
 │
 └── Piston API (Docker + WSL2)
        localhost:2000
