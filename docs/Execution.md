@@ -27,7 +27,6 @@ Running NeuroCode locally requires **five terminals**, each dedicated to a speci
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,30:00A676,70:D4AF37,100:1a1a1a&height=2" width="100%"/>
 
- 
 <div align="center">
 
 <a id="terminal-1"></a>
@@ -171,7 +170,6 @@ uvicorn app.main:app --reload --port 8000
 >Application startup complete.
 
 Backend URL:
-
 ```
 http://localhost:8000
 ```
