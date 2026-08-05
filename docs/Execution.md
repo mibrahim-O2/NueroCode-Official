@@ -433,11 +433,9 @@ This section maps each of the four development terminals to its production equiv
 ---
 
 ### Development (Current 4 Terminals)
-
-
+ 
 <div align="center">
-
-```
+<pre>
 ┌─────────────────────────────────────────────────────────────────┐
 │                     DEVELOPMENT (Your Machine)                  │
 │                                                                 │
@@ -450,7 +448,8 @@ This section maps each of the four development terminals to its production equiv
 │  └──────────┘        └──────────┘        └─────────┘  └────────┘│
 │  :2000                :8000               :3001        :5173    │
 └─────────────────────────────────────────────────────────────────┘
-```
+
+</pre>
 </div>
 
 All four processes run on `localhost`, communicating over plain HTTP/WebSocket on different ports. Each needs its own terminal because each is a separate, long-running, blocking process (different language runtime, different lifecycle) — not an architectural requirement, just a dev-workflow one.
@@ -461,7 +460,8 @@ All four processes run on `localhost`, communicating over plain HTTP/WebSocket o
 
 ### Production (Target Deployment)
 
-```
+<div align="center">
+<pre>
 ┌────────────────────────────────────────────────────────────────────┐
 │                            PRODUCTION                              │
 │                                                                    │
@@ -481,7 +481,7 @@ All four processes run on `localhost`, communicating over plain HTTP/WebSocket o
 │                        │ no WSL2 involved)│                        │
 │                        └──────────────────┘                        │
 └────────────────────────────────────────────────────────────────────┘
-```
+</pre>
 </div>
 
 ---
