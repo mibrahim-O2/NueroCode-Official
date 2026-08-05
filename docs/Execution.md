@@ -2,6 +2,7 @@
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:1a1a1a,30:00A676,70:D4AF37,100:1a1a1a&height=160&section=header&text=NeuroCode%20Execution%20Guide&fontSize=42&fontColor=ffffff&animation=fadeIn&fontAlignY=40&desc=Local%20Development%20Environment%20Setup&descAlignY=62&descSize=16&descColor=D4AF37"/>
 <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=500&size=16&duration=2800&pause=1000&color=00A676&center=true&vCenter=true&width=650&lines=Piston+API+%2B+FastAPI+Backend+%2B+Vite+Frontend;Windows+%2B+WSL2+%2B+Docker+Workflow" alt="Typing SVG"/>
 </div>
+
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,30:00A676,70:D4AF37,100:1a1a1a&height=2" width="100%"/>
 
 <div align="center">
@@ -10,16 +11,23 @@
 
 Running NeuroCode locally requires **five terminals**, each dedicated to a specific service.
 
-| Terminal | Purpose | Jump To |
-|---|---|:---:|
-| Terminal 1 | Piston API (WSL2 + Docker) | [Go →](#terminal-1) |
-| Terminal 2 | FastAPI Backend | [Go →](#terminal-2) |
-| Terminal 3 | Realtime Server (Node.js + Socket.io) | [Go →](#terminal-3) |
-| Terminal 4 | Vite Frontend | [Go →](#terminal-4) |
-| Terminal 5 | Optional (Testing / Git / Logs) | [Go →](#terminal-5) |
+[Terminal 1 — Piston API (WSL2 + Docker)](#terminal-1) &nbsp;•&nbsp;
+[Terminal 2 — FastAPI Backend](#terminal-2) &nbsp;•&nbsp;
+[Terminal 3 — Realtime Server (Node.js + Socket.io)](#terminal-3) &nbsp;•&nbsp;
+[Terminal 4 — Vite Frontend](#terminal-4) &nbsp;•&nbsp;
+[Terminal 5 — Optional (Testing / Git / Logs)](#terminal-5) &nbsp;•&nbsp;
+[Project Architecture](#project-architecture) &nbsp;•&nbsp;
+[Important Notes](#important-notes) &nbsp;•&nbsp;
+[Shutdown](#shutdown) &nbsp;•&nbsp;
+[First Startup Checklist](#first-startup-checklist) &nbsp;•&nbsp;
+[Deployment Architecture](#deployment-architecture) &nbsp;•&nbsp;
+[References](#references)
 
 </div>
 
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,30:00A676,70:D4AF37,100:1a1a1a&height=2" width="100%"/>
+
+ 
 <div align="center">
 
 <a id="terminal-1"></a>
