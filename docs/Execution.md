@@ -11,11 +11,11 @@
 
 Running NeuroCode locally requires **five terminals**, each dedicated to a specific service.
 
-[Terminal 1 — Piston API (WSL2 + Docker)](#terminal-1) &nbsp;•&nbsp;
-[Terminal 2 — FastAPI Backend](#terminal-2) &nbsp;•&nbsp;
-[Terminal 3 — Realtime Server (Node.js + Socket.io)](#terminal-3) &nbsp;•&nbsp;
-[Terminal 4 — Vite Frontend](#terminal-4) &nbsp;•&nbsp;
-[Terminal 5 — Optional (Testing / Git / Logs)](#terminal-5) &nbsp;•&nbsp;
+[Terminal 1 Piston API (WSL2 + Docker)](#terminal-1) &nbsp;•&nbsp;
+[Terminal 2 FastAPI Backend](#terminal-2) &nbsp;•&nbsp;
+[Terminal 3 Realtime Server (Node.js + Socket.io)](#terminal-3) &nbsp;•&nbsp;
+[Terminal 4 Vite Frontend](#terminal-4) &nbsp;•&nbsp;
+[Terminal 5 Optional (Testing / Git / Logs)](#terminal-5) &nbsp;•&nbsp;
 [Project Architecture](#project-architecture) &nbsp;•&nbsp;
 [Important Notes](#important-notes) &nbsp;•&nbsp;
 [Shutdown](#shutdown) &nbsp;•&nbsp;
@@ -419,6 +419,9 @@ docker-compose down
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
 
 <a id="deployment-architecture"></a>
+
+<div align="center">
+
 ## Deployment Architecture
 
 <p align="center">
@@ -429,13 +432,13 @@ This section maps each of the four development terminals to its production equiv
 
 ---
 
-### Development (Current — 4 Terminals)
+### Development (Current 4 Terminals)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                     DEVELOPMENT (Your Machine)                   │
-│                                                                   │
-│  Terminal 1          Terminal 2          Terminal 3   Terminal 4 │
+│                     DEVELOPMENT (Your Machine)                  │
+│                                                                 │
+│  Terminal 1          Terminal 2          Terminal 3   Terminal 4│
 │  ┌──────────┐        ┌──────────┐        ┌─────────┐  ┌────────┐│
 │  │  Piston  │        │ Backend  │        │Realtime │  │Frontend││
 │  │  Docker  │◄──────►│ FastAPI  │◄──────►│ Node.js │◄─┤  Vite  ││
@@ -454,23 +457,23 @@ All four processes run on `localhost`, communicating over plain HTTP/WebSocket o
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│                            PRODUCTION                                │
-│                                                                        │
-│   Vercel                    Railway                    Railway       │
-│  ┌──────────┐        ┌──────────────────┐        ┌──────────────┐   │
-│  │ Frontend │  HTTPS  │     Backend       │  HTTP  │   Realtime   │   │
-│  │ (static  │────────►│  FastAPI/Uvicorn  │◄──────►│ Node/Socket. │   │
-│  │  build)  │  WSS    │  (managed, always │        │io (managed,  │   │
-│  │          │────────►│  on, auto-restart)│        │always on)    │   │
-│  └──────────┘         └─────────┬─────────┘        └──────────────┘   │
-│  CDN-served                     │ HTTP (internal)                     │
-│  no server                      ▼                                     │
-│                        ┌──────────────────┐                          │
-│                        │      Piston       │      Railway (or         │
-│                        │  Docker container  │      dedicated Linux VM │
-│                        │  (Linux-native,     │                        │
-│                        │  no WSL2 involved)  │                        │
-│                        └──────────────────┘                          │
+│                            PRODUCTION                              │
+│                                                                    │
+│   Vercel                    Railway                    Railway     │
+│  ┌──────────┐         ┌──────────────────┐        ┌──────────────┐ │
+│  │ Frontend │  HTTPS  │     Backend      │  HTTP  │   Realtime   │ │
+│  │ (static  │────────►│  FastAPI/Uvicorn │◄──────►│ Node/Socket. │ │
+│  │  build)  │  WSS    │  (managed,always │        │io (managed,  │ │
+│  │          │────────►│  on,auto-restart)│        │always on)    │ │
+│  └──────────┘         └─────────┬────────┘        └──────────────┘ │
+│  CDN-served                     │ HTTP (internal)                  │
+│  no server                      ▼                                  │
+│                        ┌──────────────────┐                        │
+│                        │      Piston      │      Railway (or       │
+│                        │  Docker container│     dedicated Linux VM │
+│                        │  (Linux-native,  │                        │
+│                        │ no WSL2 involved)│                        │
+│                        └──────────────────┘                        │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -480,13 +483,14 @@ All four processes run on `localhost`, communicating over plain HTTP/WebSocket o
 
 | Dev (Terminal)                          | Production Equivalent                                                                 |
 |------------------------------------------|-----------------------------------------------------------------------------------------|
-| **Terminal 4** — Vite dev server          | Gone entirely. `npm run build` → static HTML/CSS/JS, served by **Vercel** behind a CDN. No Node process running in production. |
-| **Terminal 2** — `uvicorn --reload`       | Same Uvicorn command, minus `--reload`, run as a **Railway-managed process**. Railway restarts it automatically on crash. |
-| **Terminal 3** — `npm run dev` (nodemon)  | Plain `node server.js` (no nodemon — dev-only watcher), run as a **Railway-managed process**. |
-| **Terminal 1** — Piston (WSL2 Docker)     | Same Docker image, deployed as a container on **Railway** (or a dedicated small Linux VM) — not on a personal Windows/WSL2 machine. |
+| **Terminal 4**  Vite dev server          | Gone entirely. `npm run build` → static HTML/CSS/JS, served by **Vercel** behind a CDN. No Node process running in production. |
+| **Terminal 2**  `uvicorn --reload`       | Same Uvicorn command, minus `--reload`, run as a **Railway-managed process**. Railway restarts it automatically on crash. |
+| **Terminal 3**  `npm run dev` (nodemon)  | Plain `node server.js` (no nodemon — dev-only watcher), run as a **Railway-managed process**. |
+| **Terminal 1**  Piston (WSL2 Docker)     | Same Docker image, deployed as a container on **Railway** (or a dedicated small Linux VM) — not on a personal Windows/WSL2 machine. |
 
 In production there are no terminals in the everyday sense — all four become background services managed by a hosting platform, which starts them, restarts them on crash, and exposes logs through a dashboard instead of a terminal window.
 
+</div>
 ---
 
 ### Why Moving Piston Off WSL2 Matters
@@ -530,7 +534,7 @@ Switching environments is a **config change, not a code change**.
 
 </div>
 
-- [Docker Mounted Folder Becomes Empty After Redeploy — Oscar's Notebook](https://oscarchou.com/posts/troubleshoot/docker-compose-mount-empty-after-redeploy/)
+- [Docker Mounted Folder Becomes Empty After Redeploy Oscar's Notebook](https://oscarchou.com/posts/troubleshoot/docker-compose-mount-empty-after-redeploy/)
 - [Piston Configuration Documentation](https://piston.readthedocs.io/en/latest/configuration/)
 
 <div align="center">
