@@ -491,6 +491,7 @@ All four processes run on `localhost`, communicating over plain HTTP/WebSocket o
 In production there are no terminals in the everyday sense — all four become background services managed by a hosting platform, which starts them, restarts them on crash, and exposes logs through a dashboard instead of a terminal window.
 
 </div>
+
 ---
 
 ### Why Moving Piston Off WSL2 Matters
