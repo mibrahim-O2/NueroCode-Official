@@ -318,30 +318,49 @@ Frontend
 ## Important Notes
 
 ### 1. Docker First
-
 Always start Docker Desktop before opening WSL.
 
 ### 2. Always Verify Piston
-
 ```bash
 curl http://localhost:2000/api/v2/runtimes
 ```
 
-### 3. Never Continue on Empty Output
+### 3. Permanent Fix Applied
+Previously, Piston's runtime list would occasionally return empty (`[]`) after a restart, requiring `docker-compose up -d --force-recreate api` as a workaround. This was traced to bind-mount timing behavior on container redeploy — the runtime directory wasn't always available before Piston initialized.
 
-If the output is:
+**This issue has been permanently resolved** by:
+- Replacing the bind mount (`./data/piston/packages:/piston/packages`) with a **Docker named volume** (`piston_packages:/piston/packages`)
+- Changing the restart policy from `restart: always` to `restart: unless-stopped`
+- Migrating existing runtime packages into the new named volume
 
-```
-[]
-```
+As a result, empty runtime output no longer occurs during normal startup. `--force-recreate` is no longer required or recommended as a routine step.
 
-Run:
+### 4. If Empty Output Still Occurs (Rare, Post-Fix)
+This should not happen under normal conditions anymore, but if it does, follow these steps in order — do not jump straight to recreating the container:
 
+**Step 1 — Restart the container**
 ```bash
-docker-compose up -d --force-recreate api
+docker restart piston_api
+```
+Wait 2–3 seconds.
+
+**Step 2 — Verify again**
+```bash
+curl http://localhost:2000/api/v2/runtimes
 ```
 
-> **Known issue:** After a restart, Piston's runtime list sometimes returns empty and requires `--force-recreate` to resolve. This is not typical Piston behavior — it appears related to Docker bind-mount/container recreation behavior, a documented scenario where bind-mounted folders can appear empty after redeploy. Current recommendation: continue using this guide as the working workaround for now, and revisit permanently optimizing the Docker/Piston startup behavior after FYP submission, since it does not currently block development.
+**Step 3 — If still empty, recreate only the container**
+```bash
+docker rm -f piston_api
+docker compose up -d
+```
+
+**Step 4 — Verify again**
+```bash
+curl http://localhost:2000/api/v2/runtimes
+```
+
+If the issue persists even after Step 3–4, treat it as a new/different problem — not the original bind-mount issue — and investigate separately (check Docker Desktop status, WSL resources, or volume integrity) rather than reapplying the old workaround.
 
 ### 4. Backend Environment Variable
 
