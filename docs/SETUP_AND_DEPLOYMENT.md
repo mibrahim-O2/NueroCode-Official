@@ -25,16 +25,14 @@ Running NeuroCode locally requires **five terminals**, each dedicated to a speci
 
 </div>
 
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,30:00A676,70:D4AF37,100:1a1a1a&height=2" width="100%"/>
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
+</p>
 
 <div align="center">
 
 <a id="terminal-1"></a>
 ## Terminal 1 Starting Piston (WSL2)
-
-<p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
-</p>
 
 </div>
 
@@ -142,10 +140,6 @@ If all runtimes appear, Piston is ready.
 <a id="terminal-2"></a>
 ## Terminal 2 Backend
 
-<p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
-</p>
-
 </div>
 
 **PowerShell (Windows):**
@@ -181,10 +175,6 @@ http://localhost:8000
 
 <a id="terminal-3"></a>
 ## Terminal 3 Realtime Server
-
-<p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
-</p>
 
 </div>
 
@@ -227,9 +217,6 @@ http://localhost:3001
 <a id="terminal-4"></a> 
 ## Terminal 4 Frontend
 
-  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
-</p>
-
 </div>
 
 **PowerShell (Windows):**
@@ -259,8 +246,6 @@ http://localhost:5173
 
 <a id="terminal-5"></a>
 ## Terminal 5 Optional (Testing / Git / Logs)
-
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
 
 </div>
 
@@ -420,8 +405,6 @@ docker-compose down
 
 <a id="deployment-architecture"></a>
 
-<div align="center">
-
 ## Deployment Architecture
 
 <p align="center">
@@ -507,13 +490,13 @@ The empty-runtimes bug (`[]` from `/api/v2/runtimes`) was rooted in a **bind-mou
 
 Deploying Piston to Railway (or a Linux VM) removes this entire class of problem — not because the code changes, but because the host stops being the Windows↔Linux bridge that caused the race in the first place. Linux-native hosting has no WSL2 boot cycle to race against.
 
-The **named volume + `restart: unless-stopped` fix** (see Permanent Fix section) still applies and is carried into the production Docker Compose/config as-is — it's not a dev-only fix, it's the correct config regardless of host.
+The **named volume + `restart: unless-stopped` fix** (see Permanent Fix section) still applies and is carried into the production Docker Compose/config as-is it's not a dev-only fix, it's the correct config regardless of host.
 
 ---
 
 ### Environment Variable Switch (Dev → Prod)
 
-Only URLs change — the communication mechanism (HTTP/WebSocket) stays identical. This is why every service reads these as env vars instead of hardcoding `localhost`.
+Only URLs change the communication mechanism (HTTP/WebSocket) stays identical. This is why every service reads these as env vars instead of hardcoding `localhost`.
 
 | Variable              | Development                          | Production                                  |
 |------------------------|----------------------------------------|-----------------------------------------------|
@@ -529,7 +512,7 @@ Switching environments is a **config change, not a code change**.
 
 - **Dev:** 4 terminals, all `localhost`, manually started/watched.
 - **Prod:** 3 managed services (Backend, Realtime, Piston) on Railway + 1 static site (Frontend) on Vercel CDN. No terminals, no manual restarts, dashboard-based logs.
-- The Piston bind-mount race condition is a **Windows/WSL2-specific problem** — it does not exist on Railway's Linux-native environment, independent of the permanent fix already applied.
+- The Piston bind-mount race condition is a **Windows/WSL2-specific problem** it does not exist on Railway's Linux-native environment, independent of the permanent fix already applied.
 
 <div align="center">
 
