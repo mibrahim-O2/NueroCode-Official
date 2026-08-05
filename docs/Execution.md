@@ -284,6 +284,7 @@ git status
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
  
 
+<a id="project-architecture"></a>
 ## Project Architecture
 
 </div>
@@ -318,9 +319,17 @@ Frontend
    │
    └──▶ Realtime Server (Socket.io)
 ```
----
 
+<div align="center">
+
+[⬆ Back to Overview](#overview)
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+
+<a id="important-notes"></a>
 ## Important Notes
+
+</div>
 
 ### 1. Docker First
 Always start Docker Desktop before opening WSL.
@@ -367,7 +376,7 @@ curl http://localhost:2000/api/v2/runtimes
 
 If the issue persists even after Step 3–4, treat it as a new/different problem — not the original bind-mount issue — and investigate separately (check Docker Desktop status, WSL resources, or volume integrity) rather than reapplying the old workaround.
 
-### 4. Backend Environment Variable
+### 5. Backend Environment Variable
 
 `.env`:
 
@@ -379,6 +388,7 @@ No code changes are required — the backend already reads this URL from the env
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
 
+<a id="shutdown"></a>
 ## Shutdown
 
 **Backend / Frontend:**
@@ -396,6 +406,7 @@ docker-compose down
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
 
+<a id="first-startup-checklist"></a>
 ## First Startup Checklist
 
 - [ ] Docker Desktop Running
@@ -407,7 +418,117 @@ docker-compose down
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
 
+<a id="deployment-architecture"></a>
+## Deployment Architecture
+
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
+</p>
+
+This section maps each of the four development terminals to its production equivalent — what changes, what stays the same, and why.
+
+---
+
+### Development (Current — 4 Terminals)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     DEVELOPMENT (Your Machine)                   │
+│                                                                   │
+│  Terminal 1          Terminal 2          Terminal 3   Terminal 4 │
+│  ┌──────────┐        ┌──────────┐        ┌─────────┐  ┌────────┐│
+│  │  Piston  │        │ Backend  │        │Realtime │  │Frontend││
+│  │  Docker  │◄──────►│ FastAPI  │◄──────►│ Node.js │◄─┤  Vite  ││
+│  │  (WSL2)  │  HTTP  │ Uvicorn  │  WS/   │Socket.io│  │  Dev   ││
+│  │          │        │ --reload │  HTTP  │(nodemon)│  │ Server ││
+│  └──────────┘        └──────────┘        └─────────┘  └────────┘│
+│  :2000                :8000               :3001        :5173    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+All four processes run on `localhost`, communicating over plain HTTP/WebSocket on different ports. Each needs its own terminal because each is a separate, long-running, blocking process (different language runtime, different lifecycle) — not an architectural requirement, just a dev-workflow one.
+
+---
+
+### Production (Target Deployment)
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│                            PRODUCTION                                │
+│                                                                        │
+│   Vercel                    Railway                    Railway       │
+│  ┌──────────┐        ┌──────────────────┐        ┌──────────────┐   │
+│  │ Frontend │  HTTPS  │     Backend       │  HTTP  │   Realtime   │   │
+│  │ (static  │────────►│  FastAPI/Uvicorn  │◄──────►│ Node/Socket. │   │
+│  │  build)  │  WSS    │  (managed, always │        │io (managed,  │   │
+│  │          │────────►│  on, auto-restart)│        │always on)    │   │
+│  └──────────┘         └─────────┬─────────┘        └──────────────┘   │
+│  CDN-served                     │ HTTP (internal)                     │
+│  no server                      ▼                                     │
+│                        ┌──────────────────┐                          │
+│                        │      Piston       │      Railway (or         │
+│                        │  Docker container  │      dedicated Linux VM │
+│                        │  (Linux-native,     │                        │
+│                        │  no WSL2 involved)  │                        │
+│                        └──────────────────┘                          │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Terminal → Production Mapping
+
+| Dev (Terminal)                          | Production Equivalent                                                                 |
+|------------------------------------------|-----------------------------------------------------------------------------------------|
+| **Terminal 4** — Vite dev server          | Gone entirely. `npm run build` → static HTML/CSS/JS, served by **Vercel** behind a CDN. No Node process running in production. |
+| **Terminal 2** — `uvicorn --reload`       | Same Uvicorn command, minus `--reload`, run as a **Railway-managed process**. Railway restarts it automatically on crash. |
+| **Terminal 3** — `npm run dev` (nodemon)  | Plain `node server.js` (no nodemon — dev-only watcher), run as a **Railway-managed process**. |
+| **Terminal 1** — Piston (WSL2 Docker)     | Same Docker image, deployed as a container on **Railway** (or a dedicated small Linux VM) — not on a personal Windows/WSL2 machine. |
+
+In production there are no terminals in the everyday sense — all four become background services managed by a hosting platform, which starts them, restarts them on crash, and exposes logs through a dashboard instead of a terminal window.
+
+---
+
+### Why Moving Piston Off WSL2 Matters
+
+The empty-runtimes bug (`[]` from `/api/v2/runtimes`) was rooted in a **bind-mount + `restart: always` race condition specific to WSL2's boot sequence** — the mounted volume wasn't always ready before Piston's one-time runtime scan ran.
+
+Deploying Piston to Railway (or a Linux VM) removes this entire class of problem — not because the code changes, but because the host stops being the Windows↔Linux bridge that caused the race in the first place. Linux-native hosting has no WSL2 boot cycle to race against.
+
+The **named volume + `restart: unless-stopped` fix** (see Permanent Fix section) still applies and is carried into the production Docker Compose/config as-is — it's not a dev-only fix, it's the correct config regardless of host.
+
+---
+
+### Environment Variable Switch (Dev → Prod)
+
+Only URLs change — the communication mechanism (HTTP/WebSocket) stays identical. This is why every service reads these as env vars instead of hardcoding `localhost`.
+
+| Variable              | Development                          | Production                                  |
+|------------------------|----------------------------------------|-----------------------------------------------|
+| `VITE_BACKEND_URL`     | `http://localhost:8000`               | `https://your-app.up.railway.app`             |
+| `VITE_SOCKET_URL`      | `http://localhost:3001`               | `wss://your-realtime.up.railway.app`          |
+| `PISTON_API`           | `http://localhost:2000/api/v2`        | Internal Railway service URL / private network address |
+
+Switching environments is a **config change, not a code change**.
+
+---
+
+### Summary
+
+- **Dev:** 4 terminals, all `localhost`, manually started/watched.
+- **Prod:** 3 managed services (Backend, Realtime, Piston) on Railway + 1 static site (Frontend) on Vercel CDN. No terminals, no manual restarts, dashboard-based logs.
+- The Piston bind-mount race condition is a **Windows/WSL2-specific problem** — it does not exist on Railway's Linux-native environment, independent of the permanent fix already applied.
+
+<div align="center">
+
+[⬆ Back to Overview](#overview)
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+
+<a id="references"></a>
 ## References
+
+</div>
 
 - [Docker Mounted Folder Becomes Empty After Redeploy — Oscar's Notebook](https://oscarchou.com/posts/troubleshoot/docker-compose-mount-empty-after-redeploy/)
 - [Piston Configuration Documentation](https://piston.readthedocs.io/en/latest/configuration/)
@@ -423,5 +544,3 @@ docker-compose down
 <div align="center">
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:1a1a1a,30:00A676,70:D4AF37,100:1a1a1a&height=100&section=footer"/>
 </div>
-
-
