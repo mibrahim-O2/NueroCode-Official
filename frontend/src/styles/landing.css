@@ -1,0 +1,116 @@
+/* Landing-page-scoped design tokens — intentionally separate from the
+   shared Tailwind tokens used by the authenticated app (Dashboard,
+   Roadmap, Practice, etc). This lets the landing page adopt the new
+   warm gold-forward visual direction without silently re-skinning any
+   other page in the product. */
+
+.landing-page {
+  --l-bg: #0B0B0D;
+  --l-bg-alt: #131417;
+  --l-surface: #17181C;
+  --l-border: rgba(255, 255, 255, 0.08);
+  --l-text-primary: #F5F3EE;
+  --l-text-secondary: #B8B4AA;
+  --l-text-muted: #7C7870;
+  --l-gold: #D4AF37;
+  --l-gold-soft: #F0D98C;
+  --l-gold-deep: #A9812A;
+  --l-coral: #FF6B5B;
+  --l-orange: #FF9142;
+  --l-emerald: #00A676;
+  --l-mint: #00C48C;
+  --l-shadow: rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+[data-theme='light'] .landing-page {
+  --l-bg: #FAF6EE;
+  --l-bg-alt: #F2ECDD;
+  --l-surface: #FFFFFF;
+  --l-border: rgba(30, 26, 20, 0.1);
+  --l-text-primary: #201C16;
+  --l-text-secondary: #57503F;
+  --l-text-muted: #8A8272;
+  --l-gold: #B8892E;
+  --l-gold-soft: #DDBB6A;
+  --l-gold-deep: #8C6A22;
+  --l-coral: #E85A4A;
+  --l-orange: #E67A2E;
+  --l-emerald: #058A5E;
+  --l-mint: #0AA579;
+  --l-shadow: rgba(120, 100, 60, 0.18);
+  color-scheme: light;
+}
+
+.landing-page {
+  background: var(--l-bg);
+  color: var(--l-text-primary);
+}
+
+/* Restrained gold sweep — used once, on a single headline phrase, not
+   looping across the whole page's typography. */
+.l-gold-sweep {
+  background: linear-gradient(
+    100deg,
+    var(--l-gold-deep),
+    var(--l-gold-soft) 35%,
+    var(--l-gold) 60%,
+    var(--l-gold-soft) 85%,
+    var(--l-gold-deep)
+  );
+  background-size: 240% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: l-sweep 8s ease-in-out infinite;
+}
+@keyframes l-sweep {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Cinematic depth via CSS perspective — no 3D library. */
+.l-perspective { perspective: 1400px; }
+.l-tilt {
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-style: preserve-3d;
+}
+.l-tilt:hover { transform: rotateX(2deg) rotateY(-3deg) translateY(-4px); }
+
+.l-glow-gold { filter: drop-shadow(0 0 24px rgba(212, 175, 55, 0.35)); }
+.l-glow-soft { box-shadow: 0 30px 80px -30px var(--l-shadow); }
+
+.l-card {
+  background: var(--l-surface);
+  border: 1px solid var(--l-border);
+  border-radius: 20px;
+  box-shadow: 0 20px 50px -25px var(--l-shadow);
+}
+
+.l-fade-up {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.l-fade-up.l-in { opacity: 1; transform: translateY(0); }
+
+.l-shimmer { position: relative; overflow: hidden; }
+.l-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  left: -150%;
+  width: 60%;
+  background: linear-gradient(120deg, transparent, rgba(212, 175, 55, 0.14), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.8s ease;
+}
+.l-shimmer:hover::after { left: 150%; }
+
+@media (prefers-reduced-motion: reduce) {
+  .l-gold-sweep, .l-tilt, .l-fade-up, .l-shimmer::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .l-fade-up { opacity: 1 !important; transform: none !important; }
+}
