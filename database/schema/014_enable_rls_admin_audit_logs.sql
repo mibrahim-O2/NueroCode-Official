@@ -1,0 +1,1 @@
+alter table admin_audit_logs enable row level security;
