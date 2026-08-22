@@ -1,22 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from app.middleware.auth_middleware import require_role
-from app.schemas.admin_schemas import UpdateRoleRequest
+from app.schemas.admin_schemas import UpdateRoleRequest, ResetActionRequest
+from app.services import admin_service
 from app.database.repositories import (
     get_all_users,
-    update_user_role,
     get_cohort_overview,
     get_student_timeline,
     get_skill_gap_summary,
     get_flagged_assessments,
     get_all_credentials_admin,
-    reset_student_roadmap,
     get_leaderboard,
+    get_recent_audit_logs,
 )
 
 router = APIRouter(prefix="/admin", tags=["admin"])
-
-VALID_ROLES = {"student", "educator", "admin"}
 
 
 # --- Educator + Admin (read-only cohort views) -----------------------------
@@ -46,7 +44,7 @@ async def class_leaderboard(current_user: dict = Depends(require_role("educator"
     return get_leaderboard(limit=50)
 
 
-# --- Admin only (user management, destructive actions) --------------------
+# --- Admin only -------------------------------------------------------------
 
 @router.get("/users")
 async def list_users(current_user: dict = Depends(require_role("admin"))):
@@ -57,9 +55,7 @@ async def list_users(current_user: dict = Depends(require_role("admin"))):
 async def change_user_role(
     user_id: str, payload: UpdateRoleRequest, current_user: dict = Depends(require_role("admin"))
 ):
-    if payload.role not in VALID_ROLES:
-        raise HTTPException(status_code=400, detail=f"Role must be one of {sorted(VALID_ROLES)}")
-    return update_user_role(user_id, payload.role)
+    return admin_service.change_user_role(current_user, user_id, payload.role, payload.reason)
 
 
 @router.get("/credentials")
@@ -67,6 +63,50 @@ async def all_credentials(current_user: dict = Depends(require_role("admin"))):
     return get_all_credentials_admin()
 
 
-@router.post("/students/{user_id}/reset-roadmap")
-async def reset_roadmap(user_id: str, current_user: dict = Depends(require_role("admin"))):
-    return reset_student_roadmap(user_id)
+@router.get("/audit-logs")
+async def audit_logs(current_user: dict = Depends(require_role("admin"))):
+    return get_recent_audit_logs(limit=100)
+
+
+# --- Architecture-aware student resets --------------------------------------
+
+@router.post("/students/{user_id}/reset/dashboard")
+async def reset_dashboard(
+    user_id: str, payload: ResetActionRequest, current_user: dict = Depends(require_role("admin"))
+):
+    return admin_service.reset_dashboard(current_user, user_id, payload.reason)
+
+
+@router.post("/students/{user_id}/reset/roadmap")
+async def reset_roadmap(
+    user_id: str, payload: ResetActionRequest, current_user: dict = Depends(require_role("admin"))
+):
+    return admin_service.reset_roadmap(current_user, user_id, payload.reason)
+
+
+@router.post("/students/{user_id}/reset/practice")
+async def reset_practice(
+    user_id: str, payload: ResetActionRequest, current_user: dict = Depends(require_role("admin"))
+):
+    return admin_service.reset_practice(current_user, user_id, payload.reason)
+
+
+@router.post("/students/{user_id}/reset/assessments")
+async def reset_assessments(
+    user_id: str, payload: ResetActionRequest, current_user: dict = Depends(require_role("admin"))
+):
+    return admin_service.reset_assessments(current_user, user_id, payload.reason)
+
+
+@router.post("/students/{user_id}/reset/credentials")
+async def reset_credentials(
+    user_id: str, payload: ResetActionRequest, current_user: dict = Depends(require_role("admin"))
+):
+    return admin_service.reset_credentials(current_user, user_id, payload.reason)
+
+
+@router.post("/students/{user_id}/reset/full")
+async def reset_full(
+    user_id: str, payload: ResetActionRequest, current_user: dict = Depends(require_role("admin"))
+):
+    return admin_service.reset_full_student(current_user, user_id, payload.reason)
