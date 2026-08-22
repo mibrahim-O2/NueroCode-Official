@@ -44,7 +44,24 @@ export function AuthProvider({ children }) {
     }
   };
 
- const updateUser = (partial) => setUser((prev) => (prev ? { ...prev, ...partial } : prev));
+   const updateUser = (partial) => setUser((prev) => (prev ? { ...prev, ...partial } : prev));
+
+  // Explicitly re-fetches the current user from the backend (which now
+  // reads live from the database — see /auth/me) rather than relying on
+  // whatever was last set in memory. Used to guarantee fresh data when
+  // returning to a page that displays account-level stats, without
+  // requiring a full reload or re-login.
+  const refreshUser = async () => {
+    try {
+      const fresh = await fetchCurrentUser();
+      setUser(fresh);
+      return fresh;
+    } catch {
+      // Non-fatal — keep existing state rather than disrupting the UI
+      // over a transient network issue.
+      return null;
+    }
+  };
 
   const value = {
     user,
@@ -52,6 +69,7 @@ export function AuthProvider({ children }) {
     error,
     setError,
     updateUser,
+    refreshUser,
     loginWithGoogle: () => runAuthAction(loginWithGoogle),
     loginWithGithub: () => runAuthAction(loginWithGithub),
     loginWithEmail: (email, password) => runAuthAction(() => loginWithEmail(email, password)),
