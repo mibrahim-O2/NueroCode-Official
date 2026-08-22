@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Star, Flame, Map, Award } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -16,8 +17,18 @@ function StatCard({ icon: Icon, label, value, accent }) {
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const firstName = user?.name?.split(' ')[0] || 'there';
+
+  // Dashboard (and the shared Topbar, which reads the same context) are
+  // the primary places a student's XP/Level/Streak are displayed.
+  // Refreshing on every mount ensures that navigating back to this page
+  // — not just a hard reload — reflects any admin reset that happened
+  // in the meantime.
+  useEffect(() => {
+    refreshUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex flex-col gap-8">
