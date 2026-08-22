@@ -467,9 +467,140 @@ def get_all_credentials_admin() -> list[dict]:
 def reset_student_roadmap(user_id: str) -> list[dict]:
     """Deletes a student's current roadmap and reseeds it fresh from
     position 0 — used by admins (Phase 14) to give a student a clean
-    restart, and reused unchanged by Test Mode's roadmap reset."""
+    restart, reused unchanged by Test Mode's roadmap reset, and reused
+    unchanged by the modular admin Reset Roadmap action below."""
     supabase.table("roadmap_nodes").delete().eq("user_id", user_id).execute()
     return seed_default_roadmap(user_id)
+
+
+# --- Admin: role safety + architecture-aware student resets ---------------
+
+def count_admins() -> int:
+    result = supabase.table("users").select("id").eq("role", "admin").execute()
+    return len(result.data)
+
+
+def get_user_role(user_id: str) -> str | None:
+    result = supabase.table("users").select("role").eq("id", user_id).execute()
+    return result.data[0]["role"] if result.data else None
+
+
+def reset_user_dashboard_stats(user_id: str) -> dict:
+    return (
+        supabase.table("users")
+        .update({"xp": 0, "level": 1, "streak": 0, "last_active_at": None})
+        .eq("id", user_id)
+        .execute()
+        .data[0]
+    )
+
+
+def clear_learning_analytics_recommendation(user_id: str) -> None:
+    """Owned by Roadmap — the 'Recommended next topic' badge specifically."""
+    supabase.table("learning_analytics").update({"recommended_next_topic": None}).eq(
+        "user_id", user_id
+    ).execute()
+
+
+def clear_learning_analytics_practice_fields(user_id: str) -> None:
+    """Owned by Practice — weak/strong topics and consistency, distinct
+    from the roadmap's recommended_next_topic field above."""
+    supabase.table("learning_analytics").update({
+        "weak_topics": [],
+        "strong_topics": [],
+        "learning_speed": None,
+        "consistency_score": None,
+    }).eq("user_id", user_id).execute()
+
+
+def delete_user_submissions(user_id: str) -> int:
+    existing = supabase.table("submissions").select("id").eq("user_id", user_id).execute().data
+    if existing:
+        supabase.table("submissions").delete().eq("user_id", user_id).execute()
+    return len(existing)
+
+
+def delete_user_generated_problems(user_id: str) -> int:
+    """Also clears this user's generated-problem history, so the
+    'avoid recent titles' uniqueness check in problem_service.py doesn't
+    keep referencing pre-reset titles after a Practice or Full Reset."""
+    existing = supabase.table("problems").select("id").eq("user_id", user_id).execute().data
+    if existing:
+        supabase.table("problems").delete().eq("user_id", user_id).execute()
+    return len(existing)
+
+
+def delete_user_submission_embeddings(user_id: str) -> None:
+    from app.database.chroma_client import submissions_collection
+
+    try:
+        submissions_collection().delete(where={"user_id": user_id})
+    except Exception:
+        pass  # Embeddings are supplementary — never block a reset on Chroma errors.
+
+
+def delete_resettable_assessments(user_id: str) -> int:
+    """Deletes assessment attempts that have NOT produced a credential.
+    Assessments backing an issued credential are intentionally preserved:
+    credentials.assessment_id is a NOT NULL foreign key with
+    ON DELETE CASCADE, so deleting a credentialed assessment would
+    silently delete its credential too — directly violating the
+    'do not automatically delete credentials' requirement. proctoring_logs
+    cascade-delete automatically for whichever assessments ARE removed
+    here (same FK behavior already in place since Phase 4)."""
+    credentialed = supabase.table("credentials").select("assessment_id").eq("user_id", user_id).execute().data
+    credentialed_ids = {c["assessment_id"] for c in credentialed}
+
+    all_assessments = supabase.table("assessments").select("id").eq("user_id", user_id).execute().data
+    to_delete = [a["id"] for a in all_assessments if a["id"] not in credentialed_ids]
+    if to_delete:
+        supabase.table("assessments").delete().in_("id", to_delete).execute()
+    return len(to_delete)
+
+
+def delete_all_user_assessments(user_id: str) -> int:
+    """Used only by Full Student Reset, where credentials are being wiped
+    in the same operation — no FK conflict, since both go together."""
+    existing = supabase.table("assessments").select("id").eq("user_id", user_id).execute().data
+    if existing:
+        supabase.table("assessments").delete().eq("user_id", user_id).execute()
+    return len(existing)
+
+
+def delete_user_credentials(user_id: str) -> int:
+    existing = supabase.table("credentials").select("id").eq("user_id", user_id).execute().data
+    if existing:
+        supabase.table("credentials").delete().eq("user_id", user_id).execute()
+    return len(existing)
+
+
+def create_audit_log(
+    admin_id: str, admin_name: str, target_user_id: str, target_user_name: str, action: str, reason: str | None
+) -> dict:
+    return (
+        supabase.table("admin_audit_logs")
+        .insert({
+            "admin_id": admin_id,
+            "admin_name": admin_name,
+            "target_user_id": target_user_id,
+            "target_user_name": target_user_name,
+            "action": action,
+            "reason": reason,
+        })
+        .execute()
+        .data[0]
+    )
+
+
+def get_recent_audit_logs(limit: int = 100) -> list[dict]:
+    return (
+        supabase.table("admin_audit_logs")
+        .select("*")
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+        .data
+    )
 
 
 # --- Test Mode ---------------------------------------------------------
