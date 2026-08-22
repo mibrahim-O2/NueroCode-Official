@@ -283,6 +283,20 @@ def get_user_by_id(user_id: str) -> dict | None:
     return result.data[0] if result.data else None
 
 
+def get_full_user_by_id(user_id: str) -> dict | None:
+    """Full-field user fetch for the authenticated /auth/me endpoint.
+
+    Deliberately separate from get_user_by_id (which selects only
+    id/name/role for the public, minimal-disclosure credential
+    verification page) — this one is only ever called for a user
+    fetching their OWN record, so returning every field is safe and,
+    critically, always reflects the current database state rather than
+    a snapshot taken at login time.
+    """
+    result = supabase.table("users").select("*").eq("id", user_id).execute()
+    return result.data[0] if result.data else None
+
+
 def get_credential_with_owner(verify_uuid: str) -> dict | None:
     """Public-facing lookup for the /verify/:uuid page. Deliberately
     returns only the credential and the owner's name — no email or other
