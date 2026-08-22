@@ -1,9 +1,20 @@
 import chromadb
+from chromadb.config import Settings as ChromaSettings
 from chromadb.utils import embedding_functions
 
 from app.config.settings import settings
 
-_client = chromadb.PersistentClient(path=settings.CHROMA_DB_PATH)
+# anonymized_telemetry=False stops ChromaDB from attempting to call its
+# bundled PostHog telemetry client at all. The "capture() takes 1
+# positional argument but 3 were given" warning was a version mismatch
+# between chromadb's bundled telemetry call and the installed posthog
+# package — cosmetic (caught internally, never raised, never affected
+# actual requests), but disabling it outright removes the noise instead
+# of just tolerating it.
+_client = chromadb.PersistentClient(
+    path=settings.CHROMA_DB_PATH,
+    settings=ChromaSettings(anonymized_telemetry=False),
+)
 
 _embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
     model_name="all-MiniLM-L6-v2"
