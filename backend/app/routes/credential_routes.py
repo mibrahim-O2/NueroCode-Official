@@ -1,7 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.middleware.auth_middleware import get_current_user
-from app.database.repositories import get_credentials_for_user, get_credential_with_owner
+from app.database.repositories import (
+    get_credentials_for_user,
+    get_credential_with_owner,
+    get_full_user_by_id,
+)
 
 router = APIRouter(tags=["credentials"])
 
