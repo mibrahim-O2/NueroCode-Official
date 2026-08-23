@@ -7,14 +7,14 @@ import { getInstantProblem, simulateSubmission as simulateSubmissionTestMode } f
 import { useTestMode } from '@/context/TestModeContext';
 import ProblemPanel from '@/components/editor/ProblemPanel';
 import CodeEditor, { DEFAULT_SNIPPETS } from '@/components/editor/CodeEditor';
-import Timer from '@/components/editor/Timer';
 import TestResultsPanel from '@/components/editor/TestResultsPanel';
 import AnalysisPanel from '@/components/editor/AnalysisPanel';
 import ChatWidget from '@/components/editor/ChatWidget';
+import ModelSwitcher from '@/components/editor/ModelSwitcher';
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
-const LANGUAGES = ['python', 'javascript', 'cpp'];
 const ROADMAP_DIFFICULTY_MAP = { beginner: 'easy', intermediate: 'medium', advanced: 'hard' };
+const PROVIDER_DISPLAY = { gemini: 'Gemini', openai: 'GPT (OpenAI)', claude: 'Claude (Sonnet 5)' };
 
 export default function Practice() {
   const testModeEnabled = useTestMode();
@@ -25,6 +25,7 @@ export default function Practice() {
   const [difficulty, setDifficulty] = useState(
     ROADMAP_DIFFICULTY_MAP[rawDifficulty] || rawDifficulty || 'medium'
   );
+  const [aiProvider, setAiProvider] = useState('gemini');
   const [problem, setProblem] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -40,7 +41,7 @@ export default function Practice() {
     setError(null);
     setResult(null);
     try {
-      const newProblem = await generateProblem(topic, difficulty);
+      const newProblem = await generateProblem(topic, difficulty, aiProvider);
       setProblem(newProblem);
       setLanguage('python');
       setCode(DEFAULT_SNIPPETS.python);
@@ -132,14 +133,16 @@ export default function Practice() {
             ))}
           </div>
         </div>
-        <button
-          onClick={handleGenerate}
-          disabled={loading || !topic.trim()}
-          className="flex items-center gap-2 rounded-button bg-emerald px-4 py-2.5 text-sm font-body text-white shadow-button transition-colors duration-200 hover:bg-emerald-hover disabled:opacity-50"
-        >
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          {problem ? 'Generate Another' : 'Generate Problem'}
-        </button>
+
+        <ModelSwitcher
+          activeProvider={aiProvider}
+          onProviderChange={setAiProvider}
+          onGenerate={handleGenerate}
+          loading={loading}
+          disabled={!topic.trim()}
+          hasProblem={!!problem}
+        />
+
         {testModeEnabled && (
           <button
             onClick={handleInstantProblem}
@@ -171,6 +174,12 @@ export default function Practice() {
       {problem && (
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="flex flex-col gap-6">
+            {problem.provider_used && (
+              <div className="flex w-fit items-center gap-1.5 rounded-badge border border-emerald/30 bg-emerald/10 px-3 py-1 text-xs text-emerald">
+                <Sparkles className="h-3 w-3" />
+                Generated with {PROVIDER_DISPLAY[problem.provider_used] || problem.provider_used}
+              </div>
+            )}
             <ProblemPanel problem={problem} />
             {result && <TestResultsPanel result={result} />}
             {result?.analysis && <AnalysisPanel analysis={result.analysis} />}
@@ -179,7 +188,7 @@ export default function Practice() {
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div className="flex overflow-hidden rounded-input border border-border">
-                {LANGUAGES.map((lang) => (
+                {['python', 'javascript', 'cpp'].map((lang) => (
                   <button
                     key={lang}
                     onClick={() => handleLanguageChange(lang)}
@@ -191,7 +200,6 @@ export default function Practice() {
                   </button>
                 ))}
               </div>
-              <Timer durationSeconds={1200} resetKey={problem.id} />
             </div>
 
             <CodeEditor language={language} value={code} onChange={setCode} />
