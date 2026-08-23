@@ -5,13 +5,48 @@ compares stdout against each test case's expected output.
 """
 
 import json
+import re
 
 from app.services.piston_service import execute_code, PistonExecutionError
 
 SUPPORTED_LANGUAGES = ("python", "javascript", "cpp")
 
 
-# --- C++ type inference / literal formatting (unchanged logic, isolated) ---
+def _detect_function_name(language: str, source_code: str) -> str:
+    """Detects which function in the student's submission to call.
+
+    Always prefers a function literally named 'solve' first — this keeps
+    the default starter snippets, and any solution written with our
+    convention in mind, working exactly as before. Falls back to the
+    student's ACTUAL function name otherwise, so code written or pasted
+    from outside NeuroCode (e.g. a solution from an external AI tool with
+    no knowledge of our 'solve' convention) still executes correctly
+    instead of failing with a confusing NameError.
+
+    Heuristic, not a full parser: if multiple candidate functions are
+    found and none is named 'solve', the LAST one defined is used, since
+    submitted solutions typically define any helper functions first and
+    the actual answer function last.
+    """
+    if language == "python":
+        names = re.findall(r"^\s*def\s+(\w+)\s*\(", source_code, re.MULTILINE)
+    elif language == "javascript":
+        names = re.findall(r"function\s+(\w+)\s*\(", source_code)
+        names += re.findall(r"(?:const|let|var)\s+(\w+)\s*=\s*(?:\([^)]*\)|\w+)\s*=>", source_code)
+    elif language == "cpp":
+        names = re.findall(
+            r"\b(?!if\b|for\b|while\b|switch\b|main\b|return\b)([A-Za-z_]\w*)\s*\([^;{}]*\)\s*\{",
+            source_code,
+        )
+    else:
+        names = []
+
+    if "solve" in names:
+        return "solve"
+    if names:
+        return names[-1]
+    return "solve"  # nothing detected — fall through to the original, clear error
+
 
 def _infer_cpp_type(value) -> str:
     if isinstance(value, bool):
@@ -40,19 +75,20 @@ def _cpp_literal(value) -> str:
     return json.dumps(str(value))
 
 
-# --- Per-language harness builders ---
-
 def _build_python_harness(source_code: str, args: list) -> str:
+    function_name = _detect_function_name("python", source_code)
     args_repr = ", ".join(repr(a) for a in args)
-    return f"{source_code}\n\nprint(solve({args_repr}))"
+    return f"{source_code}\n\nprint({function_name}({args_repr}))"
 
 
 def _build_javascript_harness(source_code: str, args: list) -> str:
+    function_name = _detect_function_name("javascript", source_code)
     args_repr = ", ".join(json.dumps(a) for a in args)
-    return f"{source_code}\n\nconsole.log(solve({args_repr}));"
+    return f"{source_code}\n\nconsole.log({function_name}({args_repr}));"
 
 
 def _build_cpp_harness(source_code: str, args: list, expected_output) -> str:
+    function_name = _detect_function_name("cpp", source_code)
     arg_types = [_infer_cpp_type(a) for a in args]
     arg_literals = [_cpp_literal(a) for a in args]
     arg_decls = "\n    ".join(
@@ -69,17 +105,16 @@ def _build_cpp_harness(source_code: str, args: list, expected_output) -> str:
         f"{source_code}\n\n"
         "int main() {\n"
         f"    {arg_decls}\n"
-        f"    auto result = solve({call_args});\n"
+        f"    auto result = {function_name}({call_args});\n"
         f"    {print_stmt}\n"
         "    return 0;\n"
         "}\n"
     )
 
 
-def _build_harness(
-    language: str, source_code: str, args: list, expected_output
-) -> tuple[str | None, str | None]:
-    """Returns (harness_source, error) — exactly one is non-None."""
+def _build_harness(language: str, source_code: str, args: list, expected_output):
+    """Returns (harness_source, error). If error is set, the caller should
+    short-circuit with that message instead of executing anything."""
     if language == "python":
         return _build_python_harness(source_code, args), None
 
@@ -102,12 +137,7 @@ def _build_harness(
 
 
 def _run_case(language: str, harness: str, case_number: int, args: list, expected_str: str) -> dict:
-    """Executes one test case's harness and returns its graded result.
-
-    Distinguishes compile failures from runtime failures so callers can
-    surface them cleanly and, for compiled languages, avoid repeating an
-    identical compile error across every remaining test case.
-    """
+    """Executes one test case's harness and returns its graded result."""
     piston_result = execute_code(language, harness)
 
     compile_info = piston_result.get("compile") or {}
@@ -140,15 +170,7 @@ def _run_case(language: str, harness: str, case_number: int, args: list, expecte
 
 
 def run_submission(problem: dict, language: str, source_code: str) -> dict:
-    """Grades a submission against a problem's stored test cases.
-
-    Returns either:
-      {"error": "...", "error_type": "invalid_request" | "infrastructure"} —
-        could not be graded at all. "invalid_request" means bad input on
-        the student's end (unsupported language/return type); "infrastructure"
-        means Piston itself is unreachable or has no runtimes loaded.
-      {"results": [...], "passed_count": int, "total_count": int, "all_passed": bool}
-    """
+    """Grades a submission against a problem's stored test cases."""
     if language not in SUPPORTED_LANGUAGES:
         return {"error": f"Unsupported language: {language}", "error_type": "invalid_request"}
 
@@ -171,10 +193,6 @@ def run_submission(problem: dict, language: str, source_code: str) -> dict:
                 passed_count += 1
 
             if case_result["compile_failed"]:
-                # Compilation depends only on the user's own code, which is
-                # identical across every case's harness — stop instead of
-                # repeating the same failure (and the same Piston round trip)
-                # for every remaining test case.
                 break
     except PistonExecutionError as exc:
         return {"error": str(exc), "error_type": "infrastructure"}
