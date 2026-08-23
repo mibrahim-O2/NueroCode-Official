@@ -47,8 +47,16 @@ def _extract_json(raw_text: str) -> dict:
     text = re.sub(r"^```(json)?", "", text).strip()
     text = re.sub(r"```$", "", text).strip()
 
+    # strict=False tells Python's JSON parser to tolerate raw control
+    # characters (like a literal newline) appearing inside a quoted
+    # string, instead of rejecting them. This matters specifically
+    # because canonical_solution embeds a full, multi-line block of code
+    # as one JSON string value — the single case most likely for an LLM's
+    # JSON-formatting mode to occasionally emit a real line break instead
+    # of the correctly escaped \n sequence. This is a standard, documented
+    # option on Python's own json module, not a workaround.
     try:
-        return json.loads(text)
+        return json.loads(text, strict=False)
     except json.JSONDecodeError:
         # Defensive fallback: locate the outermost {...} span and parse
         # just that. Guards against a provider prepending or appending
@@ -59,7 +67,7 @@ def _extract_json(raw_text: str) -> dict:
         end = text.rfind("}")
         if start == -1 or end == -1 or end <= start:
             raise
-        return json.loads(text[start : end + 1])
+        return json.loads(text[start : end + 1], strict=False)
 
 
 def _validate_canonical_solution(problem: dict) -> dict:
