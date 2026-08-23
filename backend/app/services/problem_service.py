@@ -46,7 +46,20 @@ def _extract_json(raw_text: str) -> dict:
     text = raw_text.strip()
     text = re.sub(r"^```(json)?", "", text).strip()
     text = re.sub(r"```$", "", text).strip()
-    return json.loads(text)
+
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        # Defensive fallback: locate the outermost {...} span and parse
+        # just that. Guards against a provider prepending or appending
+        # stray narrative text around an otherwise-valid JSON object
+        # (e.g. a leftover reasoning fragment), rather than failing the
+        # whole attempt when the JSON itself was actually fine.
+        start = text.find("{")
+        end = text.rfind("}")
+        if start == -1 or end == -1 or end <= start:
+            raise
+        return json.loads(text[start : end + 1])
 
 
 def _validate_canonical_solution(problem: dict) -> dict:
