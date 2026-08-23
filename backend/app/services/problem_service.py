@@ -4,6 +4,7 @@ import re
 
 from app.ai.provider_factory import get_ai_provider
 from app.config.settings import settings
+from app.ai.gemini_provider import GeminiQuotaExceededError
 from app.services.piston_service import execute_code, ensure_runtime_available, PistonExecutionError
 from app.database.repositories import get_recent_problem_titles, save_generated_problem
 
@@ -186,6 +187,11 @@ def generate_problem(user_id: str, topic: str, difficulty: str, provider_overrid
             logger.warning("[attempt %d/3] infrastructure error (Piston unreachable): %s", attempt, exc)
             attempt_summaries.append(f"attempt {attempt}: infrastructure error — {exc}")
             continue
+        except GeminiQuotaExceededError:
+            # Fails immediately — no point burning the remaining retry
+            # attempts against a quota that's already exhausted.
+            logger.warning("[attempt %d/3] Gemini quota exceeded, failing fast", attempt)
+            raise
         except json.JSONDecodeError as exc:
             logger.warning("[attempt %d/3] invalid JSON from AI provider: %s\nraw:\n%s", attempt, exc, raw)
             attempt_summaries.append(f"attempt {attempt}: malformed JSON response")
