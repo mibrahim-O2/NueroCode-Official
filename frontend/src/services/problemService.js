@@ -1,4 +1,7 @@
 import { apiClient } from './apiClient';
 
-export const generateProblem = (topic, difficulty) =>
-  apiClient.get(`/problems/generate?topic=${encodeURIComponent(topic)}&difficulty=${encodeURIComponent(difficulty)}`);
+export const generateProblem = (topic, difficulty, provider) => {
+  const params = new URLSearchParams({ topic, difficulty });
+  if (provider) params.set('provider', provider);
+  return apiClient.get(`/problems/generate?${params.toString()}`);
+};
