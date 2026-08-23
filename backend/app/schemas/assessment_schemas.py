@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 class StartAssessmentRequest(BaseModel):
     cluster_name: str
+    provider: str | None = None
 
 
 class SubmitAssessmentRequest(BaseModel):
