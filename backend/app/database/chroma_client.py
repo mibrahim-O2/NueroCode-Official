@@ -1,21 +1,36 @@
+import logging
 import os
 
 os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
 
-# Critical ordering fix: this patch MUST run BEFORE `import chromadb`.
-# ChromaDB builds its own internal telemetry client as part of its own
-# import-time setup, and grabs a direct reference to Posthog's capture
-# function at that exact moment. Patching it AFTER `import chromadb` (as
-# tried previously) is too late — ChromaDB has already captured its own
-# reference to the original, broken function by then, and re-patching
-# the class afterward doesn't reach back and fix that already-grabbed
-# reference. Patching posthog FIRST guarantees ChromaDB's own setup
-# picks up our safe, no-op version from the very start.
 try:
     import posthog
     posthog.Posthog.capture = lambda self, *args, **kwargs: None
 except (ImportError, AttributeError):
     pass
+
+
+class _SuppressChromaTelemetryFilter(logging.Filter):
+    """Discards ChromaDB's 'Failed to send telemetry event...' log lines
+    before they're printed.
+
+    Three earlier attempts tried to stop this error from happening in the
+    first place (env var, ChromaSettings, patching posthog.Posthog.capture)
+    — all targeted a SPECIFIC internal object, and all still left the
+    message appearing, which means ChromaDB's actual telemetry wrapper is
+    something other than what was patched. Rather than continue guessing
+    at which internal function is responsible, this intercepts the
+    already-caught, already-harmless error at the point it's about to be
+    logged — which works regardless of which internal code path produced
+    it. Attached to the root logger so it applies no matter which specific
+    module inside chromadb emits the message.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return "Failed to send telemetry event" not in record.getMessage()
+
+
+logging.getLogger().addFilter(_SuppressChromaTelemetryFilter())
 
 import chromadb
 from chromadb.config import Settings as ChromaSettings
