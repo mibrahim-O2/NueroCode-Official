@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 
+from app.config.settings import settings
 from app.middleware.auth_middleware import require_role
-from app.schemas.admin_schemas import UpdateRoleRequest, ResetActionRequest
+from app.schemas.admin_schemas import UpdateRoleRequest, ResetActionRequest, VerifyPasscodeRequest
 from app.services import admin_service
 from app.database.repositories import (
     get_all_users,
@@ -61,6 +62,21 @@ async def change_user_role(
 @router.get("/credentials")
 async def all_credentials(current_user: dict = Depends(require_role("admin"))):
     return get_all_credentials_admin()
+
+
+@router.post("/verify-provider-passcode")
+async def verify_provider_passcode(
+    payload: VerifyPasscodeRequest, current_user: dict = Depends(require_role("admin"))
+):
+    # This endpoint is UX friction for the admin's own model-switch flow,
+    # NOT the real security boundary — that's validate_provider_request()
+    # in provider_access.py, which is checked independently on every
+    # actual generation request regardless of whether this was ever
+    # called. A student can never reach this route at all (require_role
+    # blocks it before the passcode is even compared).
+    if payload.passcode != settings.PROVIDER_SWITCH_PASSCODE:
+        raise HTTPException(status_code=401, detail="Incorrect passcode.")
+    return {"verified": True}
 
 
 @router.get("/audit-logs")
