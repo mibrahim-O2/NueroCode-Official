@@ -120,7 +120,7 @@ def get_available_clusters(user_id: str) -> list[dict]:
     ]
 
 
-def start_assessment(user_id: str, cluster_name: str) -> dict:
+def start_assessment(user_id: str, cluster_name: str, provider_override: str | None = None) -> dict:
     cluster = _get_cluster(cluster_name)
     if not cluster:
         raise ValueError("Unknown cluster")
@@ -153,9 +153,10 @@ def start_assessment(user_id: str, cluster_name: str) -> dict:
             "expected_complexity": TEST_MODE_QUESTION["expected_complexity"],
             "duration_seconds": duration,
             "test_mode": True,
+            "provider_used": provider_override or settings.AI_PROVIDER,
         }
 
-    provider = get_ai_provider()
+    provider = get_ai_provider(provider_override)
     topics_text = " and ".join(cluster["topics"])
     user_prompt = f"Generate one comprehensive assessment problem combining: {topics_text}."
 
@@ -206,6 +207,7 @@ def start_assessment(user_id: str, cluster_name: str) -> dict:
                 "expected_complexity": question["expected_complexity"],
                 "duration_seconds": duration,
                 "test_mode": False,
+                "provider_used": provider_override or settings.AI_PROVIDER,
             }
 
         except PistonExecutionError as exc:
