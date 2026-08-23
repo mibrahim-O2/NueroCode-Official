@@ -19,10 +19,20 @@ class Settings(BaseSettings):
     FIREBASE_SERVICE_ACCOUNT_PATH: str = "./firebase-service-account.json"
     ADMIN_EMAIL: str = "mibrahimkhalid306@gmail.com"
 
-    # AI provider abstraction — "openai" for now, "anthropic" is a future drop-in
-    AI_PROVIDER: str = "openai"
+    # AI provider abstraction. "gemini" is now the default — free, and the
+    # provider being actively evaluated. OpenAI remains fully wired and
+    # reachable per-request via provider_override (admin-only, see
+    # provider_access.py); Claude is UI-visible only until a future phase
+    # adds a working claude_provider.py.
+    AI_PROVIDER: str = "gemini"
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o-mini"
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-2.0-flash"
+
+    # Gates the admin-only real-provider-switch UI flow. Change this from
+    # the placeholder before any real evaluation/demo.
+    PROVIDER_SWITCH_PASSCODE: str = "neurocode-dev-passcode"
 
     # Development/testing-only overrides. All default to production values —
     # TEST_MODE=false, real thresholds, real 45-minute timer — so the app
