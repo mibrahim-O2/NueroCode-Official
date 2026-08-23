@@ -9,6 +9,8 @@ export const getAllUsers = () => apiClient.get('/admin/users');
 export const updateUserRole = (userId, role, reason) => apiClient.patch(`/admin/users/${userId}/role`, { role, reason });
 export const getAllCredentialsAdmin = () => apiClient.get('/admin/credentials');
 export const getAuditLogs = () => apiClient.get('/admin/audit-logs');
+export const verifyProviderPasscode = (passcode) =>
+  apiClient.post('/admin/verify-provider-passcode', { passcode });
 
 export const resetDashboard = (userId, reason) => apiClient.post(`/admin/students/${userId}/reset/dashboard`, { reason });
 export const resetRoadmapModule = (userId, reason) => apiClient.post(`/admin/students/${userId}/reset/roadmap`, { reason });
