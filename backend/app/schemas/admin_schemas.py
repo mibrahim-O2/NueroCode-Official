@@ -6,5 +6,9 @@ class UpdateRoleRequest(BaseModel):
     reason: str | None = None
 
 
+class VerifyPasscodeRequest(BaseModel):
+    passcode: str
+
+
 class ResetActionRequest(BaseModel):
     reason: str | None = None
