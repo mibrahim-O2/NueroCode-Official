@@ -5,6 +5,7 @@ from app.schemas.assessment_schemas import StartAssessmentRequest, SubmitAssessm
 from app.services.assessment_service import get_available_clusters, start_assessment, submit_assessment
 from app.database.repositories import log_proctoring_event
 from app.services.piston_service import PistonRuntimeUnavailableError, PistonExecutionError
+from app.utils.provider_access import validate_provider_request
 
 router = APIRouter(prefix="/assessments", tags=["assessments"])
 
@@ -16,8 +17,10 @@ async def available_clusters(current_user: dict = Depends(get_current_user)):
 
 @router.post("/start")
 async def start(payload: StartAssessmentRequest, current_user: dict = Depends(get_current_user)):
+    validate_provider_request(current_user, payload.provider)
+
     try:
-        return start_assessment(current_user["id"], payload.cluster_name)
+        return start_assessment(current_user["id"], payload.cluster_name, provider_override=payload.provider)
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc))
     except ValueError as exc:
