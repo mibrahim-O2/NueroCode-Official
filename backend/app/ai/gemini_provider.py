@@ -22,15 +22,15 @@ class GeminiProvider(AIProvider):
         # disabled (confirmed via Google's own docs — unlike Gemini 2.5,
         # there is no reasoning_effort="none" / thinking_budget=0 escape
         # hatch for Gemini 3). Thinking tokens are drawn from the SAME
-        # max_output_tokens budget as the final answer, so a caller-supplied
-        # budget sized only for the answer (e.g. 1500, sized for OpenAI)
-        # gets entirely consumed by reasoning before any JSON is written —
-        # this is what was producing truncated mid-thought fragments
-        # instead of a JSON response. Boosting the effective ceiling here
-        # (Gemini-specific, not touching the shared AIProvider contract or
-        # OpenAI's behavior at all) gives reasoning room to complete before
-        # the final answer still needs to fit.
-        effective_max_tokens = max(max_tokens * 4, 4096)
+        # max_output_tokens budget as the final answer. A first attempt at
+        # a higher ceiling (4096) still wasn't enough for more conceptually
+        # involved problems — real testing showed generation truncated
+        # mid-answer, or consumed the entire budget on reasoning with no
+        # JSON ever written. Raised further here, Gemini-specific only
+        # (not touching the shared AIProvider contract or OpenAI's
+        # behavior), to give harder problems enough room for both the
+        # reasoning AND the full JSON answer to fit.
+        effective_max_tokens = max(max_tokens * 8, 8192)
 
         response = model.generate_content(
             user_prompt,
