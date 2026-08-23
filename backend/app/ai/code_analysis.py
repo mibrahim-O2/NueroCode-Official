@@ -13,6 +13,16 @@ so `x in a_set` isn't flagged the same way as `x in a_list`.
 """
 
 import re
+import warnings
+
+# tree_sitter_languages (a third-party helper library) still calls
+# tree-sitter's OLD, deprecated Language() constructor internally,
+# regardless of which tree-sitter version is installed — this is inside
+# that library's own code, not ours, so it can't be fixed by changing
+# our code or pinning a version. Silencing this specific warning message
+# is the correct fix here, since the deprecated call still works
+# correctly today; it's just noisy.
+warnings.filterwarnings("ignore", message="Language\\(path, name\\) is deprecated")
 
 from tree_sitter_languages import get_parser
 
