@@ -1,30 +1,25 @@
 import os
 
-# This MUST be set before `import chromadb` below. ChromaDB can attempt
-# to send its very first telemetry ping the moment it's imported — before
-# our own settings or the ChromaSettings object further down ever get a
-# chance to say "don't." Setting this environment variable first closes
-# that timing gap.
 os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
 
-import chromadb
-from chromadb.config import Settings as ChromaSettings
-from chromadb.utils import embedding_functions
-
-# Belt-and-suspenders fix: the environment variable above and the
-# ChromaSettings object below both tell ChromaDB's own configuration
-# system not to send telemetry, but testing confirmed some internal
-# ChromaDB code paths (collection creation/add events specifically)
-# attempted it regardless of both of those settings. This directly
-# disables the exact function named in the error ("capture() takes 1
-# positional argument but 3 were given") at its source, so no internal
-# ChromaDB code path can ever trigger that warning again, regardless of
-# which of its telemetry entry points it uses.
+# Critical ordering fix: this patch MUST run BEFORE `import chromadb`.
+# ChromaDB builds its own internal telemetry client as part of its own
+# import-time setup, and grabs a direct reference to Posthog's capture
+# function at that exact moment. Patching it AFTER `import chromadb` (as
+# tried previously) is too late — ChromaDB has already captured its own
+# reference to the original, broken function by then, and re-patching
+# the class afterward doesn't reach back and fix that already-grabbed
+# reference. Patching posthog FIRST guarantees ChromaDB's own setup
+# picks up our safe, no-op version from the very start.
 try:
     import posthog
     posthog.Posthog.capture = lambda self, *args, **kwargs: None
 except (ImportError, AttributeError):
     pass
+
+import chromadb
+from chromadb.config import Settings as ChromaSettings
+from chromadb.utils import embedding_functions
 
 from app.config.settings import settings
 
