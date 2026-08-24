@@ -1,84 +1,53 @@
-/* Landing-page-scoped design tokens — intentionally separate from the
-   shared Tailwind tokens used by the authenticated app (Dashboard,
-   Roadmap, Practice, etc). This lets the landing page adopt the new
-   warm gold-forward visual direction without silently re-skinning any
-   other page in the product. */
+/* Locked palette — bright/mid/dark green + gray-green + black, gold used
+   in exactly one deliberate place (Team Leader badge), per final
+   supervisor-provided reference. Landing-scoped, does not touch the
+   app's own DESIGN_SYSTEM tokens. */
 
 .landing-page {
-  --l-bg: #0B0B0D;
-  --l-bg-alt: #131417;
-  --l-surface: #17181C;
-  --l-border: rgba(255, 255, 255, 0.08);
-  --l-text-primary: #F5F3EE;
-  --l-text-secondary: #B8B4AA;
-  --l-text-muted: #7C7870;
+  --l-black: #0A0C0A;
+  --l-surface: #12160F;
+  --l-surface-alt: #171C14;
+  --l-border: rgba(76, 175, 110, 0.16);
+
+  --l-green-bright: #34D67C;
+  --l-green-bright-hover: #29C06D;
+  --l-green-mid: #2FA85C;
+  --l-green-dark: #145C34;
+  --l-gray-green: #7C9483;
+
+  --l-text-primary: #F5F7F5;
+  --l-text-secondary: #B9C4BB;
+  --l-text-muted: #7C9483;
+
   --l-gold: #D4AF37;
-  --l-gold-soft: #F0D98C;
-  --l-gold-deep: #A9812A;
-  --l-coral: #FF6B5B;
-  --l-orange: #FF9142;
-  --l-emerald: #00A676;
-  --l-mint: #00C48C;
-  --l-shadow: rgba(0, 0, 0, 0.6);
+  --l-shadow: rgba(0, 0, 0, 0.65);
   color-scheme: dark;
 }
 
 [data-theme='light'] .landing-page {
-  --l-bg: #FAF6EE;
-  --l-bg-alt: #F2ECDD;
+  --l-black: #F4F7F3;
   --l-surface: #FFFFFF;
-  --l-border: rgba(30, 26, 20, 0.1);
-  --l-text-primary: #201C16;
-  --l-text-secondary: #57503F;
-  --l-text-muted: #8A8272;
+  --l-surface-alt: #EAF0E7;
+  --l-border: rgba(20, 92, 52, 0.16);
+
+  --l-green-bright: #1FA85C;
+  --l-green-bright-hover: #17924E;
+  --l-green-mid: #2E7D4F;
+  --l-green-dark: #145C34;
+  --l-gray-green: #5B6E5F;
+
+  --l-text-primary: #12180F;
+  --l-text-secondary: #3F4C42;
+  --l-text-muted: #6B7A6E;
+
   --l-gold: #B8892E;
-  --l-gold-soft: #DDBB6A;
-  --l-gold-deep: #8C6A22;
-  --l-coral: #E85A4A;
-  --l-orange: #E67A2E;
-  --l-emerald: #058A5E;
-  --l-mint: #0AA579;
-  --l-shadow: rgba(120, 100, 60, 0.18);
+  --l-shadow: rgba(20, 60, 35, 0.18);
   color-scheme: light;
 }
 
-.landing-page {
-  background: var(--l-bg);
-  color: var(--l-text-primary);
-}
+.landing-page { background: var(--l-black); color: var(--l-text-primary); }
 
-/* Restrained gold sweep — used once, on a single headline phrase, not
-   looping across the whole page's typography. */
-.l-gold-sweep {
-  background: linear-gradient(
-    100deg,
-    var(--l-gold-deep),
-    var(--l-gold-soft) 35%,
-    var(--l-gold) 60%,
-    var(--l-gold-soft) 85%,
-    var(--l-gold-deep)
-  );
-  background-size: 240% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: l-sweep 8s ease-in-out infinite;
-}
-@keyframes l-sweep {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-/* Cinematic depth via CSS perspective — no 3D library. */
-.l-perspective { perspective: 1400px; }
-.l-tilt {
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  transform-style: preserve-3d;
-}
-.l-tilt:hover { transform: rotateX(2deg) rotateY(-3deg) translateY(-4px); }
-
-.l-glow-gold { filter: drop-shadow(0 0 24px rgba(212, 175, 55, 0.35)); }
-.l-glow-soft { box-shadow: 0 30px 80px -30px var(--l-shadow); }
+.l-perspective { perspective: 1600px; }
 
 .l-card {
   background: var(--l-surface);
@@ -101,16 +70,55 @@
   inset: 0;
   left: -150%;
   width: 60%;
-  background: linear-gradient(120deg, transparent, rgba(212, 175, 55, 0.14), transparent);
+  background: linear-gradient(120deg, transparent, rgba(52, 214, 124, 0.14), transparent);
   transform: skewX(-20deg);
   transition: left 0.8s ease;
 }
 .l-shimmer:hover::after { left: 150%; }
 
+/* Hero 3D card — six flat faces assembled with CSS 3D transforms into a
+   card standing at an angle, matching the reference site's technique.
+   preserve-3d on the box, each face offset with translateZ. The Tilt
+   wrapper (react-parallax-tilt) rotates this whole box on mouse move;
+   these transforms give it real depth rather than a flat image. */
+.l-card-3d {
+  position: relative;
+  width: 340px;
+  height: 220px;
+  transform-style: preserve-3d;
+}
+.l-card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  backface-visibility: hidden;
+}
+.l-card-front {
+  background: linear-gradient(155deg, var(--l-surface) 0%, var(--l-surface-alt) 100%);
+  border: 1px solid var(--l-border);
+  box-shadow: 0 40px 90px -30px rgba(52, 214, 124, 0.25);
+  transform: translateZ(14px);
+}
+.l-card-side {
+  background: var(--l-green-dark);
+  width: 14px;
+  height: 220px;
+  right: -14px;
+  top: 0;
+  transform: rotateY(90deg) translateZ(7px);
+  border-radius: 0 16px 16px 0;
+}
+.l-card-bottom {
+  background: var(--l-green-dark);
+  width: 340px;
+  height: 14px;
+  bottom: -14px;
+  left: 0;
+  transform: rotateX(-90deg) translateZ(7px);
+  border-radius: 0 0 16px 16px;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .l-gold-sweep, .l-tilt, .l-fade-up, .l-shimmer::after {
-    animation: none !important;
-    transition: none !important;
-  }
-  .l-fade-up { opacity: 1 !important; transform: none !important; }
+  .l-fade-up { transition: none !important; opacity: 1 !important; transform: none !important; }
+  .l-shimmer::after { transition: none !important; }
 }
