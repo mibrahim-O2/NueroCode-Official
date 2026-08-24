@@ -15,24 +15,27 @@ export default function ProblemSolution() {
       <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-2">
         <Reveal>
           <div className="l-card h-full p-8">
-            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-gold)' }}>
+            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-green-bright)' }}>
               The Problem
             </p>
             <p className="mt-4 text-lg leading-relaxed" style={{ color: 'var(--l-text-secondary)' }}>
-              Coding practice, feedback, assessments, and credentials usually live in disconnected tools.
-              Students can practice a lot, but nothing proves mastery — and nothing they do informs what
-              they study next.
+              Coding platforms today split practice, feedback, and proctored testing across separate
+              tools that don't talk to each other. What you practice never counts toward anything
+              verifiable — and nothing about how you code shapes what you learn next.
             </p>
           </div>
         </Reveal>
 
         <Reveal delay={100}>
           <div className="l-card h-full p-8">
-            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-gold)' }}>
+            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-green-bright)' }}>
               Our Approach
             </p>
             <p className="mt-4 text-lg leading-relaxed" style={{ color: 'var(--l-text-secondary)' }}>
-              NeuroCode connects the entire journey in one intelligent platform.
+              NeuroCode connects the entire journey — from your first practice problem on a{' '}
+              <span className="font-semibold" style={{ color: 'var(--l-gold)' }}>10</span>-topic
+              adaptive roadmap to a publicly verifiable credential — inside one platform that reads
+              your actual code, not just whether it passed.
             </p>
             <div className="mt-7 flex items-center justify-between gap-1">
               {FLOW.map(({ icon: Icon, label }, i) => (
@@ -40,7 +43,7 @@ export default function ProblemSolution() {
                   <div className="flex flex-col items-center gap-1.5">
                     <div
                       className="flex h-11 w-11 items-center justify-center rounded-full border"
-                      style={{ borderColor: 'var(--l-gold)', color: 'var(--l-gold)' }}
+                      style={{ borderColor: 'var(--l-green-bright)', color: 'var(--l-green-bright)' }}
                     >
                       <Icon className="h-4 w-4" />
                     </div>
