@@ -32,7 +32,7 @@ const TEAM = [
   },
   {
     name: 'Arsal Jan Chandio',
-    role: 'AI/RAG · Security Engineer',
+    role: 'Frontend & Real-Time Systems Engineer · ML Engineer',
     leader: false,
     avatar: null,
     responsibilities: [
@@ -49,7 +49,7 @@ const TEAM = [
   },
   {
     name: 'Ali Mugheri',
-    role: 'Frontend · UI/UX Engineer',
+    role: 'DevOps Engineer · Piston & Deployment Lead · Docker & Containerization Engineer',
     leader: false,
     avatar: null,
     responsibilities: [
