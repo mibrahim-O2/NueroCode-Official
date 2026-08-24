@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, PlayCircle } from 'lucide-react';
+import { ArrowRight, PlayCircle, CheckCircle2, Braces, Terminal } from 'lucide-react';
+import Tilt from 'react-parallax-tilt';
 import { useAuth } from '@/context/AuthContext';
 import Reveal from './Reveal';
 
@@ -18,16 +19,16 @@ export default function Hero() {
     <section id="top" className="relative overflow-hidden px-6 pb-24 pt-40 sm:pt-48">
       <div
         className="pointer-events-none absolute left-1/2 top-0 h-[520px] w-[900px] -translate-x-1/2 rounded-full blur-[140px]"
-        style={{ background: 'radial-gradient(circle, var(--l-gold) 0%, transparent 70%)', opacity: 0.12 }}
+        style={{ background: 'radial-gradient(circle, var(--l-green-bright) 0%, transparent 70%)', opacity: 0.14 }}
       />
 
       <div className="relative mx-auto grid max-w-7xl items-center gap-16 lg:grid-cols-2">
         <Reveal>
           <div
             className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-medium tracking-wide"
-            style={{ borderColor: 'var(--l-border)', color: 'var(--l-gold)' }}
+            style={{ borderColor: 'var(--l-border)', color: 'var(--l-green-bright)' }}
           >
-            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--l-gold)' }} />
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--l-green-bright)' }} />
             THE AI-POWERED CODING PLATFORM
           </div>
 
@@ -37,7 +38,7 @@ export default function Hero() {
           >
             Practice that adapts.
             <br />
-            <span className="l-gold-sweep">Proof that can't be faked.</span>
+            <span style={{ color: 'var(--l-green-bright)' }}>Proof that can't be faked.</span>
           </h1>
 
           <p className="mt-6 max-w-lg text-lg leading-relaxed" style={{ color: 'var(--l-text-secondary)' }}>
@@ -48,8 +49,8 @@ export default function Hero() {
           <div className="mt-9 flex flex-wrap items-center gap-4">
             <Link
               to={user ? '/dashboard' : '/login'}
-              className="l-glow-soft inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold transition-transform hover:scale-[1.03]"
-              style={{ background: 'linear-gradient(100deg, var(--l-gold-deep), var(--l-gold))', color: '#0B0B0D' }}
+              className="inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold transition-transform hover:scale-[1.03]"
+              style={{ backgroundColor: 'var(--l-green-bright)', color: '#06110A' }}
             >
               {user ? 'Go to Dashboard' : 'Get Started'} <ArrowRight className="h-4 w-4" />
             </Link>
@@ -65,52 +66,55 @@ export default function Hero() {
 
         <Reveal delay={150}>
           <div className="l-perspective flex items-center justify-center py-6">
-            <div className="l-tilt relative w-full max-w-md">
-              <div
-                className="pointer-events-none absolute inset-0 rounded-full blur-[100px]"
-                style={{
-                  background: 'radial-gradient(circle, var(--l-gold) 0%, var(--l-coral) 60%, transparent 80%)',
-                  opacity: 0.18,
-                }}
+            <div className="relative">
+              {/* decorative code-symbol accents around the card */}
+              <Braces
+                className="absolute -left-10 top-4 h-8 w-8 opacity-40"
+                style={{ color: 'var(--l-green-mid)' }}
               />
-              <svg viewBox="0 0 480 480" className="l-glow-gold relative w-full" aria-hidden="true">
-                <defs>
-                  <linearGradient id="heroHead" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="var(--l-gold-soft)" />
-                    <stop offset="100%" stopColor="var(--l-gold)" />
-                  </linearGradient>
-                </defs>
-                <path
-                  d="M240 46C130 46 58 132 70 230c7 58 46 94 46 142 0 26 21 47 47 47h14"
-                  fill="none"
-                  stroke="url(#heroHead)"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  opacity="0.9"
-                />
-                <g stroke="var(--l-gold)" strokeOpacity="0.5" strokeWidth="1.3" fill="none">
-                  <path d="M150 130 L200 104" />
-                  <path d="M200 104 L246 156" />
-                  <path d="M246 156 L188 190" />
-                  <path d="M188 190 L142 172" />
-                  <path d="M188 190 L228 236" />
-                  <path d="M228 236 L270 208" />
-                  <path d="M228 236 L178 278" />
-                  <path d="M178 278 L222 318" />
-                  <path d="M222 318 L196 358" />
-                </g>
-                <g fill="var(--l-gold)">
-                  {[
-                    [150, 130], [200, 104], [246, 156], [142, 172],
-                    [270, 208], [228, 236], [178, 278], [222, 318], [196, 358],
-                  ].map(([cx, cy], i) => (
-                    <circle key={i} cx={cx} cy={cy} r="4" opacity="0.9" />
-                  ))}
-                  <circle cx="188" cy="190" r="6" fill="var(--l-gold-soft)" />
-                </g>
-                <ellipse cx="240" cy="410" rx="120" ry="14" fill="var(--l-emerald)" opacity="0.18" />
-                <ellipse cx="240" cy="410" rx="80" ry="9" fill="none" stroke="var(--l-mint)" strokeOpacity="0.5" strokeWidth="1.5" />
-              </svg>
+              <Terminal
+                className="absolute -right-8 bottom-10 h-7 w-7 opacity-40"
+                style={{ color: 'var(--l-gray-green)' }}
+              />
+
+              <Tilt
+                tiltMaxAngleX={14}
+                tiltMaxAngleY={14}
+                perspective={1600}
+                glareEnable
+                glareMaxOpacity={0.12}
+                glareColor="#34D67C"
+                glarePosition="all"
+                scale={1.02}
+                transitionSpeed={1200}
+              >
+                <div className="l-card-3d">
+                  <div className="l-card-face l-card-side" />
+                  <div className="l-card-face l-card-bottom" />
+                  <div className="l-card-face l-card-front flex flex-col justify-between p-5 font-mono text-xs">
+                    <div className="flex items-center justify-between">
+                      <span style={{ color: 'var(--l-text-muted)' }}>practice.py</span>
+                      <span className="flex items-center gap-1" style={{ color: 'var(--l-green-bright)' }}>
+                        <CheckCircle2 className="h-3.5 w-3.5" /> 5/5 passed
+                      </span>
+                    </div>
+                    <pre className="whitespace-pre-wrap leading-6" style={{ color: 'var(--l-text-secondary)' }}>
+                      <span style={{ color: 'var(--l-green-mid)' }}>def</span>{' '}
+                      <span style={{ color: 'var(--l-text-primary)' }}>solve</span>(nums):
+                      {'\n'}    seen = {'{}'}
+                      {'\n'}    <span style={{ color: 'var(--l-green-mid)' }}>for</span> i, n <span style={{ color: 'var(--l-green-mid)' }}>in</span>{' '}
+                      enumerate(nums):
+                    </pre>
+                    <div
+                      className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] w-fit"
+                      style={{ backgroundColor: 'var(--l-surface-alt)', color: 'var(--l-green-bright)' }}
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--l-green-bright)' }} />
+                      Executed in a sandbox
+                    </div>
+                  </div>
+                </div>
+              </Tilt>
             </div>
           </div>
         </Reveal>
@@ -123,7 +127,7 @@ export default function Hero() {
         >
           {TRUST_ITEMS.map((label) => (
             <div key={label} className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: 'var(--l-gold)' }} />
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: 'var(--l-green-bright)' }} />
               {label}
             </div>
           ))}
