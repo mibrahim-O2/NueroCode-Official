@@ -15,7 +15,8 @@ export default function Footer() {
             </span>
           </div>
           <p className="mt-4 max-w-xs text-sm leading-relaxed" style={{ color: 'var(--l-text-muted)' }}>
-            AI-powered learning, real execution, verified assessments, trusted credentials.
+            Where Intelligence Meets Code — AI-powered learning, real execution, verified
+            assessments, trusted credentials.
           </p>
         </div>
 
