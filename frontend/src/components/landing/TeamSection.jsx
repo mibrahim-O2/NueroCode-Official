@@ -7,29 +7,7 @@ const SUPERVISOR = {
   org: 'Director, IMCS · University of Sindh',
 };
 
-// Placeholder links for Arsal and Ali are intentionally structured but
-// non-functional — clearly meant to be swapped for real URLs later, not
-// invented usernames.
 const TEAM = [
-  {
-    name: 'Muhammad Ibrahim',
-    role: 'Team Leader · Lead Backend, AI & Gamification Engineer',
-    leader: true,
-    avatar: 'https://github.com/mibrahim-O2.png',
-    responsibilities: [
-      'Backend architecture & development', 'FastAPI', 'PostgreSQL / Supabase', 'API development',
-      'AI/ML integration', 'Proctoring & assessment systems', 'Gamification system & progression logic',
-      'DevOps, deployment & testing', 'Git/GitHub', 'Overall technical architecture',
-      'Frontend integration where required',
-    ],
-    links: {
-      github: 'https://github.com/mibrahim-O2',
-      linkedin: 'https://github.com/mibrahim-O2',
-      email: 'mailto:mibrahimkhalid306@gmail.com',
-      x: 'https://x.com/MIbraheem_02',
-      facebook: 'https://web.facebook.com/mibrahim.O2',
-    },
-  },
   {
     name: 'Arsal Jan Chandio',
     role: 'Frontend & Real-Time Systems Engineer · ML Engineer',
@@ -45,6 +23,25 @@ const TEAM = [
       email: 'mailto:REPLACE_ARSAL_EMAIL@example.com',
       x: 'https://x.com/REPLACE_ARSAL_X',
       facebook: 'https://facebook.com/REPLACE_ARSAL_FACEBOOK',
+    },
+  },
+  {
+    name: 'Muhammad Ibrahim',
+    role: 'Team Lead · Full Stack · Backend & Systems Architect · AI & Gamified Engineer',
+    leader: true,
+    avatar: 'https://github.com/mibrahim-O2.png',
+    responsibilities: [
+      'Backend architecture & development', 'FastAPI', 'PostgreSQL / Supabase', 'API development',
+      'AI/ML integration', 'Proctoring & assessment systems', 'Gamification system & progression logic',
+      'DevOps, deployment & testing', 'Git/GitHub', 'Overall technical architecture',
+      'Frontend integration where required',
+    ],
+    links: {
+      github: 'https://github.com/mibrahim-O2',
+      linkedin: 'https://github.com/mibrahim-O2',
+      email: 'mailto:mibrahimkhalid306@gmail.com',
+      x: 'https://x.com/MIbraheem_02',
+      facebook: 'https://web.facebook.com/mibrahim.O2',
     },
   },
   {
@@ -77,13 +74,13 @@ function TeamCard({ member }) {
       style={
         member.leader
           ? { borderColor: 'var(--l-gold)', boxShadow: '0 0 0 1px var(--l-gold), 0 25px 60px -25px rgba(212,175,55,0.35)' }
-          : undefined
+          : { borderColor: 'var(--l-green-dark)' }
       }
     >
       {member.leader && (
         <span
           className="inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
-          style={{ backgroundColor: 'var(--l-gold)', color: '#0B0B0D' }}
+          style={{ backgroundColor: 'var(--l-gold)', color: '#1A1300' }}
         >
           Team Leader
         </span>
@@ -94,18 +91,20 @@ function TeamCard({ member }) {
             src={member.avatar}
             alt={member.name}
             className="h-14 w-14 rounded-xl object-cover"
-            style={{ border: `2px solid ${member.leader ? 'var(--l-gold)' : 'var(--l-border)'}` }}
+            style={{ border: `2px solid ${member.leader ? 'var(--l-gold)' : 'var(--l-green-dark)'}` }}
           />
         ) : (
           <div
             className="flex h-14 w-14 items-center justify-center rounded-xl text-sm font-semibold"
-            style={{ backgroundColor: 'var(--l-bg-alt)', color: 'var(--l-text-secondary)', border: '2px solid var(--l-border)' }}
+            style={{ backgroundColor: 'var(--l-surface-alt)', color: 'var(--l-text-secondary)', border: '2px solid var(--l-green-dark)' }}
           >
             {initials(member.name)}
           </div>
         )}
         <div>
-          <p className="font-heading text-base font-semibold" style={{ color: 'var(--l-text-primary)' }}>{member.name}</p>
+          <p className="font-heading text-base font-semibold" style={{ color: member.leader ? 'var(--l-gold)' : 'var(--l-text-primary)' }}>
+            {member.name}
+          </p>
           <p className="text-xs" style={{ color: member.leader ? 'var(--l-gold)' : 'var(--l-text-secondary)' }}>{member.role}</p>
         </div>
       </div>
@@ -114,7 +113,7 @@ function TeamCard({ member }) {
           <li
             key={r}
             className="rounded-full px-2 py-0.5 text-[10px]"
-            style={{ backgroundColor: 'var(--l-bg-alt)', color: 'var(--l-text-muted)' }}
+            style={{ backgroundColor: 'var(--l-surface-alt)', color: 'var(--l-text-muted)' }}
           >
             {r}
           </li>
@@ -134,7 +133,7 @@ export default function TeamSection() {
     <section id="team" className="px-6 py-24">
       <div className="mx-auto max-w-6xl">
         <Reveal>
-          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-gold)' }}>
+          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-green-bright)' }}>
             Team &amp; Supervisors
           </p>
           <h2 className="mt-3 font-heading text-3xl font-bold sm:text-4xl" style={{ color: 'var(--l-text-primary)' }}>
@@ -146,13 +145,13 @@ export default function TeamSection() {
           <div className="l-card mt-10 flex items-center gap-4 p-6">
             <div
               className="flex h-14 w-14 items-center justify-center rounded-xl text-sm font-semibold"
-              style={{ backgroundColor: 'var(--l-bg-alt)', color: 'var(--l-text-secondary)', border: '2px solid var(--l-border)' }}
+              style={{ backgroundColor: 'var(--l-surface-alt)', color: 'var(--l-text-secondary)', border: '2px solid var(--l-green-dark)' }}
             >
               {initials(SUPERVISOR.name)}
             </div>
             <div>
               <p className="font-heading text-base font-semibold" style={{ color: 'var(--l-text-primary)' }}>{SUPERVISOR.name}</p>
-              <p className="text-xs" style={{ color: 'var(--l-gold)' }}>{SUPERVISOR.role}</p>
+              <p className="text-xs" style={{ color: 'var(--l-green-bright)' }}>{SUPERVISOR.role}</p>
               <p className="text-xs" style={{ color: 'var(--l-text-muted)' }}>{SUPERVISOR.org}</p>
             </div>
           </div>
