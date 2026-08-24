@@ -1,5 +1,17 @@
-import { Sparkles, Code2, Map, GitBranch, Gauge, ShieldCheck, Cpu } from 'lucide-react';
+import { Sparkles, Code2, Map, GitBranch, Gauge, ShieldCheck, Cpu, Mic, MessageSquare, BookCheck, RotateCcw, Users } from 'lucide-react';
 import Reveal from './Reveal';
+
+// status: 'live' (shipped and working today) vs 'soon' (actively in
+// development — honest, forward-looking language rather than a false
+// present-tense claim). Flip a single status string here once a feature
+// ships; no layout or copy restructuring needed.
+const UPCOMING_FEATURES = [
+  { icon: Mic, title: 'Mock Interview Mode', desc: 'A timed, unassisted interview simulation.' },
+  { icon: MessageSquare, title: 'Teacher Comments', desc: 'Real educator feedback on your own code.' },
+  { icon: BookCheck, title: 'Official Solutions', desc: 'Compare your approach once you\'re done.' },
+  { icon: RotateCcw, title: 'Spaced Review', desc: 'Gentle nudges to revisit older topics.' },
+  { icon: Users, title: 'Peer Discussion', desc: 'See how others solved the same problem.' },
+];
 
 export default function FeatureGrid() {
   return (
@@ -101,9 +113,40 @@ export default function FeatureGrid() {
                 </p>
               </div>
             </div>
-          </Reveal>
+                    </Reveal>
         </div>
+
+        <Reveal delay={320}>
+          <div className="mt-14 flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--l-green-mid)' }} />
+            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-gray-green)' }}>
+              Launching Very Soon
+            </p>
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {UPCOMING_FEATURES.map(({ icon: Icon, title, desc }) => (
+              <div
+                key={title}
+                className="l-card flex flex-col gap-2 p-4"
+                style={{ borderStyle: 'dashed', borderColor: 'var(--l-border)' }}
+              >
+                <div className="flex items-center justify-between">
+                  <Icon className="h-4 w-4" style={{ color: 'var(--l-gray-green)' }} />
+                  <span
+                    className="rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide"
+                    style={{ backgroundColor: 'var(--l-surface-alt)', color: 'var(--l-gray-green)' }}
+                  >
+                    Soon
+                  </span>
+                </div>
+                <h4 className="text-sm font-semibold" style={{ color: 'var(--l-text-primary)' }}>{title}</h4>
+                <p className="text-xs leading-relaxed" style={{ color: 'var(--l-text-muted)' }}>{desc}</p>
+              </div>
+            ))}
+          </div>
+        </Reveal>
       </div>
     </section>
   );
 }
+          
