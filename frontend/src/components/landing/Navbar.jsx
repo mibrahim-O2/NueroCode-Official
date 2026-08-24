@@ -36,7 +36,7 @@ export default function Navbar() {
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${scrolled ? 'border-b' : ''}`}
       style={{
-        backgroundColor: scrolled ? 'var(--l-bg-alt)' : 'transparent',
+        backgroundColor: scrolled ? 'var(--l-surface)' : 'transparent',
         borderColor: scrolled ? 'var(--l-border)' : 'transparent',
       }}
     >
@@ -44,7 +44,7 @@ export default function Navbar() {
         <a href="#top" className="flex items-center gap-2.5">
           <Logo variant="icon" size={32} animated={false} />
           <span className="font-heading text-lg font-semibold" style={{ color: 'var(--l-text-primary)' }}>
-            Neuro<span style={{ color: 'var(--l-gold)' }}>Code</span>
+            Neuro<span style={{ color: 'var(--l-green-bright)' }}>Code</span>
           </span>
         </a>
 
@@ -84,7 +84,7 @@ export default function Navbar() {
           <Link
             to={user ? '/dashboard' : '/login'}
             className="rounded-full px-5 py-2.5 text-sm font-semibold transition-transform hover:scale-[1.03]"
-            style={{ background: 'linear-gradient(100deg, var(--l-gold-deep), var(--l-gold))', color: '#0B0B0D' }}
+            style={{ backgroundColor: 'var(--l-green-bright)', color: '#06110A' }}
           >
             {user ? 'Go to Dashboard' : 'Get Started'}
           </Link>
