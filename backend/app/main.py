@@ -15,6 +15,11 @@ from app.routes import (
     credential_routes,
     admin_routes,
     test_mode_routes,
+    interview_routes,
+    submission_comment_routes,
+    solution_routes,
+    review_routes,
+    discussion_routes,
 )
 from app.database.chroma_client import chroma_health_check
 from app.services.supabase_service import supabase
@@ -47,6 +52,11 @@ app.include_router(assessment_routes.router)
 app.include_router(credential_routes.router)
 app.include_router(admin_routes.router)
 app.include_router(test_mode_routes.router)
+app.include_router(interview_routes.router)
+app.include_router(submission_comment_routes.router)
+app.include_router(solution_routes.router)
+app.include_router(review_routes.router)
+app.include_router(discussion_routes.router)
 
 if settings.TEST_MODE:
     import logging
