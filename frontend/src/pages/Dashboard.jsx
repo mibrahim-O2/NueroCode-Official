@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
-import { Star, Flame, Map, Award } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Star, Flame, Map, Award, RotateCcw } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { getReviewDue } from '@/services/roadmapService';
 
 function StatCard({ icon: Icon, label, value, accent }) {
   return (
@@ -30,6 +33,11 @@ export default function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const [dueReviews, setDueReviews] = useState([]);
+  useEffect(() => {
+    getReviewDue().then(setDueReviews).catch(() => setDueReviews([]));
+  }, []);
+
   return (
     <div className="flex flex-col gap-8">
       <div>
@@ -37,7 +45,27 @@ export default function Dashboard() {
         <p className="mt-1 font-body text-sm text-text-muted">Here's where your progress stands today.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {dueReviews.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-emerald/30 bg-emerald/5 p-5">
+          <div className="flex items-center gap-3">
+            <RotateCcw className="h-5 w-5 text-emerald" />
+            <div>
+              <p className="font-heading text-sm font-semibold text-text-primary">Quick Review</p>
+              <p className="text-xs text-text-muted">
+                You completed <strong>{dueReviews[0].topic}</strong> {dueReviews[0].days_since_completion} days ago — try one short refresher.
+              </p>
+            </div>
+          </div>
+          <Link
+            to={`/practice?topic=${encodeURIComponent(dueReviews[0].topic)}`}
+            className="rounded-button bg-emerald px-4 py-2 text-xs font-body text-white hover:bg-emerald-hover"
+          >
+            Review Now
+          </Link>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard icon={Star} label="XP" value={user?.xp ?? 0} accent="bg-emerald/10 text-emerald" />
         <StatCard icon={Flame} label="Streak" value={user?.streak ?? 0} accent="bg-status-warning/10 text-status-warning" />
         <StatCard icon={Map} label="Level" value={user?.level ?? 1} accent="bg-mint/10 text-mint" />
