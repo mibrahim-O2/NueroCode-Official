@@ -5,6 +5,10 @@ class SubmitRequest(BaseModel):
     problem_id: str
     language: str
     source_code: str
+    # problem_id above is already required and passed through unchanged —
+    # this note just confirms it now also gets persisted onto the
+    # submissions row itself (see submission_routes.py), not just used
+    # to fetch the problem for grading.
 
 
 class TestCaseResult(BaseModel):
