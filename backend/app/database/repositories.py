@@ -256,6 +256,9 @@ def save_generated_problem(user_id: str, topic: str, difficulty: str, problem: d
 
 
 def get_recent_submissions(user_id: str, limit: int = 10) -> list[dict]:
+    """Used by the admin/educator student-timeline view — smaller default
+    limit than get_submissions_for_user, which powers the student's own
+    'My Submissions' page further below."""
     result = (
         supabase.table("submissions")
         .select("*")
@@ -725,9 +728,11 @@ def clear_simulated_credentials(user_id: str) -> dict:
 
 # --- Submissions ---------------------------------------------------------
 
-def create_submission(user_id: str, language: str, topic: str, difficulty: str, source_code: str,
-                       execution_result: dict | None = None, complexity: str | None = None,
-                       detected_patterns: dict | None = None, ai_feedback: str | None = None) -> dict:
+def create_submission(
+    user_id: str, language: str, topic: str, difficulty: str, source_code: str,
+    execution_result: dict, complexity: str, detected_patterns: dict, ai_feedback: str,
+    problem_id: str | None = None,
+) -> dict:
     data = {
         "user_id": user_id,
         "language": language,
@@ -738,8 +743,62 @@ def create_submission(user_id: str, language: str, topic: str, difficulty: str, 
         "complexity": complexity,
         "detected_patterns": detected_patterns,
         "ai_feedback": ai_feedback,
+        "problem_id": problem_id,
     }
     return supabase.table("submissions").insert(data).execute().data[0]
+
+
+def get_submission_by_id(submission_id: str) -> dict | None:
+    result = supabase.table("submissions").select("*").eq("id", submission_id).execute()
+    return result.data[0] if result.data else None
+
+
+def get_submissions_for_user(user_id: str, limit: int = 50) -> list[dict]:
+    """Powers the student-facing 'My Submissions' page — distinct from
+    get_recent_submissions above, which serves the admin/educator
+    timeline view with a smaller default limit."""
+    return (
+        supabase.table("submissions")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+        .data
+    )
+
+
+def has_passing_submission(user_id: str, problem_id: str) -> bool:
+    """Used by Official Solutions to confirm the student actually
+    completed THIS specific generated problem before revealing its
+    canonical solution."""
+    rows = (
+        supabase.table("submissions")
+        .select("execution_result")
+        .eq("user_id", user_id)
+        .eq("problem_id", problem_id)
+        .execute()
+        .data
+    )
+    return any((r.get("execution_result") or {}).get("all_passed") for r in rows)
+
+
+def get_last_submission_date_for_topic(user_id: str, topic: str) -> datetime | None:
+    """Used by Spaced Review to check whether a student has practiced a
+    given topic recently, independent of whether they've completed it."""
+    rows = (
+        supabase.table("submissions")
+        .select("created_at")
+        .eq("user_id", user_id)
+        .eq("topic", topic)
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+        .data
+    )
+    if not rows:
+        return None
+    return _parse_timestamp(rows[0]["created_at"])
 
 
 # --- Assessments -----------------------------------------------------------
@@ -811,3 +870,125 @@ def upsert_learning_analytics(user_id: str, insights: dict) -> dict:
         .execute()
         .data[0]
     )
+
+
+# --- Mock Interview Mode ----------------------------------------------
+
+def create_interview_session(user_id: str, topic: str, difficulty: str, question: dict, time_limit_seconds: int) -> dict:
+    # Stores the full question — including test_cases, stripped from the
+    # client-visible response by interview_routes.py — under _test_cases,
+    # since grading (submit_interview) needs them later.
+    stored_question = {**question, "_test_cases": question.get("test_cases", [])}
+    return (
+        supabase.table("interview_sessions")
+        .insert({
+            "user_id": user_id,
+            "topic": topic,
+            "difficulty": difficulty,
+            "question": stored_question,
+            "time_limit_seconds": time_limit_seconds,
+        })
+        .execute()
+        .data[0]
+    )
+
+
+def get_interview_session(session_id: str) -> dict | None:
+    result = supabase.table("interview_sessions").select("*").eq("id", session_id).execute()
+    return result.data[0] if result.data else None
+
+
+def update_interview_session(session_id: str, updates: dict) -> dict:
+    """Always computes submitted_at and time_taken_seconds itself from the
+    session's own started_at, regardless of what (if anything) the caller
+    passed for submitted_at — keeps this the single source of truth for
+    interview timing rather than trusting a caller-supplied timestamp."""
+    session = get_interview_session(session_id)
+    started = _parse_timestamp(session["started_at"])
+    now = datetime.now(timezone.utc)
+
+    updates["submitted_at"] = now.isoformat()
+    result = supabase.table("interview_sessions").update(updates).eq("id", session_id).execute().data[0]
+    result["time_taken_seconds"] = int((now - started).total_seconds())
+    return result
+
+
+def get_interview_history(user_id: str) -> list[dict]:
+    return (
+        supabase.table("interview_sessions")
+        .select("id, topic, difficulty, status, execution_result, created_at")
+        .eq("user_id", user_id)
+        .order("created_at", desc=True)
+        .limit(20)
+        .execute()
+        .data
+    )
+
+
+# --- Teacher Comments on Submissions ------------------------------------
+
+def add_submission_comment(submission_id: str, educator_id: str, educator_name: str, comment: str) -> dict:
+    result = (
+        supabase.table("submission_comments")
+        .insert({"submission_id": submission_id, "educator_id": educator_id, "comment": comment})
+        .execute()
+        .data[0]
+    )
+    result["educator_name"] = educator_name
+    return result
+
+
+def get_comments_for_submission(submission_id: str) -> list[dict]:
+    comments = (
+        supabase.table("submission_comments")
+        .select("*")
+        .eq("submission_id", submission_id)
+        .order("created_at")
+        .execute()
+        .data
+    )
+    if not comments:
+        return []
+    educator_ids = list({c["educator_id"] for c in comments})
+    educators = supabase.table("users").select("id, name").in_("id", educator_ids).execute().data
+    name_map = {e["id"]: e["name"] for e in educators}
+    for c in comments:
+        c["educator_name"] = name_map.get(c["educator_id"], "Educator")
+    return comments
+
+
+# --- Peer Discussion (practice problems only — see discussion_routes.py) --
+
+def add_discussion_comment(problem_id: str, user_id: str, user_name: str, comment: str) -> dict:
+    result = (
+        supabase.table("problem_discussions")
+        .insert({"problem_id": problem_id, "user_id": user_id, "comment": comment})
+        .execute()
+        .data[0]
+    )
+    result["user_name"] = user_name
+    return result
+
+
+def get_discussions_for_problem(problem_id: str) -> list[dict]:
+    rows = (
+        supabase.table("problem_discussions")
+        .select("*")
+        .eq("problem_id", problem_id)
+        .eq("is_hidden", False)
+        .order("created_at")
+        .execute()
+        .data
+    )
+    if not rows:
+        return []
+    user_ids = list({r["user_id"] for r in rows})
+    users = supabase.table("users").select("id, name").in_("id", user_ids).execute().data
+    name_map = {u["id"]: u["name"] for u in users}
+    for r in rows:
+        r["user_name"] = name_map.get(r["user_id"], "Student")
+    return rows
+
+
+def hide_discussion_comment(comment_id: str) -> None:
+    supabase.table("problem_discussions").update({"is_hidden": True}).eq("id", comment_id).execute()
