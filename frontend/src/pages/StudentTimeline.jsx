@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, Award } from 'lucide-react';
 import { getStudentTimeline } from '@/services/adminService';
 import ViolationBadges from '@/components/common/ViolationBadges';
+import TeacherCommentRow from '@/components/common/TeacherCommentRow';
 import { cn } from '@/lib/utils';
 
 export default function StudentTimeline() {
@@ -143,20 +144,16 @@ export default function StudentTimeline() {
                 <th className="px-5 py-3 font-normal">Language</th>
                 <th className="px-5 py-3 font-normal">Complexity</th>
                 <th className="px-5 py-3 font-normal">Date</th>
+                <th className="px-5 py-3 font-normal">Comment</th>
               </tr>
             </thead>
             <tbody>
               {data.submissions.map((s) => (
-                <tr key={s.id} className="border-b border-border last:border-0">
-                  <td className="px-5 py-3 text-text-secondary">{s.topic}</td>
-                  <td className="px-5 py-3 text-text-secondary">{s.language}</td>
-                  <td className="px-5 py-3 text-text-secondary">{s.complexity || '—'}</td>
-                  <td className="px-5 py-3 text-text-muted">{new Date(s.created_at).toLocaleDateString()}</td>
-                </tr>
+                <TeacherCommentRow key={s.id} submission={s} />
               ))}
               {data.submissions.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-5 py-8 text-center text-text-muted">
+                  <td colSpan={5} className="px-5 py-8 text-center text-text-muted">
                     No submissions yet.
                   </td>
                 </tr>
