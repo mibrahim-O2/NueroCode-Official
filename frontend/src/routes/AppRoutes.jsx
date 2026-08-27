@@ -9,6 +9,8 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import Dashboard from '@/pages/Dashboard';
 import Roadmap from '@/pages/Roadmap';
 import Practice from '@/pages/Practice';
+import MockInterview from '@/pages/MockInterview';
+import MySubmissions from '@/pages/MySubmissions';
 import Assessment from '@/pages/Assessment';
 import Credential from '@/pages/Credential';
 import Educator from '@/pages/Educator';
@@ -34,7 +36,9 @@ export default function AppRoutes() {
       >
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/roadmap" element={<Roadmap />} />
-        <Route path="/practice" element={<Practice />} />
+        <Route path="practice" element={<Practice />} />
+        <Route path="interview" element={<MockInterview />} />
+        <Route path="submissions" element={<MySubmissions />} />
         <Route path="/assessment" element={<Assessment />} />
         <Route path="/credential" element={<Credential />} />
         <Route path="/profile" element={<Profile />} />
