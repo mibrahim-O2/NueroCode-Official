@@ -35,6 +35,16 @@ async def execute_submission(payload: SubmitRequest, current_user: dict = Depend
         difficulty=problem["difficulty"],
         source_code=payload.source_code,
         execution_result=outcome,
+        complexity=None,
+        detected_patterns=None,
+        ai_feedback=None,
+        # This was previously missing entirely — problem_id was accepted
+        # in the request payload and used to fetch the problem for
+        # grading above, but never forwarded into the saved submission
+        # row itself. Without this, Official Solutions and Peer
+        # Discussion (Super Phase, Parts 3 and 5) would have no reliable
+        # way to know which problem a submission actually answered.
+        problem_id=payload.problem_id,
     )
 
     try:
