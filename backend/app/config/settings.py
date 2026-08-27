@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     # Gates the admin-only real-provider-switch UI flow. Change this from
     # the placeholder before any real evaluation/demo.
     PROVIDER_SWITCH_PASSCODE: str = "neurocode-dev-passcode"
+    INTERVIEW_DURATION_SECONDS: int = 1800
+    REVIEW_DUE_DAYS: int = 7
 
     # Development/testing-only overrides. All default to production values —
     # TEST_MODE=false, real thresholds, real 45-minute timer — so the app
