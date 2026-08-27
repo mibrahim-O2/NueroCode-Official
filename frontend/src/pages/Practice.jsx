@@ -11,6 +11,8 @@ import TestResultsPanel from '@/components/editor/TestResultsPanel';
 import AnalysisPanel from '@/components/editor/AnalysisPanel';
 import ChatWidget from '@/components/editor/ChatWidget';
 import ModelSwitcher from '@/components/editor/ModelSwitcher';
+import OfficialSolutionPanel from '@/components/editor/OfficialSolutionPanel';
+import DiscussionPanel from '@/components/editor/DiscussionPanel';
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
 const ROADMAP_DIFFICULTY_MAP = { beginner: 'easy', intermediate: 'medium', advanced: 'hard' };
@@ -183,6 +185,10 @@ export default function Practice() {
             <ProblemPanel problem={problem} />
             {result && <TestResultsPanel result={result} />}
             {result?.analysis && <AnalysisPanel analysis={result.analysis} />}
+            {/* Only offered after a genuine pass on THIS problem — the
+                backend independently re-checks this, this is just UI gating. */}
+            {result?.all_passed && <OfficialSolutionPanel problemId={problem.id} />}
+            {result?.all_passed && <DiscussionPanel problemId={problem.id} />}
           </div>
 
           <div className="flex flex-col gap-4">
