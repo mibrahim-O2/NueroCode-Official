@@ -42,7 +42,14 @@ def start_interview(user_id: str, topic: str, difficulty: str) -> dict:
                 f"Generate a {difficulty} interview question about {topic}.",
             )
             question = _extract_json(raw)
-            question = _validate_canonical_solution(question)
+            # Deliberately NOT reassigning the return value here — this
+            # function's job is to run the canonical solution through
+            # Piston and correct each test case's expected_output; the
+            # earlier version reassigned its return value onto `question`
+            # and that silently dropped fields like 'title', causing a
+            # KeyError further down. Calling it for its side effect only
+            # and keeping the original, fully-formed `question` dict.
+            _validate_canonical_solution(question)
 
             session = create_interview_session(
                 user_id=user_id,
