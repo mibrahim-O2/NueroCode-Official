@@ -113,7 +113,12 @@ def submit_interview(user_id: str, session_id: str, language: str, source_code: 
     return {
         "results": execution_result,
         "complexity": analysis["complexity"] if analysis else None,
-        "anti_patterns": analysis["detected_patterns"] if analysis else [],
+        # analyze_code() (the raw static analyzer) returns its findings
+        # under the key 'anti_patterns' directly — 'detected_patterns' is
+        # a different, wrapper-shaped key used one layer up in
+        # analysis_service.py's DB-saving logic, not something this
+        # function's return value actually has.
+        "anti_patterns": analysis["anti_patterns"] if analysis else [],
         "time_taken_seconds": updated["time_taken_seconds"],
         "all_passed": execution_result.get("all_passed", False),
     }
