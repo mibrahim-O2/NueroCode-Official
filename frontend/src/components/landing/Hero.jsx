@@ -18,7 +18,7 @@ export default function Hero() {
   const { user } = useAuth();
 
   return (
-      <section id="top" className="relative overflow-hidden px-6 pb-20 pt-20 sm:pt-24">
+      <section id="top" className="relative overflow-hidden px-6 pb-20 pt-20 sm:pt-24 lg:pb-44">
       <div
         className="pointer-events-none absolute left-1/2 top-0 h-[520px] w-[900px] -translate-x-1/2 rounded-full blur-[140px]"
         style={{
@@ -78,10 +78,20 @@ export default function Hero() {
             on top. Outer scale wrapper handles responsive sizing without
             needing Logo.jsx itself to support responsive props. */}
         <Reveal delay={150}>
-          <div className="relative flex items-center justify-center py-6 lg:py-2">
+          {/* Explicit downward offset, scoped to this column only — the
+              grid's items-start (left column) has no leftover row space
+              for alignment tricks to redistribute, so a direct margin is
+              the reliable way to nudge just this side down without
+              touching how the left column is positioned at all. */}
+          <div className="relative flex items-center justify-center py-6 lg:py-2 lg:mt-16">
             <HeroNetwork className="left-1/2 top-1/2 h-[110%] w-[110%] -translate-x-1/2 -translate-y-1/2 lg:h-[130%] lg:w-[130%]" />
 
-            <div className="l-perspective relative scale-[0.62] sm:scale-[0.8] lg:scale-100">
+                {/* origin-top keeps the top edge anchored exactly where it is
+                (the position just confirmed as correct) while the
+                slightly reduced lg scale pulls the BOTTOM edge up,
+                giving room within the section instead of getting clipped
+                by overflow-hidden. */}
+            <div className="l-perspective relative origin-top scale-[0.62] sm:scale-[0.8] lg:scale-[0.88]">
               <div className="relative">
                 <div className="l-hero-ring" />
                 <div className="l-hero-ring-outer" />
