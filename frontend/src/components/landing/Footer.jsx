@@ -6,16 +6,16 @@ const DOCS_URL = 'https://github.com/mibrahim-O2/NueroCode-Official/blob/main/do
 export default function Footer() {
   return (
     <footer className="border-t px-6 py-14" style={{ borderColor: 'var(--l-border)' }}>
-      <div className="mx-auto grid max-w-7xl gap-10 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto grid max-w-7xl gap-10 text-center sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center gap-2">
             <Logo variant="icon" size={30} animated={false} />
             <span className="font-heading text-base font-semibold" style={{ color: 'var(--l-text-primary)' }}>
               NeuroCode
             </span>
           </div>
-          <p className="mt-4 max-w-xs text-sm leading-relaxed" style={{ color: 'var(--l-text-muted)' }}>
-            Where Intelligence Meets Code — AI-powered learning, real execution, verified
+          <p className="mx-auto mt-4 max-w-xs text-sm leading-relaxed" style={{ color: 'var(--l-text-muted)' }}>
+            Where Intelligence Meets Code AI-powered learning, real execution, verified
             assessments, trusted credentials.
           </p>
         </div>
@@ -47,7 +47,7 @@ export default function Footer() {
       </div>
 
       <div
-        className="mx-auto mt-12 max-w-7xl border-t pt-6 text-xs"
+        className="mx-auto mt-12 max-w-7xl border-t pt-6 text-center text-xs"
         style={{ borderColor: 'var(--l-border)', color: 'var(--l-text-muted)' }}
       >
         © 2026 NeuroCode. Final Year Project, Institute of Mathematics and Computer Science, University of Sindh.
