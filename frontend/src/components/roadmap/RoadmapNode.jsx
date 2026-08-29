@@ -23,10 +23,12 @@ export default function RoadmapNode({ node, isLast, isSelected, onSelect, justUn
           initial={justUnlocked ? { scale: 0.5, opacity: 0 } : false}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          whileHover={!isLocked ? { scale: 1.06 } : {}}
+          whileTap={!isLocked ? { scale: 0.94 } : {}}
           className={cn(
             'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-200',
-            isCompleted && 'border-emerald bg-emerald text-white',
-            isActive && 'border-emerald bg-card text-emerald animate-pulse-emerald',
+            isCompleted && 'border-orange bg-orange text-white',
+            isActive && 'border-orange bg-card text-orange animate-pulse-emerald',
             isLocked && 'cursor-not-allowed border-border bg-elevated text-text-disabled'
           )}
         >
@@ -36,7 +38,7 @@ export default function RoadmapNode({ node, isLast, isSelected, onSelect, justUn
         </motion.button>
         {!isLast && (
           <div
-            className={cn('mt-1 w-0.5 flex-1', isCompleted ? 'bg-emerald' : 'bg-border')}
+            className={cn('mt-1 w-0.5 flex-1', isCompleted ? 'bg-orange' : 'bg-border')}
             style={{ minHeight: 32 }}
           />
         )}
@@ -48,8 +50,8 @@ export default function RoadmapNode({ node, isLast, isSelected, onSelect, justUn
         disabled={isLocked}
         className={cn(
           'mb-4 flex-1 rounded-card border p-4 text-left transition-all duration-200',
-          isSelected ? 'border-emerald bg-card shadow-card' : 'border-border bg-card',
-          isLocked ? 'cursor-not-allowed opacity-60' : 'hover:border-emerald/50'
+          isSelected ? 'border-orange bg-card shadow-card' : 'border-border bg-card',
+          isLocked ? 'cursor-not-allowed opacity-60' : 'hover:border-orange/50 hover:-translate-y-0.5'
         )}
       >
         <div className="flex items-center justify-between">
@@ -63,7 +65,7 @@ export default function RoadmapNode({ node, isLast, isSelected, onSelect, justUn
               {node.topic}
             </h3>
             {recommended && (
-              <span className="flex items-center gap-1 rounded-badge border border-emerald/40 bg-emerald/10 px-2 py-0.5 text-[10px] uppercase text-emerald">
+              <span className="flex items-center gap-1 rounded-badge border border-teal/40 bg-teal/10 px-2 py-0.5 text-[10px] uppercase text-teal">
                 <Sparkles className="h-2.5 w-2.5" /> Recommended
               </span>
             )}

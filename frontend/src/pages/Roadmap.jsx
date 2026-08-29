@@ -83,17 +83,17 @@ export default function Roadmap() {
       </div>
 
       {banner && (
-        <div className="flex items-center gap-2 rounded-input border border-emerald/40 bg-emerald/10 px-4 py-2.5 text-sm text-emerald animate-fade-in">
+        <div className="animate-celebrate flex items-center gap-2 rounded-input border border-orange/40 bg-orange/10 px-4 py-2.5 text-sm text-orange">
           <Sparkles className="h-4 w-4" />
           {banner}
         </div>
       )}
 
       {recommendation?.recommended_topic && (
-        <div className="flex items-start gap-3 rounded-input border border-emerald/30 bg-emerald/5 px-4 py-3 text-sm text-text-secondary animate-fade-in">
-          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-emerald" />
+        <div className="animate-slide-fade-in flex items-start gap-3 rounded-input border border-teal/30 bg-teal/5 px-4 py-3 text-sm text-text-secondary">
+          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-teal" />
           <span>
-            <strong className="text-emerald">Recommended next: {recommendation.recommended_topic}.</strong>{' '}
+            <strong className="text-teal">Recommended next: {recommendation.recommended_topic}.</strong>{' '}
             {recommendation.reason}
           </span>
         </div>
@@ -116,7 +116,7 @@ export default function Roadmap() {
 
         <div className="flex flex-col gap-4">
           {selected && selected.status !== 'completed' && (
-            <div className="rounded-card border border-emerald/30 bg-card p-5 shadow-card">
+            <div className="animate-slide-fade-in rounded-card border border-orange/30 bg-card p-5 shadow-card">
               <h3 className="font-heading font-semibold text-text-primary">{selected.topic}</h3>
               <p className="mt-1 text-xs text-text-muted">
                 {selected.status === 'in_progress' ? 'Challenge in progress' : 'Ready to start this topic'}
@@ -126,7 +126,7 @@ export default function Roadmap() {
                   <button
                     onClick={() => handleStart(selected)}
                     disabled={actionPending}
-                    className="rounded-button bg-emerald px-4 py-2.5 text-sm font-body text-white shadow-button transition-colors duration-200 hover:bg-emerald-hover disabled:opacity-50"
+                    className="rounded-button bg-orange px-4 py-2.5 text-sm font-body text-white shadow-button transition-all duration-200 hover:bg-orange-hover active:scale-95 disabled:opacity-50"
                   >
                     Start Challenge
                   </button>
@@ -134,7 +134,7 @@ export default function Roadmap() {
                 <button
                   onClick={() => handleComplete(selected)}
                   disabled={actionPending}
-                  className="rounded-button border border-emerald px-4 py-2.5 text-sm font-body text-emerald transition-colors duration-200 hover:bg-emerald/10 disabled:opacity-50"
+                  className="rounded-button border border-orange px-4 py-2.5 text-sm font-body text-orange transition-all duration-200 hover:bg-orange/10 active:scale-95 disabled:opacity-50"
                 >
                   {actionPending ? 'Submitting…' : 'Mark Complete'}
                 </button>
