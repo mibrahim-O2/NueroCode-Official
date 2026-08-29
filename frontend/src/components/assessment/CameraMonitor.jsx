@@ -64,7 +64,7 @@ export default function CameraMonitor({ onAlert }) {
     <div className="flex flex-col gap-2 rounded-card border border-border bg-card p-3 shadow-card">
       <div className="flex items-center gap-2 text-xs text-text-muted">
         {status === 'active' ? (
-          <Camera className="h-3.5 w-3.5 text-emerald" />
+          <Camera className="h-3.5 w-3.5 text-status-success" />
         ) : (
           <CameraOff className="h-3.5 w-3.5 text-status-error" />
         )}

@@ -166,32 +166,35 @@ export default function Assessment() {
         </div>
 
         {startError && (
-          <div className="flex items-center gap-2 rounded-input border border-status-error/40 bg-status-error/10 px-4 py-3 text-sm text-status-error">
+          <div className="animate-slide-fade-in flex items-center gap-2 rounded-input border border-status-error/40 bg-status-error/10 px-4 py-3 text-sm text-status-error">
             <AlertCircle className="h-4 w-4" /> {startError}
           </div>
         )}
 
         <div className="grid gap-4 md:grid-cols-2">
           {clusters.map((cluster) => (
-            <div key={cluster.name} className="flex flex-col gap-3 rounded-card border border-border bg-card p-5 shadow-card">
+            <div
+              key={cluster.name}
+              className="flex flex-col gap-3 rounded-card border border-border bg-card p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-dialog"
+            >
               <div className="flex items-center justify-between">
                 <h3 className="font-heading font-semibold text-text-primary">{cluster.name}</h3>
                 {cluster.passed ? (
-                  <CheckCircle2 className="h-5 w-5 text-emerald" />
+                  <CheckCircle2 className="h-5 w-5 text-orange" />
                 ) : cluster.unlocked ? (
-                  <ShieldCheck className="h-5 w-5 text-emerald" />
+                  <ShieldCheck className="h-5 w-5 text-orange" />
                 ) : (
                   <Lock className="h-5 w-5 text-text-disabled" />
                 )}
               </div>
               <p className="text-xs text-text-muted">{cluster.topics.join(' + ')}</p>
               {cluster.passed ? (
-                <span className="text-xs text-emerald">Passed — credential earned</span>
+                <span className="text-xs text-orange">Passed — credential earned</span>
               ) : cluster.unlocked ? (
                 <button
                   onClick={() => handleStart(cluster.name)}
                   disabled={stage === 'starting'}
-                  className="flex items-center justify-center gap-2 rounded-button bg-emerald px-4 py-2.5 text-sm font-body text-white shadow-button transition-colors duration-200 hover:bg-emerald-hover disabled:opacity-50"
+                  className="flex items-center justify-center gap-2 rounded-button bg-orange px-4 py-2.5 text-sm font-body text-white shadow-button transition-all duration-200 hover:bg-orange-hover active:scale-95 disabled:opacity-50"
                 >
                   {stage === 'starting' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4 fill-current" />}
                   Start Assessment
@@ -213,12 +216,12 @@ export default function Assessment() {
       <div className="flex flex-col items-center gap-6 rounded-card border border-border bg-card px-8 py-16 text-center shadow-card">
         {result.passed ? (
           <>
-            <Award className="h-12 w-12 text-gold" />
+            <Award className="animate-celebrate h-12 w-12 text-gold" />
             <h2 className="font-heading font-semibold text-xl text-text-primary">Assessment Passed</h2>
 
             {result.credential && (
               <>
-                <div className="w-full max-w-3xl">
+                <div className="animate-slide-fade-in w-full max-w-3xl">
                   <CertificateTemplate
                     ref={certRef}
                     credential={result.credential}
@@ -229,19 +232,23 @@ export default function Assessment() {
                 </div>
 
                 {copiedCaption && (
-                  <p className="text-xs text-emerald">Suggested LinkedIn caption copied — paste it into your post!</p>
+                  <p className="animate-slide-fade-in text-xs text-orange">Suggested LinkedIn caption copied — paste it into your post!</p>
                 )}
 
                 <div className="flex flex-wrap justify-center gap-2">
                   <button
                     onClick={handleExportPdf}
-                    className="flex items-center gap-1.5 rounded-button bg-emerald px-4 py-2 text-xs text-white shadow-button transition-colors duration-200 hover:bg-emerald-hover"
+                    className="flex items-center gap-1.5 rounded-button bg-orange px-4 py-2 text-xs text-white shadow-button transition-all duration-200 hover:bg-orange-hover active:scale-95"
                   >
                     <Download className="h-3.5 w-3.5" /> Export PDF
                   </button>
+                  {/* LinkedIn's own brand blue — a fixed third-party brand
+                      color, intentionally independent of our palette, the
+                      same way a "Sign in with Google" button keeps
+                      Google's own colors. Left untouched. */}
                   <button
                     onClick={handleShareLinkedIn}
-                    className="flex items-center gap-1.5 rounded-button border border-[#0A66C2] px-4 py-2 text-xs text-[#0A66C2] transition-colors duration-200 hover:bg-[#0A66C2]/10"
+                    className="flex items-center gap-1.5 rounded-button border border-[#0A66C2] px-4 py-2 text-xs text-[#0A66C2] transition-all duration-200 hover:bg-[#0A66C2]/10 active:scale-95"
                   >
                     <Linkedin className="h-3.5 w-3.5" /> Share on LinkedIn
                   </button>
@@ -249,7 +256,7 @@ export default function Assessment() {
               </>
             )}
 
-            <Link to="/credential" className="text-xs text-emerald hover:underline">
+            <Link to="/credential" className="text-xs text-orange hover:underline">
               View all your credentials
             </Link>
           </>
@@ -269,7 +276,7 @@ export default function Assessment() {
         )}
         <button
           onClick={backToClusters}
-          className="rounded-button border border-border px-4 py-2 text-sm text-text-secondary transition-colors duration-200 hover:border-emerald hover:text-emerald"
+          className="rounded-button border border-border px-4 py-2 text-sm text-text-secondary transition-all duration-200 hover:border-orange hover:text-orange active:scale-95"
         >
           Back to Assessments
         </button>
@@ -304,7 +311,7 @@ export default function Assessment() {
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="flex items-center justify-center gap-2 rounded-button bg-emerald px-4 py-2.5 text-sm font-body text-white shadow-button transition-colors duration-200 hover:bg-emerald-hover disabled:opacity-50"
+            className="flex items-center justify-center gap-2 rounded-button bg-orange px-4 py-2.5 text-sm font-body text-white shadow-button transition-all duration-200 hover:bg-orange-hover active:scale-95 disabled:opacity-50"
           >
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4 fill-current" />}
             {submitting ? 'Grading…' : 'Submit Assessment'}

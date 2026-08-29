@@ -8,8 +8,8 @@ export default function IntegrityScoreBadge({ score }) {
   return (
     <div
       className={cn(
-        'flex items-center gap-2 rounded-input border px-4 py-2',
-        tier === 'good' && 'border-emerald/40 bg-emerald/10 text-emerald',
+        'flex items-center gap-2 rounded-input border px-4 py-2 transition-colors duration-300',
+        tier === 'good' && 'border-status-success/40 bg-status-success/10 text-status-success',
         tier === 'warning' && 'border-status-warning/40 bg-status-warning/10 text-status-warning',
         tier === 'bad' && 'border-status-error/40 bg-status-error/10 text-status-error'
       )}

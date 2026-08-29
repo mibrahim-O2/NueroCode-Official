@@ -15,7 +15,7 @@ export default function ProctoringLogFeed({ log }) {
       <div className="flex max-h-56 flex-col gap-1.5 overflow-y-auto">
         {log.length === 0 && <p className="text-xs text-text-muted">No events yet — session is clean.</p>}
         {log.map((entry, i) => (
-          <div key={i} className="flex items-start gap-2 text-xs">
+          <div key={i} className="animate-slide-fade-in flex items-start gap-2 text-xs">
             {entry.severity === 'critical' || entry.severity === 'high' ? (
               <AlertTriangle className={cn('mt-0.5 h-3 w-3 shrink-0', SEVERITY_STYLES[entry.severity])} />
             ) : (
