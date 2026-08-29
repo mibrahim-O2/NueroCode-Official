@@ -26,10 +26,10 @@ const BOTTOM_ITEMS = [
 
 function navLinkClass({ isActive }) {
   return cn(
-    'flex items-center gap-3 rounded-input border px-3 py-2.5 text-sm font-body transition-colors duration-200',
+    'flex items-center gap-3 rounded-input border px-3 py-2.5 text-sm font-body transition-all duration-200',
     isActive
-      ? 'border-emerald/30 bg-emerald/10 text-emerald'
-      : 'border-transparent text-text-secondary hover:bg-elevated hover:text-text-primary'
+      ? 'border-orange/30 bg-orange/10 text-orange'
+      : 'border-transparent text-text-secondary hover:bg-elevated hover:text-text-primary active:scale-[0.98]'
   );
 }
 

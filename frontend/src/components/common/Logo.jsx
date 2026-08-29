@@ -44,7 +44,7 @@ export default function Logo({ size = 64, variant = 'full', animated = true, cla
       <Mark size={size} animated={animated} />
       <span className="font-heading font-bold leading-none" style={{ fontSize: size * 0.42 }}>
         <span className="text-text-primary">Neuro</span>
-        <span className="text-emerald">Code</span>
+        <span className="text-orange">Code</span>
       </span>
     </div>
   );

@@ -10,7 +10,7 @@ export default function DashboardLayout() {
   const testModeEnabled = useTestMode();
 
   return (
-    <div className="flex min-h-screen bg-obsidian">
+      <div className="flex min-h-screen bg-background">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />

@@ -30,7 +30,8 @@ export default function Topbar({ onMenuClick }) {
         <button
           onClick={toggleTheme}
           aria-label="Toggle theme"
-          className="flex h-9 w-9 items-center justify-center rounded-input border border-border text-text-muted transition-colors duration-200 hover:border-emerald hover:text-emerald"
+          className="flex h-9 w-9 items-center justify-center rounded-input border border-border text-text-muted transition-all duration-200 hover:border-orange hover:text-orange active:scale-95"
+        
         >
           {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
@@ -38,12 +39,12 @@ export default function Topbar({ onMenuClick }) {
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setMenuOpen((o) => !o)}
-            className="flex items-center gap-2 rounded-input border border-border px-2 py-1.5 transition-colors duration-200 hover:border-emerald"
+            className="flex items-center gap-2 rounded-input border border-border px-2 py-1.5 transition-colors duration-200 hover:border-orange"
           >
             {user?.avatar_url ? (
               <img src={user.avatar_url} alt={user.name} className="h-7 w-7 rounded-full object-cover" />
             ) : (
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-elevated text-xs font-heading text-emerald">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-elevated text-xs font-heading text-orange">
                 {user?.name?.[0]?.toUpperCase() || '?'}
               </div>
             )}
@@ -55,7 +56,7 @@ export default function Topbar({ onMenuClick }) {
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 mt-2 w-48 rounded-card border border-border bg-card p-1.5 shadow-dropdown animate-fade-in">
+              <div className="absolute right-0 mt-2 w-48 rounded-card border border-border bg-card p-1.5 shadow-dropdown animate-slide-fade-in">
               <Link
                 to="/profile"
                 onClick={() => setMenuOpen(false)}
