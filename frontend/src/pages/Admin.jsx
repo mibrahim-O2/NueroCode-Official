@@ -97,6 +97,20 @@ export default function Admin() {
       .finally(() => setLoading(false));
   };
 
+  // Bug fix: this used to just call getAuditLogs() alone in comments but
+  // actually called the full loadData() (full-page spinner, replacing
+  // the ENTIRE table) after every single role change — meaning any
+  // admin's open reset-menu dropdown for a completely unrelated user got
+  // yanked away mid-interaction the instant anyone's role changed
+  // anywhere on the page. This quietly refreshes just the audit log in
+  // the background instead, leaving the table (and any open dropdown)
+  // completely undisturbed.
+  const refreshAuditLogOnly = () => {
+    getAuditLogs()
+      .then(setAuditLogs)
+      .catch(() => {});
+  };
+
   useEffect(loadData, []);
 
   const handleRoleChange = async (userId, newRole) => {
@@ -104,7 +118,7 @@ export default function Admin() {
     try {
       await updateUserRole(userId, newRole);
       setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
-      loadData(); // refresh audit log
+      refreshAuditLogOnly();
     } catch (err) {
       setRoleError(err.message || 'Role change failed.');
     }
@@ -133,14 +147,14 @@ export default function Admin() {
         </div>
         <Link
           to="/educator"
-          className="flex items-center gap-1.5 rounded-button border border-border px-3 py-2 text-xs text-text-secondary transition-colors duration-200 hover:border-emerald hover:text-emerald"
+          className="flex items-center gap-1.5 rounded-button border border-border px-3 py-2 text-xs text-text-secondary transition-all duration-200 hover:border-orange hover:text-orange active:scale-95"
         >
           <ShieldCheck className="h-3.5 w-3.5" /> View Cohort Dashboard
         </Link>
       </div>
 
       {roleError && (
-        <div className="flex items-center gap-2 rounded-input border border-status-error/40 bg-status-error/10 px-4 py-3 text-sm text-status-error">
+        <div className="animate-slide-fade-in flex items-center gap-2 rounded-input border border-status-error/40 bg-status-error/10 px-4 py-3 text-sm text-status-error">
           <AlertCircle className="h-4 w-4 shrink-0" /> {roleError}
         </div>
       )}
@@ -160,14 +174,14 @@ export default function Admin() {
             </thead>
             <tbody>
               {users.map((u) => (
-                <tr key={u.id} className="border-b border-border last:border-0">
+                <tr key={u.id} className="border-b border-border transition-colors duration-200 last:border-0 hover:bg-elevated/50">
                   <td className="px-5 py-3 text-text-primary">{u.name}</td>
                   <td className="px-5 py-3 text-text-muted">{u.email}</td>
                   <td className="px-5 py-3">
                     <select
                       value={u.role}
                       onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                      className="rounded-input border border-border bg-elevated px-2 py-1 text-xs text-text-primary"
+                      className="rounded-input border border-border bg-elevated px-2 py-1 text-xs text-text-primary outline-none transition-colors duration-200 focus:border-orange"
                     >
                       {ROLES.map((r) => (
                         <option key={r} value={r}>
@@ -182,12 +196,12 @@ export default function Admin() {
                       <>
                         <button
                           onClick={() => setOpenMenuUserId(openMenuUserId === u.id ? null : u.id)}
-                          className="flex items-center gap-1 rounded-input border border-border px-2.5 py-1.5 text-xs text-text-secondary transition-colors duration-200 hover:border-emerald hover:text-emerald"
+                          className="flex items-center gap-1 rounded-input border border-border px-2.5 py-1.5 text-xs text-text-secondary transition-colors duration-200 hover:border-orange hover:text-orange"
                         >
-                          Reset <ChevronDown className="h-3 w-3" />
+                          Reset <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${openMenuUserId === u.id ? 'rotate-180' : ''}`} />
                         </button>
                         {openMenuUserId === u.id && (
-                          <div className="absolute right-5 z-10 mt-1 w-56 rounded-card border border-border bg-charcoal p-1.5 shadow-dropdown">
+                          <div className="animate-slide-fade-in absolute right-5 z-10 mt-1 w-56 rounded-card border border-border bg-charcoal p-1.5 shadow-dropdown">
                             {RESET_ACTIONS.map((action) => (
                               <button
                                 key={action.key}
@@ -236,17 +250,17 @@ export default function Admin() {
             </thead>
             <tbody>
               {credentials.map((c) => (
-                <tr key={c.id} className="border-b border-border last:border-0">
+                <tr key={c.id} className="border-b border-border transition-colors duration-200 last:border-0 hover:bg-elevated/50">
                   <td className="px-5 py-3 text-text-primary">{c.student_name}</td>
                   <td className="px-5 py-3 capitalize text-gold">{c.badge_level}</td>
                   <td className="px-5 py-3 text-text-secondary">{c.topics_mastered.join(', ')}</td>
                   <td className="px-5 py-3 text-text-secondary">{c.assessment_score}%</td>
                   <td className="px-5 py-3">
-                    <a
+                   <a 
                       href={`/verify/${c.verify_uuid}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center gap-1 text-xs text-emerald hover:underline"
+                      className="flex items-center gap-1 text-xs text-orange hover:underline"
                     >
                       <ExternalLink className="h-3 w-3" /> View
                     </a>
@@ -282,11 +296,11 @@ export default function Admin() {
             </thead>
             <tbody>
               {auditLogs.map((log) => (
-                <tr key={log.id} className="border-b border-border last:border-0">
+                <tr key={log.id} className="animate-slide-fade-in border-b border-border transition-colors duration-200 last:border-0 hover:bg-elevated/50">
                   <td className="px-5 py-3 text-text-muted">{new Date(log.created_at).toLocaleString()}</td>
                   <td className="px-5 py-3 text-text-secondary">{log.admin_name}</td>
                   <td className="px-5 py-3 text-text-secondary">{log.target_user_name}</td>
-                  <td className="px-5 py-3 font-mono text-xs text-emerald">{log.action}</td>
+                  <td className="px-5 py-3 font-mono text-xs text-orange">{log.action}</td>
                   <td className="px-5 py-3 text-text-muted">{log.reason || '—'}</td>
                 </tr>
               ))}
