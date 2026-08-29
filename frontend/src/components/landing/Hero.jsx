@@ -38,17 +38,19 @@ export default function Hero() {
           </div>
 
           <h1
-            className="mt-6 font-heading text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl"
+            className="mt-6 font-heading text-5xl font-black uppercase leading-[0.95] tracking-tighter sm:text-6xl lg:text-7xl"
             style={{ color: 'var(--l-text-primary)' }}
           >
-            Practice that adapts.
+            Where Intelligence
             <br />
-            <span style={{ color: 'var(--l-orange)' }}>Proof that can't be faked.</span>
+            <span style={{ color: 'var(--l-orange)' }}>Meets Code</span>
           </h1>
 
           <p className="mt-6 max-w-lg text-lg leading-relaxed" style={{ color: 'var(--l-text-secondary)' }}>
-            NeuroCode combines an AI-adaptive learning roadmap, real sandboxed code execution, and
-            behavior-verified proctored assessments into one connected platform.
+            NeuroCode combines an <strong style={{ color: 'var(--l-text-primary)' }}>AI-adaptive learning roadmap</strong>,{' '}
+            <strong style={{ color: 'var(--l-text-primary)' }}>real sandboxed code execution</strong>, and{' '}
+            <strong style={{ color: 'var(--l-text-primary)' }}>behavior-verified proctored assessments</strong> into one
+            connected platform.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
