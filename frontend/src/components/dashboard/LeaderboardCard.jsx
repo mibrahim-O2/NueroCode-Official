@@ -29,21 +29,24 @@ export default function LeaderboardCard() {
       ) : (
         <ul className="mt-4 flex flex-col gap-3">
           {entries.map((entry, i) => (
-            <li key={entry.id} className="flex items-center gap-3">
+            <li
+              key={entry.id}
+              className="-mx-2 flex items-center gap-3 rounded-input px-2 py-1 transition-colors duration-200 hover:bg-elevated"
+            >
               <span className={cn('w-4 text-xs font-heading font-bold', RANK_STYLES[i] || 'text-text-muted')}>
                 {i + 1}
               </span>
               {entry.avatar_url ? (
                 <img src={entry.avatar_url} alt={entry.name} className="h-7 w-7 rounded-full object-cover" />
               ) : (
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-elevated text-[10px] text-emerald">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-elevated text-[10px] text-orange">
                   {entry.name?.[0]?.toUpperCase()}
                 </div>
               )}
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs text-text-primary">{entry.name}</p>
               </div>
-              <span className="font-body text-xs text-emerald">{entry.xp} XP</span>
+              <span className="font-body text-xs text-orange">{entry.xp} XP</span>
             </li>
           ))}
           {entries.length === 0 && (

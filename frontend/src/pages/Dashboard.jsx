@@ -6,7 +6,7 @@ import { getReviewDue } from '@/services/roadmapService';
 
 function StatCard({ icon: Icon, label, value, accent }) {
   return (
-    <div className="flex items-center gap-4 rounded-card border border-border bg-card p-5 shadow-card transition-colors duration-200 hover:border-emerald/40">
+    <div className="flex items-center gap-4 rounded-card border border-border bg-card p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-orange/40 hover:shadow-dialog">
       <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-input ${accent}`}>
         <Icon className="h-5 w-5" />
       </div>
@@ -44,10 +44,10 @@ export default function Dashboard() {
         <p className="mt-1 font-body text-sm text-text-muted">Here's where your progress stands today.</p>
       </div>
 
-            {dueReviews.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-emerald/30 bg-emerald/5 p-5">
+      {dueReviews.length > 0 && (
+        <div className="animate-slide-fade-in flex flex-wrap items-center justify-between gap-3 rounded-card border border-orange/30 bg-orange/5 p-5">
           <div className="flex items-center gap-3">
-            <RotateCcw className="h-5 w-5 text-emerald" />
+            <RotateCcw className="h-5 w-5 text-orange" />
             <div>
               <p className="font-heading text-sm font-semibold text-text-primary">Quick Review</p>
               <p className="text-xs text-text-muted">
@@ -57,7 +57,7 @@ export default function Dashboard() {
           </div>
           <Link
             to={`/practice?topic=${encodeURIComponent(dueReviews[0].topic)}`}
-            className="rounded-button bg-emerald px-4 py-2 text-xs font-body text-white hover:bg-emerald-hover"
+            className="rounded-button bg-orange px-4 py-2 text-xs font-body text-white transition-all duration-200 hover:bg-orange-hover active:scale-95"
           >
             Review Now
           </Link>
@@ -65,9 +65,9 @@ export default function Dashboard() {
       )}
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard icon={Star} label="XP" value={user?.xp ?? 0} accent="bg-emerald/10 text-emerald" />
+        <StatCard icon={Star} label="XP" value={user?.xp ?? 0} accent="bg-orange/10 text-orange" />
         <StatCard icon={Flame} label="Streak" value={user?.streak ?? 0} accent="bg-status-warning/10 text-status-warning" />
-        <StatCard icon={Map} label="Level" value={user?.level ?? 1} accent="bg-mint/10 text-mint" />
+        <StatCard icon={Map} label="Level" value={user?.level ?? 1} accent="bg-teal/10 text-teal" />
         <StatCard icon={Award} label="Role" value={user?.role} accent="bg-gold/10 text-gold" />
       </div>
 
