@@ -69,7 +69,7 @@ export default function ModelSwitcher({ activeProvider, onProviderChange, onGene
         <button
           onClick={onGenerate}
           disabled={disabled || loading}
-          className="flex items-center gap-2 bg-emerald px-4 py-2.5 text-sm font-body text-white transition-colors duration-200 hover:bg-emerald-hover disabled:opacity-50"
+          className="flex items-center gap-2 bg-orange px-4 py-2.5 text-sm font-body text-white transition-all duration-200 hover:bg-orange-hover active:scale-95 disabled:opacity-50"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ActiveIcon className="h-4 w-4" />}
           {hasProblem ? 'Generate Another' : 'Generate Problem'}
@@ -80,14 +80,14 @@ export default function ModelSwitcher({ activeProvider, onProviderChange, onGene
           onClick={() => setOpen((o) => !o)}
           disabled={disabled}
           aria-label="Choose AI model"
-          className="flex items-center justify-center border-l border-emerald-active bg-emerald px-2.5 text-white transition-colors duration-200 hover:bg-emerald-hover disabled:opacity-50"
+          className="flex items-center justify-center border-l border-orange-active bg-orange px-2.5 text-white transition-all duration-200 hover:bg-orange-hover active:scale-95 disabled:opacity-50"
         >
-          <ChevronUp className="h-4 w-4" />
+          <ChevronUp className={`h-4 w-4 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
         </button>
       </div>
 
       {open && (
-        <div className="absolute left-0 top-full z-20 mt-2 w-56 rounded-card border border-border bg-card p-1.5 shadow-dropdown animate-fade-in">
+        <div className="absolute left-0 top-full z-20 mt-2 w-56 rounded-card border border-border bg-card p-1.5 shadow-dropdown animate-slide-fade-in">
           {PROVIDER_ORDER.filter((key) => key !== activeProvider).map((key) => {
             const meta = PROVIDER_META[key];
             const Icon = meta.icon;

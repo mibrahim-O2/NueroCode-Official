@@ -24,9 +24,9 @@ export default function DiscussionPanel({ problemId }) {
   };
 
   return (
-    <div className="rounded-card border border-border bg-card p-5">
+    <div className="animate-slide-fade-in rounded-card border border-border bg-card p-5">
       <h3 className="flex items-center gap-2 font-heading text-sm font-semibold text-text-primary">
-        <Users className="h-4 w-4 text-emerald" /> How others solved this
+        <Users className="h-4 w-4 text-teal" /> How others solved this
       </h3>
       {loading ? (
         <Loader2 className="mt-3 h-4 w-4 animate-spin text-text-muted" />
@@ -34,8 +34,8 @@ export default function DiscussionPanel({ problemId }) {
         <div className="mt-3 flex flex-col gap-2">
           {comments.length === 0 && <p className="text-xs text-text-muted">No discussion yet — be the first.</p>}
           {comments.map((c) => (
-            <div key={c.id} className="rounded-input border border-border bg-elevated p-3 text-sm">
-              <p className="text-xs font-semibold text-emerald">{c.user_name}</p>
+            <div key={c.id} className="animate-slide-fade-in rounded-input border border-border bg-elevated p-3 text-sm">
+              <p className="text-xs font-semibold text-teal">{c.user_name}</p>
               <p className="mt-1 text-text-secondary">{c.comment}</p>
             </div>
           ))}
@@ -46,9 +46,12 @@ export default function DiscussionPanel({ problemId }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Share your approach or a tip…"
-          className="flex-1 rounded-input border border-border bg-elevated px-3 py-2 text-sm"
+          className="flex-1 rounded-input border border-border bg-elevated px-3 py-2 text-sm outline-none transition-colors duration-200 focus:border-teal"
         />
-        <button onClick={post} className="rounded-input bg-emerald px-3 py-2 text-xs text-white">
+        <button
+          onClick={post}
+          className="rounded-input bg-teal px-3 py-2 text-xs text-white transition-all duration-200 hover:bg-teal-hover active:scale-95"
+        >
           Post
         </button>
       </div>

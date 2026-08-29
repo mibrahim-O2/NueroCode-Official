@@ -34,7 +34,7 @@ export default function ChatWidget({ topic }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-emerald text-white shadow-dialog transition-colors duration-200 hover:bg-emerald-hover"
+        className="fixed bottom-6 right-6 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-orange text-white shadow-dialog transition-all duration-200 hover:bg-orange-hover hover:scale-105 active:scale-95"
         aria-label="Open AI mentor chat"
       >
         <MessageCircle className="h-5 w-5" />
@@ -43,10 +43,10 @@ export default function ChatWidget({ topic }) {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-30 flex h-[28rem] w-80 flex-col overflow-hidden rounded-dialog border border-border bg-card shadow-dialog">
+    <div className="animate-slide-fade-in fixed bottom-6 right-6 z-30 flex h-[28rem] w-80 flex-col overflow-hidden rounded-dialog border border-border bg-card shadow-dialog">
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-2">
-          <Bot className="h-4 w-4 text-emerald" />
+          <Bot className="h-4 w-4 text-orange" />
           <span className="font-heading font-semibold text-sm text-text-primary">NeuroCode Mentor</span>
         </div>
         <button onClick={() => setOpen(false)} className="text-text-muted hover:text-text-primary">
@@ -65,10 +65,10 @@ export default function ChatWidget({ topic }) {
           <div
             key={i}
             className={cn(
-              'max-w-[85%] rounded-input px-3 py-2 text-xs leading-relaxed',
+              'animate-slide-fade-in max-w-[85%] rounded-input px-3 py-2 text-xs leading-relaxed',
               m.role === 'user'
                 ? 'self-end bg-elevated text-text-primary'
-                : 'self-start border-l-2 border-emerald bg-card text-text-secondary'
+                : 'self-start border-l-2 border-orange bg-card text-text-secondary'
             )}
           >
             {m.text}
@@ -88,12 +88,12 @@ export default function ChatWidget({ topic }) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           placeholder="Ask for a hint..."
-          className="flex-1 rounded-input border border-border bg-elevated px-3 py-2 text-xs text-text-primary outline-none focus:border-emerald"
+          className="flex-1 rounded-input border border-border bg-elevated px-3 py-2 text-xs text-text-primary outline-none transition-colors duration-200 focus:border-orange"
         />
         <button
           onClick={handleSend}
           disabled={sending || !input.trim()}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-input bg-emerald text-white disabled:opacity-50"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-input bg-orange text-white transition-all duration-200 hover:bg-orange-hover active:scale-90 disabled:opacity-50"
         >
           <Send className="h-3.5 w-3.5" />
         </button>
