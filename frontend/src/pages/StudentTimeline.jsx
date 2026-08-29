@@ -29,10 +29,10 @@ export default function StudentTimeline() {
   if (!data) return null;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="animate-fade-in flex flex-col gap-6">
       <button
         onClick={() => navigate(-1)}
-        className="flex w-fit items-center gap-2 text-sm text-text-muted hover:text-emerald"
+        className="flex w-fit items-center gap-2 text-sm text-text-muted transition-colors duration-200 hover:text-orange"
       >
         <ArrowLeft className="h-4 w-4" /> Back to cohort
       </button>
@@ -47,9 +47,9 @@ export default function StudentTimeline() {
               key={n.id}
               className={cn(
                 'rounded-badge border px-3 py-1 text-xs',
-                n.status === 'completed' && 'border-emerald/40 bg-emerald/10 text-emerald',
+                n.status === 'completed' && 'border-orange/40 bg-orange/10 text-orange',
                 n.status === 'locked' && 'border-border text-text-disabled',
-                (n.status === 'unlocked' || n.status === 'in_progress') && 'border-emerald/40 text-emerald'
+                (n.status === 'unlocked' || n.status === 'in_progress') && 'border-orange/40 text-orange'
               )}
             >
               {n.topic}
@@ -76,7 +76,10 @@ export default function StudentTimeline() {
               {data.assessments.map((a) => (
                 <tr
                   key={a.id}
-                  className={cn('border-b border-border last:border-0', a.status === 'flagged' && 'bg-status-error/5')}
+                  className={cn(
+                    'border-b border-border transition-colors duration-200 last:border-0',
+                    a.status === 'flagged' && 'bg-status-error/5'
+                  )}
                 >
                   <td className="px-5 py-3 text-text-secondary">{a.topic_cluster}</td>
                   <td className="px-5 py-3 text-text-secondary">{a.assessment_score ?? '—'}%</td>
@@ -88,7 +91,7 @@ export default function StudentTimeline() {
                       className={cn(
                         'rounded-badge px-2 py-0.5 text-xs',
                         a.status === 'flagged' && 'bg-status-error/10 text-status-error',
-                        a.status === 'completed' && 'bg-emerald/10 text-emerald',
+                        a.status === 'completed' && 'bg-status-success/10 text-status-success',
                         a.status === 'in_progress' && 'bg-status-warning/10 text-status-warning'
                       )}
                     >

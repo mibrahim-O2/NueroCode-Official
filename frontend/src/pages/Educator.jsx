@@ -5,6 +5,7 @@ import { Users, AlertTriangle, TrendingUp, Loader2 } from 'lucide-react';
 import { getCohortOverview, getSkillGaps, getClassLeaderboard } from '@/services/adminService';
 import ViolationBadges from '@/components/common/ViolationBadges';
 import { cn } from '@/lib/utils';
+
 export default function Educator() {
   const navigate = useNavigate();
   const [students, setStudents] = useState([]);
@@ -42,14 +43,14 @@ export default function Educator() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="flex items-center gap-3 rounded-card border border-border bg-card p-5 shadow-card">
-          <Users className="h-8 w-8 text-emerald" />
+        <div className="flex items-center gap-3 rounded-card border border-border bg-card p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-dialog">
+          <Users className="h-8 w-8 text-orange" />
           <div>
             <p className="font-heading font-bold text-xl text-text-primary">{students.length}</p>
             <p className="text-xs text-text-muted">Students</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-card border border-border bg-card p-5 shadow-card">
+        <div className="flex items-center gap-3 rounded-card border border-border bg-card p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-dialog">
           <AlertTriangle className="h-8 w-8 text-status-error" />
           <div>
             <p className="font-heading font-bold text-xl text-text-primary">
@@ -58,8 +59,8 @@ export default function Educator() {
             <p className="text-xs text-text-muted">Integrity Flags</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-card border border-border bg-card p-5 shadow-card">
-          <TrendingUp className="h-8 w-8 text-mint" />
+        <div className="flex items-center gap-3 rounded-card border border-border bg-card p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-dialog">
+          <TrendingUp className="h-8 w-8 text-teal" />
           <div>
             <p className="font-heading font-bold text-xl text-text-primary">{avgTopics}</p>
             <p className="text-xs text-text-muted">Avg. Topics Completed</p>
@@ -74,11 +75,18 @@ export default function Educator() {
         ) : (
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={skillGaps}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2A2D34" />
-              <XAxis dataKey="topic" tick={{ fill: '#94A3B8', fontSize: 11 }} />
-              <YAxis allowDecimals={false} tick={{ fill: '#94A3B8', fontSize: 11 }} />
-              <Tooltip contentStyle={{ background: '#1C1F24', border: '1px solid #2A2D34', borderRadius: 8, color: '#F8FAFC' }} />
-              <Bar dataKey="count" fill="#00A676" radius={[6, 6, 0, 0]} />
+              {/* Bug fix: these four values were hardcoded to the OLD
+                  pre-redesign palette (cool-gray border, cool-gray text,
+                  old card background, old emerald bar) and would have
+                  silently kept rendering that way forever, since
+                  Recharts' SVG props can't consume Tailwind classes and
+                  nothing else in this redesign pass would have touched
+                  them. Now matches the new warm palette. */}
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 110, 26, 0.14)" />
+              <XAxis dataKey="topic" tick={{ fill: '#A99B8C', fontSize: 11 }} />
+              <YAxis allowDecimals={false} tick={{ fill: '#A99B8C', fontSize: 11 }} />
+              <Tooltip contentStyle={{ background: '#1D160F', border: '1px solid rgba(255, 110, 26, 0.14)', borderRadius: 8, color: '#F7F4F0' }} />
+              <Bar dataKey="count" fill="#FF6E1A" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}
@@ -102,9 +110,9 @@ export default function Educator() {
                 <tr
                   key={s.id}
                   onClick={() => navigate(`/educator/students/${s.id}`)}
-                  className="cursor-pointer border-b border-border last:border-0 hover:bg-elevated"
+                  className="cursor-pointer border-b border-border transition-colors duration-200 last:border-0 hover:bg-elevated"
                 >
-                  <td className="px-5 py-3 text-emerald hover:underline">{s.name}</td>
+                  <td className="px-5 py-3 text-orange hover:underline">{s.name}</td>
                   <td className="px-5 py-3 text-text-secondary">{s.xp}</td>
                   <td className="px-5 py-3 text-text-secondary">{s.level}</td>
                   <td className="px-5 py-3 text-text-secondary">{s.topics_completed}</td>
@@ -136,11 +144,14 @@ export default function Educator() {
         <h2 className="mb-4 font-heading font-semibold text-text-primary">Class Leaderboard</h2>
         <ul className="flex flex-col gap-2">
           {leaderboard.slice(0, 10).map((entry, i) => (
-            <li key={entry.id} className="flex items-center justify-between text-sm">
-              <span className="text-text-secondary">
+            <li
+              key={entry.id}
+              className="-mx-2 flex items-center justify-between rounded-input px-2 py-1 text-sm transition-colors duration-200 hover:bg-elevated"
+            >
+              <span className={cn(i === 0 ? 'font-semibold text-gold' : 'text-text-secondary')}>
                 {i + 1}. {entry.name}
               </span>
-              <span className="text-emerald">{entry.xp} XP</span>
+              <span className="text-orange">{entry.xp} XP</span>
             </li>
           ))}
           {leaderboard.length === 0 && <p className="text-sm text-text-muted">No rankings yet.</p>}
