@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, PlayCircle } from 'lucide-react';
+import { ArrowRight, PlayCircle, Braces, Terminal } from 'lucide-react';
 import Tilt from 'react-parallax-tilt';
 import Logo from '@/components/common/Logo';
 import { useAuth } from '@/context/AuthContext';
@@ -95,6 +95,16 @@ export default function Hero() {
               <div className="relative">
                 <div className="l-hero-ring" />
                 <div className="l-hero-ring-outer" />
+                <div className="l-hero-scan-ring" />
+
+                <Braces
+                  className="l-hero-glyph -left-8 top-4 h-5 w-5"
+                  style={{ color: 'var(--l-teal)', animationDelay: '0.8s' }}
+                />
+                <Terminal
+                  className="l-hero-glyph -right-6 bottom-8 h-5 w-5"
+                  style={{ color: 'var(--l-orange)', animationDelay: '2.1s' }}
+                />
 
                 <div className="l-orbit">
                   <span className="l-orbit-dot" style={{ backgroundColor: 'var(--l-orange)' }} />

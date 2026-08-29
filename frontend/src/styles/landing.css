@@ -146,6 +146,32 @@
   transform: translate(-50%, -50%);
 }
 
+/* Slow dashed scan ring — a third, distinct depth layer (radar/orbit
+   path feel) beyond the breathing rings and satellite dots. */
+.l-hero-scan-ring {
+  position: absolute;
+  inset: -78px;
+  border-radius: 999px;
+  border: 1px dashed var(--l-teal);
+  opacity: 0.22;
+  pointer-events: none;
+  animation: heroScanSpin 42s linear infinite;
+}
+@keyframes heroScanSpin { to { transform: rotate(360deg); } }
+
+/* Floating code-symbol glyphs — quiet, code-themed accents with a
+   gentle bob + fade, distinct timing so they never sync with each
+   other or with the logo's own float. */
+.l-hero-glyph {
+  position: absolute;
+  pointer-events: none;
+  animation: heroGlyphFloat 5.5s ease-in-out infinite;
+}
+@keyframes heroGlyphFloat {
+  0%, 100% { transform: translateY(0); opacity: 0.35; }
+  50% { transform: translateY(-12px); opacity: 0.75; }
+}
+
 /* Network background — hand-placed SVG nodes + connecting lines,
    animated purely with CSS (no canvas, no particle JS), recreating the
    constellation feel from the reference video. Staggered per-element

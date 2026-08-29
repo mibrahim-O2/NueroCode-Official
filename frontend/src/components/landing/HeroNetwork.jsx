@@ -32,6 +32,16 @@ const LINES = [
   [10, 13], [13, 14], [14, 15], [8, 12], [12, 16], [16, 17],
 ];
 
+// Two lines carry a traveling "data pulse" — a small bright dot
+// physically moving along the connection, via SVG's native
+// animateMotion (declarative, no JS render loop, no canvas). This is
+// the one addition here that directly evokes "data flowing through a
+// neural network" rather than generic ambient motion.
+const PULSE_PATHS = [
+  { d: 'M480,25 L560,70', color: 'var(--l-orange)', dur: '3.2s' },
+  { d: 'M560,150 L610,190', color: 'var(--l-teal)', dur: '2.6s' },
+];
+
 export default function HeroNetwork({ className = '' }) {
   return (
     <svg
@@ -64,6 +74,13 @@ export default function HeroNetwork({ className = '' }) {
             className="l-network-node"
             style={{ color: n.color, animationDelay: `${(i % 7) * 0.35}s` }}
           />
+        ))}
+      </g>
+      <g>
+        {PULSE_PATHS.map((p, i) => (
+          <circle key={i} r="2.4" fill={p.color}>
+            <animateMotion dur={p.dur} repeatCount="indefinite" path={p.d} />
+          </circle>
         ))}
       </g>
     </svg>
