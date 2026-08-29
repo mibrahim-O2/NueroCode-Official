@@ -8,10 +8,13 @@ import IntegrityConsole from '@/components/landing/IntegrityConsole';
 import TeamSection from '@/components/landing/TeamSection';
 import FinalCTA from '@/components/landing/FinalCTA';
 import Footer from '@/components/landing/Footer';
+import CustomCursor from '@/components/landing/CustomCursor';
+import ScrollToTop from '@/components/landing/ScrollToTop';
 
 export default function Home() {
   return (
     <div className="landing-page min-h-screen">
+      <CustomCursor />
       <Navbar />
       <main>
         <Hero />
@@ -23,6 +26,7 @@ export default function Home() {
         <FinalCTA />
       </main>
       <Footer />
+      <ScrollToTop />
     </div>
   );
 }
