@@ -109,7 +109,7 @@
   border: 1.5px solid var(--l-orange);
   opacity: 0.3;
   pointer-events: none;
-  animation: heroRingPulse 3.4s ease-in-out infinite;
+  animation: heroRingPulse 4.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 .l-hero-ring-outer {
   position: absolute;
@@ -118,11 +118,11 @@
   border: 1px solid var(--l-teal);
   opacity: 0.18;
   pointer-events: none;
-  animation: heroRingPulse 3.4s ease-in-out infinite 0.7s;
+  animation: heroRingPulse 4.2s cubic-bezier(0.45, 0, 0.55, 1) infinite 1s;
 }
 @keyframes heroRingPulse {
-  0%, 100% { transform: scale(0.95); opacity: 0.12; }
-  50% { transform: scale(1.06); opacity: 0.42; }
+  0%, 100% { transform: scale(0.96); opacity: 0.14; }
+  50% { transform: scale(1.05); opacity: 0.4; }
 }
 
 /* Orbiting satellite dots — literal orbit motion around the logo,
@@ -144,6 +144,12 @@
   height: 9px;
   border-radius: 999px;
   transform: translate(-50%, -50%);
+}
+/* Diamond variant for the HUD bracket ring alternative — swap this
+   modifier off .l-orbit-dot to go back to plain round satellites. */
+.l-orbit-diamond {
+  border-radius: 2px;
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 
 /* Slow dashed scan ring — a third, distinct depth layer (radar/orbit
@@ -178,23 +184,25 @@
    delays via inline animation-delay keep nodes/lines pulsing
    asynchronously rather than in unison, which is what makes it read as
    "alive" instead of a single repeating blink. */
+.l-network-line {
+  opacity: 0.35;
+  stroke-dasharray: 5 7;
+  animation: networkLineFlow 7s linear infinite, networkLinePulse 4.5s ease-in-out infinite;
+}
+@keyframes networkLineFlow { to { stroke-dashoffset: -40; } }
+@keyframes networkLinePulse {
+  0%, 100% { opacity: 0.22; }
+  50% { opacity: 0.55; }
+}
+
 .l-network-node {
   animation: networkNodeGlow 3.2s ease-in-out infinite;
   transform-origin: center;
   transform-box: fill-box;
 }
 @keyframes networkNodeGlow {
-  0%, 100% { opacity: 0.45; filter: drop-shadow(0 0 2px currentColor); }
-  50% { opacity: 1; filter: drop-shadow(0 0 8px currentColor); }
-}
-.l-network-line {
-  stroke-dasharray: 5 7;
-  animation: networkLineFlow 7s linear infinite, networkLinePulse 4.5s ease-in-out infinite;
-}
-@keyframes networkLineFlow { to { stroke-dashoffset: -180; } }
-@keyframes networkLinePulse {
-  0%, 100% { opacity: 0.22; }
-  50% { opacity: 0.55; }
+  0%, 100% { opacity: 0.45; filter: drop-shadow(0 0 2px currentColor); transform: scale(1); }
+  50% { opacity: 1; filter: drop-shadow(0 0 8px currentColor); transform: scale(1.25); }
 }
 
 /* Hero scroll indicator */
@@ -279,3 +287,4 @@
   }
   .l-fade-up { opacity: 1 !important; transform: none !important; }
 }
+
