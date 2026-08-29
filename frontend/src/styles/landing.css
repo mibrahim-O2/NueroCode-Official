@@ -1,51 +1,52 @@
-/* Locked palette — bright/mid/dark green + gray-green + black, gold used
-   in exactly one deliberate place (Team Leader badge), per final
-   supervisor-provided reference. Landing-scoped, does not touch the
-   app's own DESIGN_SYSTEM tokens. */
+/* Landing-page-scoped design tokens. Palette derived from the new logo's
+   two color hemispheres (warm orange, teal-green) plus the Arounda and
+   fintech-dashboard references — orange primary, teal secondary, warm
+   near-black base. Gold stays minimal by design: the logo's own glow
+   accent and the Team Leader badge, nowhere else. Fully independent of
+   the app's own DESIGN_SYSTEM tokens — this file only affects the
+   landing page. */
 
 .landing-page {
-  --l-black: #0A0C0A;
-  --l-surface: #12160F;
-  --l-surface-alt: #171C14;
-  --l-border: rgba(76, 175, 110, 0.16);
+  --l-bg: #0F0B08;
+  --l-surface: #1A140F;
+  --l-surface-alt: #221A13;
+  --l-border: rgba(255, 110, 26, 0.14);
 
-  --l-green-bright: #34D67C;
-  --l-green-bright-hover: #29C06D;
-  --l-green-mid: #2FA85C;
-  --l-green-dark: #145C34;
-  --l-gray-green: #7C9483;
+  --l-orange: #FF6E1A;
+  --l-orange-hover: #E85A0C;
+  --l-teal: #2DD4A0;
+  --l-teal-hover: #22B589;
 
-  --l-text-primary: #F5F7F5;
-  --l-text-secondary: #B9C4BB;
-  --l-text-muted: #7C9483;
+  --l-text-primary: #F7F4F0;
+  --l-text-secondary: #A99B8C;
+  --l-text-muted: #8A7A6B;
 
   --l-gold: #D4AF37;
-  --l-shadow: rgba(0, 0, 0, 0.65);
+  --l-shadow: rgba(15, 8, 3, 0.65);
   color-scheme: dark;
 }
 
 [data-theme='light'] .landing-page {
-  --l-black: #F4F7F3;
+  --l-bg: #FAF6F0;
   --l-surface: #FFFFFF;
-  --l-surface-alt: #EAF0E7;
-  --l-border: rgba(20, 92, 52, 0.16);
+  --l-surface-alt: #F3EBE0;
+  --l-border: rgba(232, 90, 12, 0.16);
 
-  --l-green-bright: #1FA85C;
-  --l-green-bright-hover: #17924E;
-  --l-green-mid: #2E7D4F;
-  --l-green-dark: #145C34;
-  --l-gray-green: #5B6E5F;
+  --l-orange: #E8580A;
+  --l-orange-hover: #C94A08;
+  --l-teal: #1AA87E;
+  --l-teal-hover: #148F6A;
 
-  --l-text-primary: #12180F;
-  --l-text-secondary: #3F4C42;
-  --l-text-muted: #6B7A6E;
+  --l-text-primary: #1A140F;
+  --l-text-secondary: #5C4F42;
+  --l-text-muted: #7A6D5F;
 
   --l-gold: #B8892E;
-  --l-shadow: rgba(20, 60, 35, 0.18);
+  --l-shadow: rgba(120, 70, 30, 0.18);
   color-scheme: light;
 }
 
-.landing-page { background: var(--l-black); color: var(--l-text-primary); }
+.landing-page { background: var(--l-bg); color: var(--l-text-primary); }
 
 .l-perspective { perspective: 1600px; }
 
@@ -70,55 +71,114 @@
   inset: 0;
   left: -150%;
   width: 60%;
-  background: linear-gradient(120deg, transparent, rgba(52, 214, 124, 0.14), transparent);
+  background: linear-gradient(120deg, transparent, rgba(255, 110, 26, 0.14), transparent);
   transform: skewX(-20deg);
   transition: left 0.8s ease;
 }
 .l-shimmer:hover::after { left: 150%; }
 
-/* Hero 3D card — six flat faces assembled with CSS 3D transforms into a
-   card standing at an angle, matching the reference site's technique.
-   preserve-3d on the box, each face offset with translateZ. The Tilt
-   wrapper (react-parallax-tilt) rotates this whole box on mouse move;
-   these transforms give it real depth rather than a flat image. */
-.l-card-3d {
-  position: relative;
-  width: 340px;
-  height: 220px;
+/* Hero spatial logo — continuous idle float + slight 3D rotation +
+   breathing glow, layered UNDER a hover Tilt wrapper for interactivity.
+   Deliberately subtle ranges (14px float, 6deg rotation) per "without
+   becoming distracting." Two independent keyframe animations combined
+   in one property since they animate different CSS properties
+   (transform vs filter) and don't conflict. */
+.l-hero-logo-spatial {
+  animation: heroLogoFloat 7s ease-in-out infinite, heroLogoGlow 4s ease-in-out infinite;
   transform-style: preserve-3d;
 }
-.l-card-face {
-  position: absolute;
-  inset: 0;
-  border-radius: 16px;
-  backface-visibility: hidden;
+@keyframes heroLogoFloat {
+  0%, 100% { transform: translateY(0) rotateY(-6deg) rotateX(2deg); }
+  50% { transform: translateY(-14px) rotateY(6deg) rotateX(-2deg); }
 }
-.l-card-front {
-  background: linear-gradient(155deg, var(--l-surface) 0%, var(--l-surface-alt) 100%);
-  border: 1px solid var(--l-border);
-  box-shadow: 0 40px 90px -30px rgba(52, 214, 124, 0.25);
-  transform: translateZ(14px);
-}
-.l-card-side {
-  background: var(--l-green-dark);
-  width: 14px;
-  height: 220px;
-  right: -14px;
-  top: 0;
-  transform: rotateY(90deg) translateZ(7px);
-  border-radius: 0 16px 16px 0;
-}
-.l-card-bottom {
-  background: var(--l-green-dark);
-  width: 340px;
-  height: 14px;
-  bottom: -14px;
-  left: 0;
-  transform: rotateX(-90deg) translateZ(7px);
-  border-radius: 0 0 16px 16px;
+@keyframes heroLogoGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 24px rgba(255, 110, 26, 0.35)) drop-shadow(0 0 40px rgba(45, 212, 160, 0.18));
+  }
+  50% {
+    filter: drop-shadow(0 0 40px rgba(255, 110, 26, 0.55)) drop-shadow(0 0 60px rgba(45, 212, 160, 0.3));
+  }
 }
 
+/* Hero scroll indicator */
+.l-scroll-cue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--l-text-muted);
+}
+.l-scroll-cue-mouse {
+  width: 22px;
+  height: 34px;
+  border: 2px solid var(--l-text-muted);
+  border-radius: 12px;
+  position: relative;
+}
+.l-scroll-cue-dot {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 3px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--l-orange);
+  transform: translateX(-50%);
+  animation: scrollCueDot 1.8s ease-in-out infinite;
+}
+@keyframes scrollCueDot {
+  0% { opacity: 1; transform: translate(-50%, 0); }
+  70% { opacity: 0; transform: translate(-50%, 14px); }
+  100% { opacity: 0; transform: translate(-50%, 0); }
+}
+
+/* Custom cursor — desktop only, matching the reference's dot + trailing
+   ring pattern, recolored to the new orange accent. */
+.l-cursor-dot, .l-cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  display: none;
+}
+@media (min-width: 1024px) {
+  .l-cursor-dot { display: block; width: 8px; height: 8px; background: var(--l-orange); }
+  .l-cursor-ring {
+    display: block;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--l-orange);
+    opacity: 0.55;
+  }
+}
+
+/* Scroll-to-top */
+.l-scroll-top {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--l-orange);
+  color: #1A0900;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 998;
+  box-shadow: 0 8px 24px -8px rgba(255, 110, 26, 0.5);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+.l-scroll-top:hover { transform: translateY(-3px); background: var(--l-orange-hover); }
+
 @media (prefers-reduced-motion: reduce) {
-  .l-fade-up { transition: none !important; opacity: 1 !important; transform: none !important; }
-  .l-shimmer::after { transition: none !important; }
+  .l-fade-up, .l-shimmer::after, .l-hero-logo-spatial, .l-scroll-cue-dot {
+    animation: none !important;
+    transition: none !important;
+  }
+  .l-fade-up { opacity: 1 !important; transform: none !important; }
 }
