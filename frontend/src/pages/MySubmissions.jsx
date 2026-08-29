@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MessageSquare, Loader2 } from 'lucide-react';
+import { MessageSquare, Loader2, AlertCircle } from 'lucide-react';
 import { getMySubmissions, getComments } from '@/services/submissionCommentService';
 
 export default function MySubmissions() {
@@ -7,6 +7,8 @@ export default function MySubmissions() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(null);
   const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentsError, setCommentsError] = useState(null);
 
   useEffect(() => {
     getMySubmissions().then(setSubmissions).finally(() => setLoading(false));
@@ -17,8 +19,28 @@ export default function MySubmissions() {
       setExpanded(null);
       return;
     }
+    // Bug fix: comments is shared state across every submission row —
+    // without clearing it here first, expanding a new submission
+    // briefly showed the PREVIOUSLY expanded submission's comments
+    // (visibly, not just for a frame, on anything slower than a fast
+    // connection) before the real fetch resolved. Clearing immediately
+    // guarantees no submission's row can ever display another
+    // submission's teacher feedback, even momentarily.
     setExpanded(id);
-    setComments(await getComments(id));
+    setComments([]);
+    setCommentsError(null);
+    setCommentsLoading(true);
+    try {
+      setComments(await getComments(id));
+    } catch (err) {
+      // Bug fix: this call had no error handling at all — a failed
+      // request threw unhandled and left the student with no feedback
+      // that anything went wrong. Now shows an inline message instead
+      // of silently doing nothing.
+      setCommentsError(err.message || 'Could not load comments for this submission.');
+    } finally {
+      setCommentsLoading(false);
+    }
   };
 
   if (loading) return <Loader2 className="h-6 w-6 animate-spin text-text-muted" />;
@@ -36,11 +58,19 @@ export default function MySubmissions() {
             <MessageSquare className="h-4 w-4 text-text-muted" />
           </button>
           {expanded === s.id && (
-            <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
-              {comments.length === 0 && <p className="text-xs text-text-muted">No teacher comments yet.</p>}
+            <div className="animate-slide-fade-in mt-4 flex flex-col gap-2 border-t border-border pt-4">
+              {commentsLoading && <Loader2 className="h-4 w-4 animate-spin text-text-muted" />}
+              {commentsError && (
+                <p className="flex items-center gap-1.5 text-xs text-status-error">
+                  <AlertCircle className="h-3.5 w-3.5" /> {commentsError}
+                </p>
+              )}
+              {!commentsLoading && !commentsError && comments.length === 0 && (
+                <p className="text-xs text-text-muted">No teacher comments yet.</p>
+              )}
               {comments.map((c) => (
-                <div key={c.id} className="rounded-input border border-border bg-elevated p-3 text-sm">
-                  <p className="text-xs font-semibold text-emerald">{c.educator_name}</p>
+                <div key={c.id} className="animate-slide-fade-in rounded-input border border-border bg-elevated p-3 text-sm">
+                  <p className="text-xs font-semibold text-orange">{c.educator_name}</p>
                   <p className="mt-1 text-text-secondary">{c.comment}</p>
                 </div>
               ))}
