@@ -3,7 +3,7 @@ import Reveal from './Reveal';
 
 const TEAM = [
   {
-    name: 'Arsal Jan Chandio',
+    name: 'Arsal Jan',
     role: 'Frontend & Real-Time Systems Engineer · ML Engineer',
     leader: false,
     avatar: 'https://github.com/ArsalJan34.png',
@@ -29,7 +29,7 @@ const TEAM = [
     },
   },
   {
-    name: 'Ali Mugheri',
+    name: 'Ali',
     role: 'DevOps Engineer · Piston & Deployment Lead · Docker & Containerization Engineer',
     leader: false,
     avatar: 'https://github.com/AliMugheri.png',
@@ -75,14 +75,18 @@ function TeamCard({ member }) {
 
       <div className="flex flex-1 flex-col items-center gap-3 p-5 text-center">
         <div>
-          <p className="font-heading text-base font-semibold" style={{ color: member.leader ? 'var(--l-gold)' : 'var(--l-text-primary)' }}>
+          {/* Name/role now match every other card's text color exactly —
+              gold stays reserved for the border, badge, and photo ring
+              above, which already communicate "leader" clearly without
+              needing the text itself to be gold (which read as less
+              professional and had real contrast issues in light mode). */}
+          <p className="font-heading text-base font-semibold" style={{ color: 'var(--l-text-primary)' }}>
             {member.name}
           </p>
-          <p className="mt-1 text-xs leading-relaxed" style={{ color: member.leader ? 'var(--l-gold)' : 'var(--l-text-secondary)' }}>
+          <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--l-text-secondary)' }}>
             {member.role}
           </p>
         </div>
-
         <div className="mt-auto flex justify-center gap-2 pt-2">
           {Object.entries(member.links).map(([platform, href]) => (
             <SocialBadge key={platform} platform={platform} href={href} />
