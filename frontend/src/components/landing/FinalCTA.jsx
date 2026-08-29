@@ -7,7 +7,7 @@ export default function FinalCTA() {
   const { user } = useAuth();
 
   return (
-    <section className="px-6 py-20">
+    <section className="px-6 py-14">
       <Reveal>
         <div
           className="l-card mx-auto flex max-w-5xl flex-col items-center gap-6 p-10 text-center sm:flex-row sm:justify-between sm:text-left"

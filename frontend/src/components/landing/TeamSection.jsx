@@ -1,12 +1,6 @@
 import SocialBadge from './SocialBadge';
 import Reveal from './Reveal';
 
-const SUPERVISOR = {
-  name: 'Prof. Ayaz Keerio',
-  role: 'Supervisor',
-  org: 'Director, IMCS · University of Sindh',
-};
-
 const TEAM = [
   {
     name: 'Arsal Jan Chandio',
@@ -49,10 +43,6 @@ const TEAM = [
   },
 ];
 
-function initials(name) {
-  return name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase();
-}
-
 function TeamCard({ member }) {
   return (
     <div
@@ -72,23 +62,18 @@ function TeamCard({ member }) {
         </span>
       )}
 
-      {/* Photo fills the top of the card — the primary visual, per this
-          pass's instruction, replacing the previous small circular
-          avatar + skill-tag layout. */}
-      <div className="relative aspect-[4/5] w-full">
-        <img
-          src={member.avatar}
-          alt={member.name}
-          className="h-full w-full object-cover"
-          style={{ borderBottom: `2px solid ${member.leader ? 'var(--l-gold)' : 'var(--l-border)'}` }}
-        />
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-16"
-          style={{ background: 'linear-gradient(180deg, transparent, var(--l-surface))' }}
-        />
+      <div className="flex justify-center pt-6">
+        <div className="relative h-28 w-28 overflow-hidden rounded-2xl sm:h-32 sm:w-32">
+          <img
+            src={member.avatar}
+            alt={member.name}
+            className="h-full w-full object-cover"
+            style={{ border: `2px solid ${member.leader ? 'var(--l-gold)' : 'var(--l-border)'}` }}
+          />
+        </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 p-5">
+      <div className="flex flex-1 flex-col items-center gap-3 p-5 text-center">
         <div>
           <p className="font-heading text-base font-semibold" style={{ color: member.leader ? 'var(--l-gold)' : 'var(--l-text-primary)' }}>
             {member.name}
@@ -98,7 +83,7 @@ function TeamCard({ member }) {
           </p>
         </div>
 
-        <div className="mt-auto flex gap-2 pt-2">
+        <div className="mt-auto flex justify-center gap-2 pt-2">
           {Object.entries(member.links).map(([platform, href]) => (
             <SocialBadge key={platform} platform={platform} href={href} />
           ))}
@@ -110,36 +95,20 @@ function TeamCard({ member }) {
 
 export default function TeamSection() {
   return (
-    <section id="team" className="px-6 py-24">
+    <section id="team" className="px-6 py-16">
       <div className="mx-auto max-w-6xl">
         <Reveal>
-          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-orange)' }}>
-            Team &amp; Supervisors
+          <p className="text-center text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-orange)' }}>
+            Team
           </p>
-          <h2 className="mt-3 font-heading text-3xl font-bold sm:text-4xl" style={{ color: 'var(--l-text-primary)' }}>
+          <h2 className="mt-3 text-center font-heading text-3xl font-bold sm:text-4xl" style={{ color: 'var(--l-text-primary)' }}>
             The people behind NeuroCode
           </h2>
         </Reveal>
 
-        <Reveal delay={80}>
-          <div className="l-card mt-10 flex items-center gap-4 p-6">
-            <div
-              className="flex h-14 w-14 items-center justify-center rounded-xl text-sm font-semibold"
-              style={{ backgroundColor: 'var(--l-surface-alt)', color: 'var(--l-text-secondary)', border: '2px solid var(--l-border)' }}
-            >
-              {initials(SUPERVISOR.name)}
-            </div>
-            <div>
-              <p className="font-heading text-base font-semibold" style={{ color: 'var(--l-text-primary)' }}>{SUPERVISOR.name}</p>
-              <p className="text-xs" style={{ color: 'var(--l-orange)' }}>{SUPERVISOR.role}</p>
-              <p className="text-xs" style={{ color: 'var(--l-text-muted)' }}>{SUPERVISOR.org}</p>
-            </div>
-          </div>
-        </Reveal>
-
-        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {TEAM.map((member, i) => (
-            <Reveal key={member.name} delay={120 + i * 80}>
+            <Reveal key={member.name} delay={i * 80}>
               <TeamCard member={member} />
             </Reveal>
           ))}

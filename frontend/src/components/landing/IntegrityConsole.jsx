@@ -36,16 +36,16 @@ export default function IntegrityConsole() {
   const offset = animated ? CIRCUMFERENCE - (CIRCUMFERENCE * SCORE) / 100 : CIRCUMFERENCE;
 
   return (
-    <section id="integrity" className="px-6 py-24">
+    <section id="integrity" className="px-6 py-16">
       <div className="mx-auto max-w-6xl" ref={ref}>
         <Reveal>
-          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-orange)' }}>
+          <p className="text-center text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-orange)' }}>
             Integrity Console — Sample Session
           </p>
-          <h2 className="mt-3 font-heading text-3xl font-bold sm:text-4xl" style={{ color: 'var(--l-text-primary)' }}>
+          <h2 className="mt-3 text-center font-heading text-3xl font-bold sm:text-4xl" style={{ color: 'var(--l-text-primary)' }}>
             Four independent signals, one live score
           </h2>
-          <p className="mt-2 flex items-center gap-1.5 text-xs" style={{ color: 'var(--l-text-muted)' }}>
+          <p className="mt-2 flex items-center justify-center gap-1.5 text-xs" style={{ color: 'var(--l-text-muted)' }}>
             <Info className="h-3.5 w-3.5" /> This is an illustrative example of NeuroCode's assessment
             integrity system — not live telemetry.
           </p>

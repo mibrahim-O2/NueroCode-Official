@@ -33,13 +33,13 @@ const FEATURES = [
 
 export default function FeatureGrid() {
   return (
-    <section id="features" className="px-6 py-24">
+    <section id="features" className="px-6 py-16">
       <div className="mx-auto max-w-6xl">
         <Reveal>
-          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-orange)' }}>
+          <p className="text-center text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-orange)' }}>
             The Platform
           </p>
-          <h2 className="mt-3 font-heading text-3xl font-bold sm:text-4xl" style={{ color: 'var(--l-text-primary)' }}>
+          <h2 className="mt-3 text-center font-heading text-3xl font-bold sm:text-4xl" style={{ color: 'var(--l-text-primary)' }}>
             Everything built, working together
           </h2>
         </Reveal>

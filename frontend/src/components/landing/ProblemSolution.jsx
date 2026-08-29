@@ -11,7 +11,7 @@ const FLOW = [
 
 export default function ProblemSolution() {
   return (
-    <section className="px-6 py-24">
+    <section className="px-6 py-16">
       <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-2">
         <Reveal>
           <div className="l-card h-full p-8">

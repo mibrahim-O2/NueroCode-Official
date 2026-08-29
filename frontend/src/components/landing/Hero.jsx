@@ -18,7 +18,7 @@ export default function Hero() {
   const { user } = useAuth();
 
   return (
-      <section id="top" className="relative overflow-hidden px-6 pb-20 pt-20 sm:pt-24 lg:pb-44">
+      <section id="top" className="relative overflow-hidden px-6 pb-20 pt-20 sm:pt-24 lg:pb-28">
       <div
         className="pointer-events-none absolute left-1/2 top-0 h-[520px] w-[900px] -translate-x-1/2 rounded-full blur-[140px]"
         style={{

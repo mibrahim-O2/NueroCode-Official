@@ -11,7 +11,7 @@ const STEPS = [
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="px-6 py-24">
+    <section id="how-it-works" className="px-6 py-16">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <p className="text-center text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-orange)' }}>
