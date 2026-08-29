@@ -18,7 +18,7 @@ export default function Hero() {
   const { user } = useAuth();
 
   return (
-    <section id="top" className="relative overflow-hidden px-6 pb-20 pt-28 sm:pt-32">
+      <section id="top" className="relative overflow-hidden px-6 pb-20 pt-20 sm:pt-24">
       <div
         className="pointer-events-none absolute left-1/2 top-0 h-[520px] w-[900px] -translate-x-1/2 rounded-full blur-[140px]"
         style={{
@@ -27,7 +27,7 @@ export default function Hero() {
         }}
       />
 
-      <div className="relative mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2 lg:gap-14">
+        <div className="relative mx-auto grid max-w-7xl items-start gap-10 lg:grid-cols-2 lg:gap-14">
         <Reveal>
           <div
             className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-medium tracking-wide"
@@ -38,7 +38,7 @@ export default function Hero() {
           </div>
 
           <h1
-            className="mt-6 font-heading text-5xl font-black uppercase leading-[0.95] tracking-tighter sm:text-6xl lg:text-7xl"
+            className="mt-5 font-heading text-5xl font-black uppercase leading-[0.95] tracking-tighter sm:text-6xl lg:text-7xl"
             style={{ color: 'var(--l-text-primary)' }}
           >
             Where Intelligence
@@ -46,14 +46,14 @@ export default function Hero() {
             <span style={{ color: 'var(--l-orange)' }}>Meets Code</span>
           </h1>
 
-          <p className="mt-6 max-w-lg text-lg leading-relaxed" style={{ color: 'var(--l-text-secondary)' }}>
+          <p className="mt-5 max-w-lg text-lg leading-relaxed" style={{ color: 'var(--l-text-secondary)' }}>
             NeuroCode combines an <strong style={{ color: 'var(--l-text-primary)' }}>AI-adaptive learning roadmap</strong>,{' '}
             <strong style={{ color: 'var(--l-text-primary)' }}>real sandboxed code execution</strong>, and{' '}
             <strong style={{ color: 'var(--l-text-primary)' }}>behavior-verified proctored assessments</strong> into one
             connected platform.
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center gap-4">
+          <div className="mt-7 flex flex-wrap items-center gap-4">
             <Link
               to={user ? '/dashboard' : '/login'}
               className="inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold transition-transform hover:scale-[1.03]"
