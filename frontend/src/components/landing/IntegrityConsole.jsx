@@ -39,7 +39,7 @@ export default function IntegrityConsole() {
     <section id="integrity" className="px-6 py-24">
       <div className="mx-auto max-w-6xl" ref={ref}>
         <Reveal>
-          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-gold)' }}>
+          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-orange)' }}>
             Integrity Console — Sample Session
           </p>
           <h2 className="mt-3 font-heading text-3xl font-bold sm:text-4xl" style={{ color: 'var(--l-text-primary)' }}>
@@ -61,7 +61,7 @@ export default function IntegrityConsole() {
                   cy="70"
                   r={RADIUS}
                   fill="none"
-                  stroke="var(--l-gold)"
+                  stroke="var(--l-orange)"
                   strokeWidth="10"
                   strokeLinecap="round"
                   strokeDasharray={CIRCUMFERENCE}
@@ -78,7 +78,7 @@ export default function IntegrityConsole() {
             </div>
             <span
               className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs"
-              style={{ borderColor: 'var(--l-emerald)', color: 'var(--l-emerald)' }}
+              style={{ borderColor: 'var(--l-teal)', color: 'var(--l-teal)' }}
             >
               <ShieldCheck className="h-3.5 w-3.5" /> High Integrity
             </span>
@@ -91,12 +91,12 @@ export default function IntegrityConsole() {
                   <span>{s.label}</span>
                   <span className="font-mono" style={{ color: 'var(--l-text-primary)' }}>{s.value}%</span>
                 </div>
-                <div className="h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: 'var(--l-bg-alt)' }}>
+                <div className="h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: 'var(--l-surface-alt)' }}>
                   <div
                     className="h-full rounded-full"
                     style={{
                       width: animated ? `${s.value}%` : '0%',
-                      background: 'linear-gradient(90deg, var(--l-gold-deep), var(--l-gold))',
+                      background: 'linear-gradient(90deg, var(--l-orange-hover), var(--l-orange))',
                       transition: 'width 1.2s cubic-bezier(.16,1,.3,1)',
                     }}
                   />

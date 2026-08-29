@@ -14,7 +14,7 @@ export default function HowItWorks() {
     <section id="how-it-works" className="px-6 py-24">
       <div className="mx-auto max-w-6xl">
         <Reveal>
-          <p className="text-center text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-gold)' }}>
+          <p className="text-center text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-orange)' }}>
             How It Works
           </p>
           <h2 className="mt-3 text-center font-heading text-3xl font-bold sm:text-4xl" style={{ color: 'var(--l-text-primary)' }}>
@@ -33,12 +33,12 @@ export default function HowItWorks() {
                 <div className="relative flex flex-col items-start gap-4 lg:items-center lg:text-center">
                   <div
                     className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full border-2"
-                    style={{ borderColor: 'var(--l-gold)', backgroundColor: 'var(--l-bg-alt)', color: 'var(--l-gold)' }}
+                    style={{ borderColor: 'var(--l-orange)', backgroundColor: 'var(--l-surface)', color: 'var(--l-orange)' }}
                   >
                     <Icon className="h-6 w-6" />
                     <span
                       className="absolute -right-1 -top-2 rounded-full px-1.5 text-[10px] font-mono font-semibold"
-                      style={{ backgroundColor: 'var(--l-gold)', color: '#0B0B0D' }}
+                      style={{ backgroundColor: 'var(--l-orange)', color: '#1A0900' }}
                     >
                       {n}
                     </span>

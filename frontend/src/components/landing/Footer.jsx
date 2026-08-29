@@ -9,7 +9,7 @@ export default function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <div className="flex items-center gap-2">
-            <Logo variant="icon" size={26} animated={false} />
+            <Logo variant="icon" size={30} animated={false} />
             <span className="font-heading text-base font-semibold" style={{ color: 'var(--l-text-primary)' }}>
               NeuroCode
             </span>

@@ -42,9 +42,9 @@ export default function Navbar() {
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <a href="#top" className="flex items-center gap-2.5">
-          <Logo variant="icon" size={32} animated={false} />
+          <Logo variant="icon" size={38} animated={false} />
           <span className="font-heading text-lg font-semibold" style={{ color: 'var(--l-text-primary)' }}>
-            Neuro<span style={{ color: 'var(--l-green-bright)' }}>Code</span>
+            Neuro<span style={{ color: 'var(--l-orange)' }}>Code</span>
           </span>
         </a>
 
@@ -59,7 +59,6 @@ export default function Navbar() {
               {link.label}
             </button>
           ))}
-          
           <a
             href={DOCS_URL}
             target="_blank"
@@ -84,7 +83,7 @@ export default function Navbar() {
           <Link
             to={user ? '/dashboard' : '/login'}
             className="rounded-full px-5 py-2.5 text-sm font-semibold transition-transform hover:scale-[1.03]"
-            style={{ backgroundColor: 'var(--l-green-bright)', color: '#06110A' }}
+            style={{ backgroundColor: 'var(--l-orange)', color: '#1A0900' }}
           >
             {user ? 'Go to Dashboard' : 'Get Started'}
           </Link>
@@ -103,7 +102,7 @@ export default function Navbar() {
       {mobileOpen && (
         <div
           className="flex flex-col gap-3 border-t px-6 py-4 lg:hidden"
-          style={{ borderColor: 'var(--l-border)', backgroundColor: 'var(--l-bg-alt)' }}
+          style={{ borderColor: 'var(--l-border)', backgroundColor: 'var(--l-surface)' }}
         >
           {NAV_LINKS.map((link) => (
             <button

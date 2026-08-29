@@ -15,7 +15,7 @@ export default function ProblemSolution() {
       <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-2">
         <Reveal>
           <div className="l-card h-full p-8">
-            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-green-bright)' }}>
+            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-orange)' }}>
               The Problem
             </p>
             <p className="mt-4 text-lg leading-relaxed" style={{ color: 'var(--l-text-secondary)' }}>
@@ -28,7 +28,7 @@ export default function ProblemSolution() {
 
         <Reveal delay={100}>
           <div className="l-card h-full p-8">
-            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-green-bright)' }}>
+            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--l-orange)' }}>
               Our Approach
             </p>
             <p className="mt-4 text-lg leading-relaxed" style={{ color: 'var(--l-text-secondary)' }}>
@@ -43,7 +43,7 @@ export default function ProblemSolution() {
                   <div className="flex flex-col items-center gap-1.5">
                     <div
                       className="flex h-11 w-11 items-center justify-center rounded-full border"
-                      style={{ borderColor: 'var(--l-green-bright)', color: 'var(--l-green-bright)' }}
+                      style={{ borderColor: 'var(--l-orange)', color: 'var(--l-orange)' }}
                     >
                       <Icon className="h-4 w-4" />
                     </div>
