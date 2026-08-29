@@ -116,7 +116,7 @@ export default function Practice() {
           <input
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
-            className="rounded-input border border-border bg-elevated px-3 py-2 text-sm text-text-primary outline-none focus:border-emerald"
+            className="rounded-input border border-border bg-elevated px-3 py-2 text-sm text-text-primary outline-none transition-colors duration-200 focus:border-orange"
           />
         </div>
         <div className="flex flex-col gap-1.5">
@@ -127,7 +127,7 @@ export default function Practice() {
                 key={d}
                 onClick={() => setDifficulty(d)}
                 className={`px-3 py-2 text-xs capitalize transition-colors duration-200 ${
-                  difficulty === d ? 'bg-emerald text-white' : 'text-text-muted hover:text-text-primary'
+                  difficulty === d ? 'bg-orange text-white' : 'text-text-muted hover:text-text-primary'
                 }`}
               >
                 {d}
@@ -149,7 +149,7 @@ export default function Practice() {
           <button
             onClick={handleInstantProblem}
             disabled={loading || !topic.trim()}
-            className="flex items-center gap-2 rounded-button border border-status-warning/40 px-4 py-2.5 text-sm font-body text-status-warning transition-colors duration-200 hover:bg-status-warning/10 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-button border border-status-warning/40 px-4 py-2.5 text-sm font-body text-status-warning transition-all duration-200 hover:bg-status-warning/10 active:scale-95 disabled:opacity-50"
           >
             Instant Problem (Test Mode)
           </button>
@@ -157,7 +157,7 @@ export default function Practice() {
       </div>
 
       {error && (
-        <div className="flex items-center justify-between gap-3 rounded-input border border-status-error/40 bg-status-error/10 px-4 py-3 text-sm text-status-error">
+        <div className="animate-slide-fade-in flex items-center justify-between gap-3 rounded-input border border-status-error/40 bg-status-error/10 px-4 py-3 text-sm text-status-error">
           <span className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4" /> {error}
           </span>
@@ -177,14 +177,18 @@ export default function Practice() {
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="flex flex-col gap-6">
             {problem.provider_used && (
-              <div className="flex w-fit items-center gap-1.5 rounded-badge border border-emerald/30 bg-emerald/10 px-3 py-1 text-xs text-emerald">
+              <div className="flex w-fit items-center gap-1.5 rounded-badge border border-teal/30 bg-teal/10 px-3 py-1 text-xs text-teal">
                 <Sparkles className="h-3 w-3" />
                 Generated with {PROVIDER_DISPLAY[problem.provider_used] || problem.provider_used}
               </div>
             )}
             <ProblemPanel problem={problem} />
-            {result && <TestResultsPanel result={result} />}
-            {result?.analysis && <AnalysisPanel analysis={result.analysis} />}
+            {result && (
+              <div className="animate-slide-fade-in flex flex-col gap-6">
+                <TestResultsPanel result={result} />
+                {result.analysis && <AnalysisPanel analysis={result.analysis} />}
+              </div>
+            )}
             {/* Only offered after a genuine pass on THIS problem — the
                 backend independently re-checks this, this is just UI gating. */}
             {result?.all_passed && <OfficialSolutionPanel problemId={problem.id} />}
@@ -199,7 +203,7 @@ export default function Practice() {
                     key={lang}
                     onClick={() => handleLanguageChange(lang)}
                     className={`px-3 py-1.5 text-xs capitalize transition-colors duration-200 ${
-                      language === lang ? 'bg-emerald text-white' : 'text-text-muted hover:text-text-primary'
+                      language === lang ? 'bg-orange text-white' : 'text-text-muted hover:text-text-primary'
                     }`}
                   >
                     {lang === 'cpp' ? 'C++' : lang}
@@ -211,7 +215,7 @@ export default function Practice() {
             <CodeEditor language={language} value={code} onChange={setCode} />
 
             {submitError && (
-              <div className="rounded-input border border-status-error/40 bg-status-error/10 px-4 py-2.5 text-xs text-status-error">
+              <div className="animate-slide-fade-in rounded-input border border-status-error/40 bg-status-error/10 px-4 py-2.5 text-xs text-status-error">
                 {submitError}
               </div>
             )}
@@ -219,7 +223,7 @@ export default function Practice() {
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="flex items-center justify-center gap-2 rounded-button bg-emerald px-4 py-2.5 text-sm font-body text-white shadow-button transition-colors duration-200 hover:bg-emerald-hover disabled:opacity-50"
+              className="flex items-center justify-center gap-2 rounded-button bg-orange px-4 py-2.5 text-sm font-body text-white shadow-button transition-all duration-200 hover:bg-orange-hover active:scale-95 disabled:opacity-50"
             >
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4 fill-current" />}
               {submitting ? 'Running…' : 'Submit Solution'}
@@ -230,14 +234,14 @@ export default function Practice() {
                 <button
                   onClick={() => handleSimulate('pass')}
                   disabled={submitting}
-                  className="flex-1 rounded-button border border-emerald/40 px-3 py-2 text-xs text-emerald transition-colors duration-200 hover:bg-emerald/10 disabled:opacity-50"
+                  className="flex-1 rounded-button border border-status-success/40 px-3 py-2 text-xs text-status-success transition-all duration-200 hover:bg-status-success/10 active:scale-95 disabled:opacity-50"
                 >
                   Simulate Pass
                 </button>
                 <button
                   onClick={() => handleSimulate('fail')}
                   disabled={submitting}
-                  className="flex-1 rounded-button border border-status-error/40 px-3 py-2 text-xs text-status-error transition-colors duration-200 hover:bg-status-error/10 disabled:opacity-50"
+                  className="flex-1 rounded-button border border-status-error/40 px-3 py-2 text-xs text-status-error transition-all duration-200 hover:bg-status-error/10 active:scale-95 disabled:opacity-50"
                 >
                   Simulate Fail
                 </button>

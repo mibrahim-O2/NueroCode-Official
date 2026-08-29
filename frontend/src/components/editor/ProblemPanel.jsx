@@ -16,7 +16,7 @@ export default function ProblemPanel({ problem }) {
 
       <div className="flex items-center gap-2 text-xs text-text-muted">
         <Clock className="h-3.5 w-3.5" />
-        Expected complexity: <span className="text-emerald">{problem.expected_complexity}</span>
+        Expected complexity: <span className="text-teal">{problem.expected_complexity}</span>
       </div>
 
       <div>
@@ -28,7 +28,7 @@ export default function ProblemPanel({ problem }) {
                 Input: <span className="text-text-primary">{ex.input}</span>
               </p>
               <p className="mt-1 text-text-muted">
-                Output: <span className="text-emerald">{ex.output}</span>
+                Output: <span className="text-teal">{ex.output}</span>
               </p>
               {ex.explanation && <p className="mt-1 text-text-muted">{ex.explanation}</p>}
             </div>

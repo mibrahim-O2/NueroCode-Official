@@ -14,15 +14,15 @@ function defineNeuroCodeTheme(monaco) {
       { token: 'keyword', foreground: 'D4AF37' },
       { token: 'string', foreground: 'F3DE8A' },
       { token: 'comment', foreground: '6B7280' },
-      { token: 'number', foreground: '00C48C' },
+      { token: 'number', foreground: '2DD4A0' },
     ],
     colors: {
-      'editor.background': '#111315',
-      'editor.foreground': '#F8FAFC',
-      'editorCursor.foreground': '#00A676',
-      'editor.selectionBackground': '#00A67655',
-      'editorLineNumber.foreground': '#4B5563',
-      'editorLineNumber.activeForeground': '#94A3B8',
+      'editor.background': '#17120D',
+      'editor.foreground': '#F7F4F0',
+      'editorCursor.foreground': '#FF6E1A',
+      'editor.selectionBackground': '#FF6E1A40',
+      'editorLineNumber.foreground': '#5C4F42',
+      'editorLineNumber.activeForeground': '#A99B8C',
     },
   });
 }

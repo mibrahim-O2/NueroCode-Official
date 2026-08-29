@@ -7,7 +7,7 @@ export default function AnalysisPanel({ analysis }) {
     <div className="flex flex-col gap-4 rounded-card border border-border bg-card p-5 shadow-card">
       <div className="flex items-center justify-between">
         <h3 className="font-heading font-semibold text-text-primary">Code Analysis</h3>
-        <span className="flex items-center gap-1.5 rounded-badge border border-border px-3 py-1 font-mono text-xs text-mint">
+        <span className="flex items-center gap-1.5 rounded-badge border border-border px-3 py-1 font-mono text-xs text-teal">
           <Gauge className="h-3.5 w-3.5" /> {analysis.complexity}
         </span>
       </div>
@@ -29,7 +29,7 @@ export default function AnalysisPanel({ analysis }) {
       )}
 
       {analysis.reordered_topic && (
-        <div className="flex items-center gap-2 rounded-input border border-emerald/30 bg-emerald/5 p-3 text-xs text-emerald">
+        <div className="animate-slide-fade-in flex items-center gap-2 rounded-input border border-teal/30 bg-teal/5 p-3 text-xs text-teal">
           <ArrowUpCircle className="h-3.5 w-3.5 shrink-0" />
           We moved <strong className="mx-1">{analysis.reordered_topic}</strong> earlier in your roadmap based on
           this submission.
