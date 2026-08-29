@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sun, Moon, Menu, X } from 'lucide-react';
 import Logo from '@/components/common/Logo';
@@ -17,15 +17,7 @@ const DOCS_URL = 'https://github.com/mibrahim-O2/NueroCode-Official/blob/main/do
 export default function Navbar() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    window.addEventListener('scroll', onScroll);
-    onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   const scrollTo = (href) => {
     setMobileOpen(false);
@@ -33,14 +25,12 @@ export default function Navbar() {
   };
 
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${scrolled ? 'border-b' : ''}`}
-      style={{
-        backgroundColor: scrolled ? 'var(--l-surface)' : 'transparent',
-        borderColor: scrolled ? 'var(--l-border)' : 'transparent',
-      }}
-    >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+    // Always solid, matching the page's own background exactly — no
+    // transparent-until-scroll state, no border. This is what makes it
+    // read as a genuinely fixed, integrated bar rather than a floating
+    // overlay, matching the reference navbar's always-solid appearance.
+    <header className="fixed inset-x-0 top-0 z-50" style={{ backgroundColor: 'var(--l-bg)' }}>
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5">
         <a href="#top" className="flex items-center gap-2.5">
           <Logo variant="icon" size={38} animated={false} />
           <span className="font-heading text-lg font-semibold" style={{ color: 'var(--l-text-primary)' }}>
