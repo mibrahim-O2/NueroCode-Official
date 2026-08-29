@@ -5,6 +5,7 @@ canonical_solution stored during problem_service.generate_problem()
 THIS specific problem."""
 
 from app.ai.provider_factory import get_ai_provider
+from app.ai.gemini_provider import GeminiQuotaExceededError
 from app.database.repositories import get_problem_by_id, has_passing_submission
 
 EXPLANATION_SYSTEM_PROMPT = """You are explaining a coding solution to a student who just solved this
@@ -20,12 +21,21 @@ def get_official_solution(user_id: str, problem_id: str) -> dict:
     if not has_passing_submission(user_id, problem_id):
         raise PermissionError("Solve this problem successfully before viewing the official solution.")
 
-    provider = get_ai_provider()
-    explanation = provider.generate(
-        EXPLANATION_SYSTEM_PROMPT,
-        f"Problem: {problem['title']}\n{problem['description']}\n\nSolution:\n{problem['canonical_solution']}",
-        max_tokens=500,
-    )
+    # The solution code itself is already known and stored — it doesn't
+    # depend on any AI call succeeding. Only the explanation is AI-
+    # generated, so a quota/provider failure degrades to "no explanation
+    # this time" rather than blocking the whole feature, since the
+    # student's actual goal (seeing the correct code) is still met.
+    explanation = None
+    try:
+        provider = get_ai_provider()
+        explanation = provider.generate(
+            EXPLANATION_SYSTEM_PROMPT,
+            f"Problem: {problem['title']}\n{problem['description']}\n\nSolution:\n{problem['canonical_solution']}",
+            max_tokens=500,
+        )
+    except GeminiQuotaExceededError:
+        explanation = "Explanation temporarily unavailable (AI quota reached) — the solution code above is still accurate."
 
     return {
         "solution_code": problem["canonical_solution"],
