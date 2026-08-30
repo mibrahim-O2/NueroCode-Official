@@ -3,46 +3,52 @@
 @tailwind utilities;
 
 :root {
-  --bg-obsidian: #0B0B0C;
-  --bg-charcoal: #17181C;
-  --bg-elevated: #21242B;
-  --bg-card: #1C1F24;
-  --border-color: #2A2D34;
-  --divider-color: #343843;
+  /* Warm near-black progression — four tiers ascending in lightness,
+     same structural role as the original cool-toned obsidian/charcoal/
+     card/elevated hierarchy, just re-tinted to match the landing
+     page's warm identity instead of flattened into fewer tiers. */
+  --bg-background: #0F0B08;
+  --bg-charcoal: #17120D;
+  --bg-card: #1D160F;
+  --bg-elevated: #241B13;
 
-  --text-primary: #F8FAFC;
-  --text-secondary: #CBD5E1;
-  --text-muted: #94A3B8;
-  --text-disabled: #4B5563;
+  --border-color: rgba(255, 110, 26, 0.14);
+  --divider-color: rgba(255, 110, 26, 0.08);
 
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-dialog: 0 10px 30px rgba(0, 0, 0, 0.5);
-  --shadow-dropdown: 0 8px 20px rgba(0, 0, 0, 0.45);
-  --shadow-button: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --text-primary: #F7F4F0;
+  --text-secondary: #A99B8C;
+  --text-muted: #8A7A6B;
+  --text-disabled: #5C4F42;
+
+  --shadow-card: 0 1px 3px rgba(15, 8, 3, 0.4), 0 1px 2px rgba(15, 8, 3, 0.3);
+  --shadow-dialog: 0 10px 30px rgba(15, 8, 3, 0.55);
+  --shadow-dropdown: 0 8px 20px rgba(15, 8, 3, 0.5);
+  --shadow-button: 0 1px 2px rgba(15, 8, 3, 0.35);
 }
 
 :root[data-theme='light'] {
-  --bg-obsidian: #F7F7F5;
+  --bg-background: #FAF6F0;
   --bg-charcoal: #FFFFFF;
-  --bg-elevated: #FFFFFF;
   --bg-card: #FFFFFF;
-  --border-color: #E2E4E9;
-  --divider-color: #EAECEF;
+  --bg-elevated: #FFFFFF;
 
-  --text-primary: #14171A;
-  --text-secondary: #4B5563;
-  --text-muted: #6B7280;
-  --text-disabled: #9CA3AF;
+  --border-color: rgba(232, 90, 12, 0.16);
+  --divider-color: #EDE4D8;
 
-  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.06);
-  --shadow-dialog: 0 10px 30px rgba(15, 23, 42, 0.12);
-  --shadow-dropdown: 0 8px 20px rgba(15, 23, 42, 0.1);
-  --shadow-button: 0 1px 2px rgba(15, 23, 42, 0.08);
+  --text-primary: #1A140F;
+  --text-secondary: #5C4F42;
+  --text-muted: #7A6D5F;
+  --text-disabled: #A99B8C;
+
+  --shadow-card: 0 1px 3px rgba(120, 70, 30, 0.1), 0 1px 2px rgba(120, 70, 30, 0.07);
+  --shadow-dialog: 0 10px 30px rgba(120, 70, 30, 0.15);
+  --shadow-dropdown: 0 8px 20px rgba(120, 70, 30, 0.12);
+  --shadow-button: 0 1px 2px rgba(120, 70, 30, 0.1);
 }
 
 @layer base {
   body {
-    @apply bg-obsidian text-text-primary font-body antialiased;
+    @apply bg-background text-text-primary font-body antialiased;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading;
@@ -60,8 +66,8 @@
     background: linear-gradient(
       100deg,
       transparent 30%,
-      rgba(248, 250, 252, 0.5) 46%,
-      rgba(0, 196, 140, 0.55) 50%,
+      rgba(247, 244, 240, 0.5) 46%,
+      rgba(45, 212, 160, 0.55) 50%,
       rgba(212, 175, 55, 0.5) 54%,
       transparent 70%
     );
@@ -71,12 +77,16 @@
   }
 }
 
+/* Recolored from emerald/mint to orange/teal — same motion, same
+   timing, only the actual color values change (this was a real bug to
+   fix, unlike the pulse-emerald utility above, since these DID carry
+   the wrong color). */
 @keyframes logoGlow {
   0%, 100% {
-    filter: drop-shadow(0 0 6px rgba(0, 166, 118, 0.35)) drop-shadow(0 0 16px rgba(212, 175, 55, 0.15));
+    filter: drop-shadow(0 0 6px rgba(255, 110, 26, 0.35)) drop-shadow(0 0 16px rgba(212, 175, 55, 0.15));
   }
   50% {
-    filter: drop-shadow(0 0 14px rgba(0, 166, 118, 0.55)) drop-shadow(0 0 28px rgba(212, 175, 55, 0.3));
+    filter: drop-shadow(0 0 14px rgba(255, 110, 26, 0.55)) drop-shadow(0 0 28px rgba(212, 175, 55, 0.3));
   }
 }
 
