@@ -783,6 +783,29 @@ def has_passing_submission(user_id: str, problem_id: str) -> bool:
     return any((r.get("execution_result") or {}).get("all_passed") for r in rows)
 
 
+# --- Profile & Preferences -------------------------------------------------
+
+def update_user_profile(user_id: str, updates: dict) -> dict:
+    """Only 'name' and 'avatar_url' are user-editable from Profile — email
+    is tied to Firebase auth (changing it means re-verifying identity, out
+    of scope here), and role/xp/level/streak are system-managed elsewhere
+    (roadmap completion, admin actions), never directly editable by the
+    student themselves."""
+    allowed = {k: v for k, v in updates.items() if k in ("name", "avatar_url") and v is not None}
+    if not allowed:
+        return get_full_user_by_id(user_id)
+    return supabase.table("users").update(allowed).eq("id", user_id).execute().data[0]
+
+
+def update_user_preferences(user_id: str, preferences: dict) -> dict:
+    """Merges into the existing preferences JSONB blob rather than
+    replacing it outright, so saving one setting (e.g. show_review_reminders)
+    never silently wipes out any other preference already stored."""
+    current = supabase.table("users").select("preferences").eq("id", user_id).execute().data[0]
+    merged = {**(current.get("preferences") or {}), **preferences}
+    return supabase.table("users").update({"preferences": merged}).eq("id", user_id).execute().data[0]
+
+
 def get_last_submission_date_for_topic(user_id: str, topic: str) -> datetime | None:
     """Used by Spaced Review to check whether a student has practiced a
     given topic recently, independent of whether they've completed it."""
