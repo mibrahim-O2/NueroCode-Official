@@ -44,7 +44,7 @@ export default function Dashboard() {
         <p className="mt-1 font-body text-sm text-text-muted">Here's where your progress stands today.</p>
       </div>
 
-      {dueReviews.length > 0 && (
+      {dueReviews.length > 0 && (user?.preferences?.show_review_reminders ?? true) && (
         <div className="animate-slide-fade-in flex flex-wrap items-center justify-between gap-3 rounded-card border border-orange/30 bg-orange/5 p-5">
           <div className="flex items-center gap-3">
             <RotateCcw className="h-5 w-5 text-orange" />
