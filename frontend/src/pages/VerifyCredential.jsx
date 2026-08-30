@@ -82,21 +82,21 @@ export default function VerifyCredential() {
       {loading && <Loader2 className="h-6 w-6 animate-spin text-text-muted" />}
 
       {!loading && error && (
-        <div className="flex flex-col items-center gap-3 text-center">
+        <div className="animate-slide-fade-in flex flex-col items-center gap-3 text-center">
           <XCircle className="h-10 w-10 text-status-error" />
           <h1 className="font-heading font-semibold text-lg text-text-primary">Credential not found</h1>
           <p className="max-w-sm text-sm text-text-muted">
             This verification link doesn't match any issued NeuroCode credential.
           </p>
-          <Link to="/" className="text-sm text-emerald hover:underline">
+          <Link to="/" className="text-sm text-orange hover:underline">
             Back to NeuroCode
           </Link>
         </div>
       )}
 
       {!loading && data && (
-        <div className="flex w-full max-w-4xl flex-col gap-4">
-          <div className="flex items-center justify-center gap-2 rounded-input border border-emerald/40 bg-emerald/10 px-4 py-2 text-sm text-emerald">
+        <div className="animate-slide-fade-in flex w-full max-w-4xl flex-col gap-4">
+          <div className="flex items-center justify-center gap-2 rounded-input border border-status-success/40 bg-status-success/10 px-4 py-2 text-sm text-status-success">
             <ShieldCheck className="h-4 w-4" /> Independently Verified NeuroCode Credential
           </div>
 
@@ -105,7 +105,7 @@ export default function VerifyCredential() {
           <div className="flex justify-center">
             <button
               onClick={handleExport}
-              className="flex items-center gap-1.5 rounded-button border border-border px-4 py-2 text-xs text-text-secondary transition-colors duration-200 hover:border-emerald hover:text-emerald"
+              className="flex items-center gap-1.5 rounded-button border border-border px-4 py-2 text-xs text-text-secondary transition-all duration-200 hover:border-orange hover:text-orange active:scale-95"
             >
               <Download className="h-3.5 w-3.5" /> Download PDF
             </button>

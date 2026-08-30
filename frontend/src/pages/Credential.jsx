@@ -53,8 +53,10 @@ export default function Credential() {
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {credentials.map((cred) => (
-            <CredentialCard key={cred.id} credential={cred} onView={() => setSelected(cred)} />
+          {credentials.map((cred, i) => (
+            <div key={cred.id} className="animate-slide-fade-in" style={{ animationDelay: `${i * 60}ms` }}>
+              <CredentialCard credential={cred} onView={() => setSelected(cred)} />
+            </div>
           ))}
         </div>
       )}

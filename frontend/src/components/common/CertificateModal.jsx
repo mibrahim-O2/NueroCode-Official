@@ -32,9 +32,9 @@ export default function CertificateModal({ credential, ownerName, qrDataUrl, ver
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
+    <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <div
-        className="flex max-h-[90vh] w-full max-w-4xl flex-col gap-4 overflow-y-auto rounded-dialog border border-border bg-charcoal p-4 shadow-dialog"
+        className="animate-slide-fade-in flex max-h-[90vh] w-full max-w-4xl flex-col gap-4 overflow-y-auto rounded-dialog border border-border bg-charcoal p-4 shadow-dialog"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -47,7 +47,7 @@ export default function CertificateModal({ credential, ownerName, qrDataUrl, ver
         <CertificateTemplate ref={certRef} credential={credential} ownerName={ownerName} qrDataUrl={qrDataUrl} verifyUrl={verifyUrl} />
 
         {copiedCaption && (
-          <p className="text-center text-xs text-emerald">
+          <p className="animate-slide-fade-in text-center text-xs text-orange">
             Suggested LinkedIn caption copied to your clipboard — paste it into your post!
           </p>
         )}
@@ -55,20 +55,22 @@ export default function CertificateModal({ credential, ownerName, qrDataUrl, ver
         <div className="flex flex-wrap justify-center gap-2">
           <button
             onClick={handleExport}
-            className="flex items-center gap-1.5 rounded-button bg-emerald px-4 py-2 text-xs text-white shadow-button transition-colors duration-200 hover:bg-emerald-hover"
+            className="flex items-center gap-1.5 rounded-button bg-orange px-4 py-2 text-xs text-white shadow-button transition-all duration-200 hover:bg-orange-hover active:scale-95"
           >
             <Download className="h-3.5 w-3.5" /> Export PDF
           </button>
           <button
             onClick={handleCopyLink}
-            className="flex items-center gap-1.5 rounded-button border border-border px-4 py-2 text-xs text-text-secondary transition-colors duration-200 hover:border-emerald hover:text-emerald"
+            className="flex items-center gap-1.5 rounded-button border border-border px-4 py-2 text-xs text-text-secondary transition-all duration-200 hover:border-orange hover:text-orange active:scale-95"
           >
-            {copiedLink ? <Check className="h-3.5 w-3.5" /> : <Link2 className="h-3.5 w-3.5" />}
+            {copiedLink ? <Check className="h-3.5 w-3.5 text-status-success" /> : <Link2 className="h-3.5 w-3.5" />}
             {copiedLink ? 'Copied!' : 'Copy Verification Link'}
           </button>
+          {/* LinkedIn's own brand blue, intentionally independent of our
+              palette — same reasoning as Part 7's Assessment page. */}
           <button
             onClick={handleShareLinkedIn}
-            className="flex items-center gap-1.5 rounded-button border border-[#0A66C2] px-4 py-2 text-xs text-[#0A66C2] transition-colors duration-200 hover:bg-[#0A66C2]/10"
+            className="flex items-center gap-1.5 rounded-button border border-[#0A66C2] px-4 py-2 text-xs text-[#0A66C2] transition-all duration-200 hover:bg-[#0A66C2]/10 active:scale-95"
           >
             <Linkedin className="h-3.5 w-3.5" /> Share on LinkedIn
           </button>
