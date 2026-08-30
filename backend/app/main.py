@@ -20,6 +20,7 @@ from app.routes import (
     solution_routes,
     review_routes,
     discussion_routes,
+    profile_routes,
 )
 from app.database.chroma_client import chroma_health_check
 from app.services.supabase_service import supabase
@@ -57,6 +58,7 @@ app.include_router(submission_comment_routes.router)
 app.include_router(solution_routes.router)
 app.include_router(review_routes.router)
 app.include_router(discussion_routes.router)
+app.include_router(profile_routes.router)
 
 if settings.TEST_MODE:
     import logging
