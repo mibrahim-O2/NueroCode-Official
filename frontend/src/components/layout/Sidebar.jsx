@@ -54,7 +54,7 @@ export default function Sidebar({ open, onClose }) {
         )}
       >
         <div className="flex items-center justify-between px-5 py-5">
-          <Logo variant="icon" size={46} animated={false} />
+          <Logo variant="icon" size={78} animated={false} />
           <button onClick={onClose} className="text-text-muted hover:text-text-primary md:hidden">
             <X className="h-5 w-5" />
           </button>
