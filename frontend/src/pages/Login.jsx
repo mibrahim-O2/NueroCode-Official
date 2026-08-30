@@ -1,138 +1,128 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, Loader2, Github, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, User, Loader2, Github, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import Logo from '@/components/common/Logo';
-import {
-  signInWithGoogle,
-  signInWithGithub,
-  signInWithEmail,
-  signUpWithEmail,
-  sendPasswordReset,
-} from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
-
-const ERROR_MESSAGES = {
-  'auth/invalid-credential': 'Incorrect email or password.',
-  'auth/user-not-found': 'No account found with that email.',
-  'auth/wrong-password': 'Incorrect email or password.',
-  'auth/email-already-in-use': 'An account with that email already exists.',
-  'auth/weak-password': 'Password should be at least 6 characters.',
-  'auth/popup-closed-by-user': null, // user-cancelled, not a real error — no message shown
-};
-
-function friendlyError(firebaseError) {
-  const code = firebaseError?.code;
-  if (code && code in ERROR_MESSAGES) return ERROR_MESSAGES[code];
-  return 'Something went wrong. Please try again.';
-}
 
 export default function Login() {
   const navigate = useNavigate();
-  const { loginWithToken } = useAuth();
+  const { loginWithGoogle, loginWithGithub, loginWithEmail, registerWithEmail, resetPassword, error, setError } =
+    useAuth();
 
   const [mode, setMode] = useState('login'); // 'login' | 'signup' | 'reset'
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [resetSent, setResetSent] = useState(false);
 
-  // Bug fix: switching modes previously left a stale error OR a stale
-  // resetSent=true confirmation on screen from whatever the user last
-  // attempted — e.g. requesting a reset, going back to Login, then
-  // clicking "Forgot password?" again showed "check your email"
-  // instantly, before the second request was ever submitted. Every mode
-  // switch now clears both, so each mode always starts clean.
   const switchMode = (nextMode) => {
     setMode(nextMode);
     setError(null);
     setResetSent(false);
+    setShowPassword(false);
   };
 
-  const handleOAuthLogin = async (providerFn) => {
-    setError(null);
-    setLoading(true);
+  const handleGoogle = async () => {
+    setSubmitting(true);
     try {
-      const token = await providerFn();
-      await loginWithToken(token);
+      await loginWithGoogle();
       navigate('/dashboard');
-    } catch (err) {
-      const message = friendlyError(err);
-      if (message) setError(message);
+    } catch {
+      // error is already set on context by loginWithGoogle itself
     } finally {
-      setLoading(false);
+      setSubmitting(false);
+    }
+  };
+
+  const handleGithub = async () => {
+    setSubmitting(true);
+    try {
+      await loginWithGithub();
+      navigate('/dashboard');
+    } catch {
+      // error is already set on context by loginWithGithub itself
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
-    // Bug fix: this was missing — a stale error from a PREVIOUS failed
-    // attempt could sit on screen through a new attempt, making it look
-    // like the new attempt had already failed before it even resolved.
-    setError(null);
-    setLoading(true);
+    setSubmitting(true);
     try {
-      const token = await signInWithEmail(email, password);
-      await loginWithToken(token);
+      await loginWithEmail(email, password);
       navigate('/dashboard');
-    } catch (err) {
-      setError(friendlyError(err));
+    } catch {
+      // error is already set on context by loginWithEmail itself
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   const handleEmailSignup = async (e) => {
     e.preventDefault();
-    setError(null); // Bug fix: same as above, applied to signup too.
-    setLoading(true);
+    setSubmitting(true);
     try {
-      const token = await signUpWithEmail(email, password);
-      await loginWithToken(token);
+      await registerWithEmail(name, email, password);
       navigate('/dashboard');
-    } catch (err) {
-      setError(friendlyError(err));
+    } catch {
+      // error is already set on context by registerWithEmail itself
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
+    setSubmitting(true);
     try {
-      await sendPasswordReset(email);
+      await resetPassword(email);
       setResetSent(true);
-    } catch (err) {
-      setError(friendlyError(err));
+    } catch {
+      // error is already set on context by resetPassword itself
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center gap-3 text-center">
-          <Logo variant="icon" size={48} animated />
-          <h1 className="font-heading text-xl font-semibold text-text-primary">
-            {mode === 'reset' ? 'Reset your password' : 'Welcome to NeuroCode'}
-          </h1>
-          <p className="text-sm text-text-muted">
-            {mode === 'login' && 'Sign in to continue your journey'}
-            {mode === 'signup' && 'Create an account to get started'}
-            {mode === 'reset' && "We'll send you a link to reset your password"}
-          </p>
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6 py-12">
+      {/* Ambient background glow — the same radial-gradient technique the
+          landing hero uses, kept deliberately calmer/smaller here since
+          this is a functional form, not a marketing moment. */}
+      <div
+        className="pointer-events-none absolute left-1/2 top-0 h-[440px] w-[720px] -translate-x-1/2 rounded-full blur-[130px]"
+        style={{
+          background:
+            'radial-gradient(circle, #FF6E1A 0%, transparent 60%), radial-gradient(circle at 70% 30%, #2DD4A0 0%, transparent 55%)',
+          opacity: 0.14,
+        }}
+      />
+
+      <div className="relative w-full max-w-sm">
+        <div className="animate-slide-fade-in mb-8 flex flex-col items-center gap-4 text-center">
+          <Logo variant="icon" size={88} animated />
+          <div>
+            <h1 className="font-heading text-2xl font-semibold text-text-primary">
+              {mode === 'reset' ? 'Reset your password' : 'Welcome to NeuroCode'}
+            </h1>
+            <p className="mt-1 text-sm text-text-muted">
+              {mode === 'login' && 'Sign in to continue your journey'}
+              {mode === 'signup' && 'Create an account to get started'}
+              {mode === 'reset' && "We'll send you a link to reset your password"}
+            </p>
+          </div>
         </div>
 
-        <div className="rounded-card border border-border bg-card p-6 shadow-card">
+        <div className="animate-slide-fade-in rounded-card border border-border bg-card p-6 shadow-dialog">
           {mode !== 'reset' && (
             <>
               <div className="flex flex-col gap-2.5">
                 <button
-                  onClick={() => handleOAuthLogin(signInWithGoogle)}
-                  disabled={loading}
+                  onClick={handleGoogle}
+                  disabled={submitting}
                   className="flex items-center justify-center gap-2 rounded-button border border-border py-2.5 text-sm font-body text-text-primary transition-all duration-200 hover:border-orange active:scale-95 disabled:opacity-50"
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24">
@@ -144,8 +134,8 @@ export default function Login() {
                   Continue with Google
                 </button>
                 <button
-                  onClick={() => handleOAuthLogin(signInWithGithub)}
-                  disabled={loading}
+                  onClick={handleGithub}
+                  disabled={submitting}
                   className="flex items-center justify-center gap-2 rounded-button border border-border py-2.5 text-sm font-body text-text-primary transition-all duration-200 hover:border-orange active:scale-95 disabled:opacity-50"
                 >
                   <Github className="h-4 w-4" /> Continue with GitHub
@@ -189,10 +179,10 @@ export default function Login() {
                 {error && <p className="animate-slide-fade-in text-xs text-status-error">{error}</p>}
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={submitting}
                   className="flex items-center justify-center gap-2 rounded-button bg-orange py-2.5 text-sm font-body text-white shadow-button transition-all duration-200 hover:bg-orange-hover active:scale-95 disabled:opacity-50"
                 >
-                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                   Send Reset Link
                 </button>
                 <button
@@ -206,6 +196,19 @@ export default function Login() {
             )
           ) : (
             <form onSubmit={mode === 'login' ? handleEmailLogin : handleEmailSignup} className="flex flex-col gap-3">
+              {mode === 'signup' && (
+                <div className="relative">
+                  <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Full name"
+                    className="w-full rounded-input border border-border bg-elevated py-2.5 pl-9 pr-3 text-sm text-text-primary outline-none transition-colors duration-200 focus:border-orange"
+                  />
+                </div>
+              )}
               <div className="relative">
                 <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
                 <input
@@ -220,14 +223,22 @@ export default function Login() {
               <div className="relative">
                 <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
-                  className="w-full rounded-input border border-border bg-elevated py-2.5 pl-9 pr-3 text-sm text-text-primary outline-none transition-colors duration-200 focus:border-orange"
+                  className="w-full rounded-input border border-border bg-elevated py-2.5 pl-9 pr-10 text-sm text-text-primary outline-none transition-colors duration-200 focus:border-orange"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-200 hover:text-orange"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
 
               {mode === 'login' && (
@@ -244,10 +255,10 @@ export default function Login() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={submitting}
                 className="flex items-center justify-center gap-2 rounded-button bg-orange py-2.5 text-sm font-body text-white shadow-button transition-all duration-200 hover:bg-orange-hover active:scale-95 disabled:opacity-50"
               >
-                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                 {mode === 'login' ? 'Sign In' : 'Create Account'}
               </button>
             </form>
