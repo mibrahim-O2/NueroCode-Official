@@ -89,17 +89,6 @@ export default function Login() {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6 py-12">
-      {/* Ambient background glow — the same radial-gradient technique the
-          landing hero uses, kept deliberately calmer/smaller here since
-          this is a functional form, not a marketing moment. */}
-      <div
-        className="pointer-events-none absolute left-1/2 top-0 h-[440px] w-[720px] -translate-x-1/2 rounded-full blur-[130px]"
-        style={{
-          background:
-            'radial-gradient(circle, #FF6E1A 0%, transparent 60%), radial-gradient(circle at 70% 30%, #2DD4A0 0%, transparent 55%)',
-          opacity: 0.14,
-        }}
-      />
 
       <div className="relative w-full max-w-sm">
         <div className="animate-slide-fade-in mb-8 flex flex-col items-center gap-4 text-center">
