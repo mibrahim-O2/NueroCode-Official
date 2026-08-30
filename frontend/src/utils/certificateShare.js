@@ -32,7 +32,14 @@ export async function exportCertificatePdf(nodeRef, filename) {
 
   const canvas = await html2canvas(node, {
     scale: 3, // high resolution — print/LinkedIn/resume quality
-    backgroundColor: '#0B0B0C',
+    // Bug fix: this was '#0B0B0C', the OLD pre-redesign cool-toned
+    // Obsidian value — stale since Part 1 changed the base tone to the
+    // warm '#0F0B08'. html2canvas uses this as the capture backdrop for
+    // any transparent/anti-aliased edge pixel, so leaving it mismatched
+    // risked a subtle but real color fringe around the exported
+    // certificate's border that wouldn't match the certificate's own
+    // (now-warm) background.
+    backgroundColor: '#0F0B08',
     useCORS: true,
   });
 
