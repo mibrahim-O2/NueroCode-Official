@@ -32,7 +32,7 @@ export default function Navbar() {
     <header className="fixed inset-x-0 top-0 z-50" style={{ backgroundColor: 'var(--l-bg)' }}>
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
         <a href="#top" className="flex items-center gap-2.5">
-          <Logo variant="icon" size={38} animated={false} />
+          <Logo variant="icon" size={62} animated={false} />
           <span className="font-heading text-lg font-semibold" style={{ color: 'var(--l-text-primary)' }}>
             Neuro<span style={{ color: 'var(--l-orange)' }}>Code</span>
           </span>
