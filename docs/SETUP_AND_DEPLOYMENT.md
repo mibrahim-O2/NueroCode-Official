@@ -148,10 +148,22 @@ If all runtimes appear, Piston is ready.
 cd backend
 ```
 
+**Create the virtual environment (first-time setup only):**
+
+```powershell
+python -m venv venv
+```
+
 Activate the environment:
 
 ```powershell
 venv\Scripts\activate
+```
+
+**Install dependencies (first-time setup, and any time `requirements.txt` changes):**
+
+```powershell
+pip install -r requirements.txt
 ```
 
 Run the backend:
@@ -167,6 +179,9 @@ Backend URL:
 ```
 http://localhost:8000
 ```
+
+> **Note:** You only need to re-run `pip install -r requirements.txt` when dependencies change — not on every startup.
+
 <div align="center">
 
 [⬆ Back to Overview](#overview)
@@ -182,6 +197,12 @@ http://localhost:8000
 
 ```powershell
 cd realtime
+```
+
+**Install dependencies (first-time setup, and any time `package.json` changes):**
+
+```powershell
+npm install
 ```
 
 Run:
@@ -208,6 +229,9 @@ Realtime Server URL:
 ```
 http://localhost:3001
 ```
+
+> **Note:** You only need to re-run `npm install` when dependencies change — not on every startup.
+
 <div align="center">
 
 [⬆ Back to Overview](#overview)
@@ -225,6 +249,12 @@ http://localhost:3001
 cd frontend
 ```
 
+**Install dependencies (first-time setup, and any time `package.json` changes):**
+
+```powershell
+npm install
+```
+
 Run:
 
 ```powershell
@@ -235,6 +265,8 @@ npm run dev
 ```
 http://localhost:5173
 ```
+
+> **Note:** You only need to re-run `npm install` when dependencies change — not on every startup.
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
 
@@ -398,7 +430,12 @@ docker-compose down
 - [ ] WSL Opened
 - [ ] `docker-compose up -d api`
 - [ ] `curl http://localhost:2000/api/v2/runtimes`
+- [ ] Backend venv created (`python -m venv venv`)
+- [ ] Backend dependencies installed (`pip install -r requirements.txt`)
 - [ ] Backend Running
+- [ ] Realtime dependencies installed (`npm install`)
+- [ ] Realtime Server Running
+- [ ] Frontend dependencies installed (`npm install`)
 - [ ] Frontend Running
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
