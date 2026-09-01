@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import {
-  LayoutDashboard, Map, Code2, ClipboardCheck, Award,
+  LayoutDashboard, Map, Code2, Swords, ClipboardCheck, Award,
   GraduationCap, ShieldCheck, User, Settings, X, Timer, FileText,
 } from 'lucide-react';
 import Logo from '@/components/common/Logo';
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['student', 'educator', 'admin'] },
   { label: 'Roadmap', path: '/roadmap', icon: Map, roles: ['student', 'educator', 'admin'] },
   { label: 'Practice', path: '/practice', icon: Code2, roles: ['student', 'educator', 'admin'] },
+  { label: 'Challenge Gate', path: '/challenge', icon: Swords, roles: ['student', 'educator', 'admin'] },
   { label: 'Mock Interview', path: '/interview', icon: Timer, roles: ['student', 'educator', 'admin'] },
   { label: 'My Submissions', path: '/submissions', icon: FileText, roles: ['student', 'educator', 'admin'] },
   { label: 'Assessment', path: '/assessment', icon: ClipboardCheck, roles: ['student', 'educator', 'admin'] },
