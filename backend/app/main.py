@@ -21,6 +21,7 @@ from app.routes import (
     review_routes,
     discussion_routes,
     profile_routes,
+    challenge_routes,
 )
 from app.database.chroma_client import chroma_health_check
 from app.services.supabase_service import supabase
@@ -43,6 +44,7 @@ app.add_middleware(
 
 app.include_router(auth_routes.router)
 app.include_router(roadmap_routes.router)
+app.include_router(challenge_routes.router)
 app.include_router(leaderboard_routes.router)
 app.include_router(problem_routes.router)
 app.include_router(submission_routes.router)
