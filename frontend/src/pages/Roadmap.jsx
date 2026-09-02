@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Swords, Code2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import Logo from '@/components/common/Logo';
 import {
   getRoadmap,
   startNode,
@@ -112,36 +113,24 @@ export default function Roadmap() {
     }
   };
 
-  // Full-page Centered Animated Logo Loader
+  // Full-page Centered Animated Logo Loader using Project Logo Component
   if (loading) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-obsidian/95 backdrop-blur-sm">
         <div className="relative flex items-center justify-center">
           {/* Pulsing Outer Neon Glow */}
-          <div className="absolute h-28 w-28 animate-ping rounded-full bg-orange/20 duration-1000" />
-          <div className="absolute h-36 w-36 animate-pulse rounded-full bg-orange/10 blur-xl" />
+          <div className="absolute h-32 w-32 animate-ping rounded-full bg-orange/15 duration-1000" />
+          <div className="absolute h-40 w-40 animate-pulse rounded-full bg-orange/10 blur-xl" />
 
-          {/* Logo Container with Smooth Pulse Animation */}
-          <div className="relative flex h-24 w-24 items-center justify-center rounded-2xl border border-orange/30 bg-card p-4 shadow-[0_0_30px_rgba(255,107,0,0.25)] animate-bounce duration-1000">
-            <img
-              src="/logo.png"
-              alt="NuroCode Logo"
-              className="h-full w-full object-contain animate-pulse"
-              onError={(e) => {
-                // Fallback icon if logo path differs
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.nextSibling.style.display = 'block';
-              }}
-            />
-            <div className="hidden font-heading text-3xl font-black text-orange">
-              N
-            </div>
+          {/* Project Logo Component */}
+          <div className="relative flex items-center justify-center drop-shadow-[0_0_25px_rgba(255,107,0,0.35)] animate-pulse">
+            <Logo variant="icon" size={84} animated={true} />
           </div>
         </div>
 
         {/* Animated Loading Text */}
         <div className="mt-8 flex flex-col items-center gap-2">
-          <p className="font-heading text-sm font-semibold tracking-wider text-text-primary uppercase animate-pulse">
+          <p className="font-heading text-xs font-semibold tracking-wider text-text-primary uppercase animate-pulse">
             Loading Roadmap
           </p>
           <div className="flex gap-1.5">
