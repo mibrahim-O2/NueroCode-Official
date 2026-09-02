@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, Sun, Moon, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon } from 'lucide-react';
+import { Menu, Sun, Moon, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, Home } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -27,11 +27,20 @@ export default function Topbar({ onMenuClick }) {
       <div className="hidden md:block" />
 
       <div className="flex items-center gap-3">
+        {/* Home Navigation Button */}
+        <Link
+          to="/"
+          aria-label="Go to Home"
+          className="flex h-9 w-9 items-center justify-center rounded-input border border-border text-text-muted transition-all duration-200 hover:border-orange hover:text-orange active:scale-95"
+        >
+          <Home className="h-4 w-4" />
+        </Link>
+
+        {/* Theme Toggle Button */}
         <button
           onClick={toggleTheme}
           aria-label="Toggle theme"
           className="flex h-9 w-9 items-center justify-center rounded-input border border-border text-text-muted transition-all duration-200 hover:border-orange hover:text-orange active:scale-95"
-        
         >
           {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
@@ -56,7 +65,7 @@ export default function Topbar({ onMenuClick }) {
           </button>
 
           {menuOpen && (
-              <div className="absolute right-0 mt-2 w-48 rounded-card border border-border bg-card p-1.5 shadow-dropdown animate-slide-fade-in">
+            <div className="absolute right-0 mt-2 w-48 rounded-card border border-border bg-card p-1.5 shadow-dropdown animate-slide-fade-in">
               <Link
                 to="/profile"
                 onClick={() => setMenuOpen(false)}
