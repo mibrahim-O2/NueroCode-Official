@@ -1,7 +1,20 @@
 import { NavLink } from 'react-router-dom';
 import {
-  LayoutDashboard, Map, Code2, Swords, ClipboardCheck, Award,
-  GraduationCap, ShieldCheck, User, Settings, X, Timer, FileText,
+  LayoutDashboard,
+  Map,
+  Code2,
+  Swords,
+  ClipboardCheck,
+  Award,
+  GraduationCap,
+  ShieldCheck,
+  User,
+  Settings,
+  X,
+  Timer,
+  FileText,
+  PanelLeftClose,
+  ChevronRight,
 } from 'lucide-react';
 import Logo from '@/components/common/Logo';
 import { useAuth } from '@/context/AuthContext';
@@ -25,56 +38,114 @@ const BOTTOM_ITEMS = [
   { label: 'Settings', path: '/settings', icon: Settings },
 ];
 
-function navLinkClass({ isActive }) {
-  return cn(
-    'flex items-center gap-3 rounded-input border px-3 py-2.5 text-sm font-body transition-all duration-200',
-    isActive
-      ? 'border-orange/30 bg-orange/10 text-orange'
-      : 'border-transparent text-text-secondary hover:bg-elevated hover:text-text-primary active:scale-[0.98]'
-  );
-}
-
-export default function Sidebar({ open, onClose }) {
+export default function Sidebar({
+  open = false,
+  onClose = () => {},
+  collapsed = false,
+  onToggleCollapse = () => {},
+}) {
   const { user } = useAuth();
-  const visibleItems = NAV_ITEMS.filter((item) => item.roles.includes(user?.role));
+  const userRole = user?.role || 'student';
+  const visibleItems = NAV_ITEMS.filter((item) => item.roles.includes(userRole));
+
+  const getNavLinkClass = ({ isActive }) =>
+    cn(
+      'flex items-center gap-3 rounded-input border py-2.5 text-sm font-body transition-all duration-200',
+      collapsed ? 'justify-center px-0' : 'px-3',
+      isActive
+        ? 'border-orange/30 bg-orange/10 text-orange'
+        : 'border-transparent text-text-secondary hover:bg-elevated hover:text-text-primary active:scale-[0.98]'
+    );
 
   return (
     <>
+      {/* Mobile Drawer Overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-30 bg-black/50 md:hidden"
+          className="fixed inset-0 z-30 bg-black/60 md:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
       )}
+
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r border-border bg-charcoal',
-          'transition-transform duration-200 md:static md:translate-x-0',
-          open ? 'translate-x-0' : '-translate-x-full'
+          'fixed inset-y-0 left-0 z-40 flex shrink-0 flex-col border-r border-border bg-charcoal transition-all duration-300 ease-in-out md:static',
+          collapsed ? 'w-16 md:w-16' : 'w-64 md:w-64',
+          open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         )}
       >
-        <div className="flex items-center justify-between px-5 py-5">
-          <Logo variant="icon" size={78} animated={false} />
-          <button onClick={onClose} className="text-text-muted hover:text-text-primary md:hidden">
-            <X className="h-5 w-5" />
-          </button>
+        {/* Header with Logo & Toggle Button */}
+        <div
+          className={cn(
+            'flex h-20 items-center transition-all duration-200',
+            collapsed ? 'justify-center px-2' : 'justify-between px-5'
+          )}
+        >
+          {!collapsed ? (
+            <>
+              <Logo variant="icon" size={56} animated={false} />
+              <div className="flex items-center gap-1">
+                {/* Desktop Collapse Button */}
+                <button
+                  type="button"
+                  onClick={onToggleCollapse}
+                  title="Collapse sidebar"
+                  className="hidden rounded-input p-1.5 text-text-muted transition-colors hover:bg-elevated hover:text-orange active:scale-95 md:flex"
+                >
+                  <PanelLeftClose className="h-5 w-5" />
+                </button>
+                {/* Mobile Close Button */}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="p-1.5 text-text-muted hover:text-text-primary md:hidden"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </>
+          ) : (
+            /* Desktop Expand Arrow Button */
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              title="Expand sidebar"
+              className="flex h-9 w-9 items-center justify-center rounded-input border border-border text-text-muted transition-all duration-200 hover:border-orange hover:bg-elevated hover:text-orange active:scale-95"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          )}
         </div>
 
-        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3">
+        {/* Navigation Items */}
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden p-2.5">
           {visibleItems.map(({ label, path, icon: Icon }) => (
-            <NavLink key={path} to={path} onClick={onClose} className={navLinkClass}>
+            <NavLink
+              key={path}
+              to={path}
+              onClick={onClose}
+              title={collapsed ? label : undefined}
+              className={getNavLinkClass}
+            >
               <Icon className="h-4 w-4 shrink-0" />
-              {label}
+              {!collapsed && <span className="truncate">{label}</span>}
             </NavLink>
           ))}
         </nav>
 
-        <div className="flex flex-col gap-1 border-t border-border px-3 py-4">
+        {/* Profile & Settings */}
+        <div className="flex flex-col gap-1 border-t border-border p-2.5">
           {BOTTOM_ITEMS.map(({ label, path, icon: Icon }) => (
-            <NavLink key={path} to={path} onClick={onClose} className={navLinkClass}>
+            <NavLink
+              key={path}
+              to={path}
+              onClick={onClose}
+              title={collapsed ? label : undefined}
+              className={getNavLinkClass}
+            >
               <Icon className="h-4 w-4 shrink-0" />
-              {label}
+              {!collapsed && <span className="truncate">{label}</span>}
             </NavLink>
           ))}
         </div>
