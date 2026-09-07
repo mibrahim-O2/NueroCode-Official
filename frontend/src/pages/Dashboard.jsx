@@ -44,40 +44,66 @@ export default function Dashboard() {
   });
   const [loadingAnalytics, setLoadingAnalytics] = useState(true);
 
+  // AuthContext stores the session token under 'neurocode_token' (see
+  // AuthContext.jsx) — this previously checked 'token' / 'access_token' /
+  // 'auth_token' instead, none of which are ever actually set, so this
+  // request went out with no Authorization header on every load and the
+  // charts always fell back to the flat placeholder line below.
+  const getStoredToken = () => {
+    return (
+      localStorage.getItem('neurocode_token') ||
+      localStorage.getItem('token') ||
+      localStorage.getItem('access_token') ||
+      localStorage.getItem('auth_token') ||
+      sessionStorage.getItem('neurocode_token') ||
+      sessionStorage.getItem('token') ||
+      sessionStorage.getItem('access_token') ||
+      ''
+    );
+  };
+
   useEffect(() => {
     refreshUser();
     getReviewDue().then(setDueReviews).catch(() => setDueReviews([]));
 
     const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-    const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+    const token = getStoredToken();
 
-    // Fetch real analytics from database
     fetch(`${apiBase}/profile/analytics/user-charts`, {
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     })
-      .then((res) => {
-        if (!res.ok) throw new Error('Could not fetch real analytics data');
+      .then(async (res) => {
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(`HTTP ${res.status}: ${errText}`);
+        }
         return res.json();
       })
       .then((data) => {
         setAnalyticsData({
-          heatmap: data?.heatmap || [],
-          practice: data?.practice || [],
-          progression: data?.progression || [],
+          heatmap: Array.isArray(data?.heatmap) ? data.heatmap : [],
+          practice: Array.isArray(data?.practice) ? data.practice : [],
+          progression: Array.isArray(data?.progression) ? data.progression : [],
         });
       })
       .catch((err) => {
-        console.error('Analytics load error:', err);
-        // Fallback strictly uses the logged-in user's real XP from AuthContext
+        console.warn('Analytics endpoint failed, falling back to profile state:', err.message);
+        const todayStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         setAnalyticsData({
           heatmap: [],
           practice: [],
           progression: [
             {
-              date: 'Current',
+              date: `Joined`,
+              shortDay: 'Joined',
+              xp: 0,
+              level: 1,
+            },
+            {
+              date: `Today, ${todayStr}`,
               shortDay: 'Today',
               xp: user?.xp ?? 0,
               level: user?.level ?? 1,
@@ -87,7 +113,7 @@ export default function Dashboard() {
       })
       .finally(() => setLoadingAnalytics(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.xp]);
+  }, [user?.xp, user?.level, user?.streak]);
 
   const { today, oneYearAgo } = useMemo(() => {
     const end = new Date();
@@ -104,7 +130,7 @@ export default function Dashboard() {
         <p className="mt-1 font-body text-sm text-text-muted">Here's where your progress stands today.</p>
       </div>
 
-      {/* Review Reminder */}
+      {/* Spaced Repetition Due Review Banner */}
       {dueReviews.length > 0 && (user?.preferences?.show_review_reminders ?? true) && (
         <div className="animate-slide-fade-in flex flex-wrap items-center justify-between gap-3 rounded-card border border-orange/30 bg-orange/5 p-5">
           <div className="flex items-center gap-3">
@@ -149,6 +175,8 @@ export default function Dashboard() {
               startDate={oneYearAgo}
               endDate={today}
               values={analyticsData.heatmap}
+              showMonthLabels
+              gutterSize={2}
               classForValue={(val) => {
                 if (!val || val.count === 0) return 'fill-[#1a1a24]';
                 if (val.count === 1) return 'fill-orange/30';
@@ -183,50 +211,46 @@ export default function Dashboard() {
           </div>
 
           <div className="h-64 w-full">
-            {analyticsData.progression.length === 0 ? (
-              <div className="flex h-full items-center justify-center text-xs text-text-muted">
-                No submissions or XP recorded yet.
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={analyticsData.progression}>
-                  <defs>
-                    <linearGradient id="dashboardXp" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ff6b00" stopOpacity={0.45} />
-                      <stop offset="95%" stopColor="#ff6b00" stopOpacity={0.0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#262630" vertical={false} />
-                  <XAxis
-                    dataKey="shortDay"
-                    stroke="#71717a"
-                    fontSize={11}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    stroke="#71717a"
-                    fontSize={11}
-                    tickLine={false}
-                  />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#14141b', borderColor: '#262630', borderRadius: '8px' }}
-                    labelStyle={{ color: '#ff6b00', fontWeight: 'bold' }}
-                    formatter={(value) => [`${value} XP`, 'Total XP Earned']}
-                    labelFormatter={(label, payload) => payload?.[0]?.payload?.date || label}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="xp"
-                    stroke="#ff6b00"
-                    strokeWidth={2.5}
-                    fillOpacity={1}
-                    fill="url(#dashboardXp)"
-                    dot={{ fill: '#ff6b00', r: 3 }}
-                    activeDot={{ r: 5, stroke: '#fff', strokeWidth: 1 }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={analyticsData.progression}>
+                <defs>
+                  <linearGradient id="dashboardXp" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ff6b00" stopOpacity={0.45} />
+                    <stop offset="95%" stopColor="#ff6b00" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#262630" vertical={false} />
+                <XAxis
+                  dataKey="shortDay"
+                  stroke="#71717a"
+                  fontSize={11}
+                  tickLine={false}
+                />
+                <YAxis
+                  stroke="#71717a"
+                  fontSize={11}
+                  tickLine={false}
+                  allowDecimals={false}
+                  domain={[0, 'auto']}
+                />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#14141b', borderColor: '#262630', borderRadius: '8px' }}
+                  labelStyle={{ color: '#ff6b00', fontWeight: 'bold' }}
+                  formatter={(value) => [`${value} XP`, 'Total XP Earned']}
+                  labelFormatter={(label, payload) => payload?.[0]?.payload?.date || label}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="xp"
+                  stroke="#ff6b00"
+                  strokeWidth={2.5}
+                  fillOpacity={1}
+                  fill="url(#dashboardXp)"
+                  dot={{ fill: '#ff6b00', r: 3 }}
+                  activeDot={{ r: 5, stroke: '#fff', strokeWidth: 1 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -247,10 +271,11 @@ export default function Dashboard() {
                 <BarChart data={analyticsData.practice}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#262630" vertical={false} />
                   <XAxis dataKey="topic" stroke="#71717a" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#71717a" fontSize={11} tickLine={false} />
+                  <YAxis stroke="#71717a" fontSize={11} tickLine={false} allowDecimals={false} />
                   <Tooltip
                     contentStyle={{ backgroundColor: '#14141b', borderColor: '#262630', borderRadius: '8px' }}
                     cursor={{ fill: '#262630', opacity: 0.3 }}
+                    formatter={(value) => [`${value} problems`, 'Solved']}
                   />
                   <Bar dataKey="solved" fill="#14b8a6" radius={[4, 4, 0, 0]} />
                 </BarChart>

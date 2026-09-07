@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Swords, Code2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Swords, Code2, AlertTriangle, CheckCircle2, Trophy } from 'lucide-react';
 import Logo from '@/components/common/Logo';
 import {
   getRoadmap,
@@ -59,6 +59,31 @@ export default function Roadmap() {
     Math.round((topicSolvedCount / PRACTICE_CAPABILITY_THRESHOLD) * 100)
   );
 
+  const topicsMasteredCount = nodes.filter((n) => n?.status === 'completed').length;
+  const totalTopics = nodes.length;
+
+  // Refetches roadmap + per-topic progress together so every view that
+  // depends on either one (node list, readiness bar, selected panel)
+  // reflects the same server state after a mutation.
+  const refreshRoadmapState = async () => {
+    const [roadmapRes, progressRes] = await Promise.allSettled([getRoadmap(), getTopicProgress()]);
+
+    let list = [];
+    if (roadmapRes.status === 'fulfilled') {
+      const fresh = roadmapRes.value?.data || roadmapRes.value;
+      list = Array.isArray(fresh) ? fresh : [];
+      setNodes(list);
+    }
+
+    if (progressRes.status === 'fulfilled') {
+      const data =
+        progressRes.value?.data?.topic_progress || progressRes.value?.topic_progress || progressRes.value || {};
+      setTopicProgress(data);
+    }
+
+    return list;
+  };
+
   const handleStartPractice = async (node) => {
     if (!node?.id) return;
     setActionPending(true);
@@ -89,23 +114,30 @@ export default function Roadmap() {
     try {
       const res = await completeNode(node.id);
       const result = res?.data || res;
-      const freshRes = await getRoadmap();
-      const fresh = freshRes?.data || freshRes;
-      const list = Array.isArray(fresh) ? fresh : [];
 
+      const list = await refreshRoadmapState();
+
+      // node.position can legitimately be 0, so guard against the falsy
+      // fallback dropping the "next position" check to NaN + 0.
+      const nodePosition = node?.position ?? 0;
       const newlyUnlocked = list.find(
-        (n) => n?.position === (node?.position || 0) + 1 && n?.status === 'unlocked'
+        (n) => n?.position === nodePosition + 1 && n?.status === 'unlocked'
       );
       if (newlyUnlocked) {
         setJustUnlockedId(newlyUnlocked.id);
         setTimeout(() => setJustUnlockedId(null), 900);
       }
 
-      setNodes(list);
       if (result?.user) {
         updateUser({ xp: result.user.xp, level: result.user.level, streak: result.user.streak });
       }
-      setSelected(null);
+
+      // Keep the detail panel pointed at whatever is next to do, instead
+      // of blanking it — nulling it here was what made the readiness bar
+      // above flash to "Select a Topic — 0/50" right after every completion.
+      const nextActive = list.find((n) => n?.status === 'unlocked' || n?.status === 'in_progress');
+      setSelected(nextActive || null);
+
       setBanner(`+${result?.xp_awarded || 150} XP earned${result?.leveled_up ? ' — Level up!' : ''}`);
       setTimeout(() => setBanner(null), 3500);
     } finally {
@@ -146,9 +178,21 @@ export default function Roadmap() {
   return (
     <div className="flex flex-col gap-6 animate-slide-fade-in">
       {/* Title Header */}
-      <div>
-        <h1 className="font-heading font-semibold text-2xl text-text-primary">Roadmap</h1>
-        <p className="mt-1 font-body text-sm text-text-muted">Your adaptive learning path</p>
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+        <div>
+          <h1 className="font-heading font-semibold text-2xl text-text-primary">Roadmap</h1>
+          <p className="mt-1 font-body text-sm text-text-muted">Your adaptive learning path</p>
+        </div>
+
+        {/* Topics-mastered summary stat */}
+        {totalTopics > 0 && (
+          <div className="flex items-center gap-2 rounded-input border border-border bg-card px-3.5 py-2 self-start sm:self-auto">
+            <Trophy className="h-4 w-4 text-orange shrink-0" />
+            <span className="font-mono text-xs text-text-secondary">
+              <strong className="text-text-primary">{topicsMasteredCount}</strong> / {totalTopics} topics mastered
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Dynamic Per-Topic Practice Readiness Bar */}
@@ -176,14 +220,39 @@ export default function Roadmap() {
           </span>
         </div>
 
-        {/* Visual Progress Track */}
-        <div className="h-2.5 w-full overflow-hidden rounded-full bg-charcoal border border-border">
-          <div
-            className={`h-full transition-all duration-500 rounded-full ${
-              isTopicCapable ? 'bg-emerald-500' : 'bg-gradient-to-r from-amber-500 to-orange'
-            }`}
-            style={{ width: `${progressPercent}%` }}
-          />
+        {/* Segmented Progress Track — ticks mark each 10-problem milestone
+            so progress reads as discrete steps earned, not just a blob of
+            fill; the labeled 50 marker anchors the challenge-gate goal. */}
+        <div className="relative pt-1">
+          <div className="flex h-2.5 w-full gap-[3px]">
+            {Array.from({ length: 10 }).map((_, i) => {
+              const segmentThreshold = (i + 1) * 10;
+              const filled = topicSolvedCount >= segmentThreshold;
+              const partial =
+                !filled && topicSolvedCount > i * 10
+                  ? Math.round(((topicSolvedCount - i * 10) / 10) * 100)
+                  : 0;
+              return (
+                <div
+                  key={i}
+                  className="relative flex-1 overflow-hidden rounded-full bg-charcoal border border-border"
+                >
+                  {(filled || partial > 0) && (
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        isTopicCapable ? 'bg-emerald-500' : 'bg-gradient-to-r from-amber-500 to-orange'
+                      }`}
+                      style={{ width: filled ? '100%' : `${partial}%` }}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-1 flex justify-between font-mono text-[10px] text-text-muted">
+            <span>0</span>
+            <span className="text-text-secondary">{PRACTICE_CAPABILITY_THRESHOLD} — challenge gate</span>
+          </div>
         </div>
 
         <p className="text-xs text-text-muted">
