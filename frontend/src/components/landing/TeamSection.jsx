@@ -169,7 +169,7 @@ export default function TeamSection() {
             className="mt-3 text-center font-heading text-3xl font-bold sm:text-4xl"
             style={{ color: 'var(--l-text-primary)' }}
           >
-            The people behind NuroCode
+            The people behind NeuroCode
           </h2>
           <p
             className="mx-auto mt-3 max-w-xl text-center text-sm"
