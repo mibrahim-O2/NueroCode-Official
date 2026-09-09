@@ -50,13 +50,18 @@ export default function Roadmap() {
     });
   }, []);
 
-  const activeTopic = selected?.topic || 'Select a Topic';
-  const topicSolvedCount =
-    topicProgress[activeTopic] ?? selected?.completed_practice_count ?? 0;
-  const isTopicCapable = topicSolvedCount >= PRACTICE_CAPABILITY_THRESHOLD;
+  // The backend gates challenge-gate access on a GLOBAL count of passing
+  // submissions across every topic (repositories.count_passing_submissions),
+  // NOT a per-topic count. Mirror that here so this readiness bar agrees
+  // with what the challenge endpoint actually enforces.
+  const globalSolvedCount = Object.values(topicProgress).reduce(
+    (sum, n) => sum + (Number(n) || 0),
+    0
+  );
+  const isChallengeReady = globalSolvedCount >= PRACTICE_CAPABILITY_THRESHOLD;
   const progressPercent = Math.min(
     100,
-    Math.round((topicSolvedCount / PRACTICE_CAPABILITY_THRESHOLD) * 100)
+    Math.round((globalSolvedCount / PRACTICE_CAPABILITY_THRESHOLD) * 100)
   );
 
   const topicsMasteredCount = nodes.filter((n) => n?.status === 'completed').length;
@@ -195,28 +200,28 @@ export default function Roadmap() {
         )}
       </div>
 
-      {/* Dynamic Per-Topic Practice Readiness Bar */}
+      {/* Challenge Gate Readiness (global — matches the backend gate) */}
       <div className="rounded-card border border-border bg-card p-5 space-y-3 shadow-card transition-all duration-300">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            {isTopicCapable ? (
+            {isChallengeReady ? (
               <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
             ) : (
               <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0" />
             )}
             <h2 className="text-sm font-semibold text-text-primary">
-              <span className="text-orange font-bold uppercase tracking-wide mr-2">[{activeTopic}]</span>
-              {isTopicCapable ? (
-                <span className="text-emerald-400">Ready for Challenge Mode!</span>
+              <span className="text-orange font-bold uppercase tracking-wide mr-2">Challenge Gate Readiness</span>
+              {isChallengeReady ? (
+                <span className="text-emerald-400">Ready for the Challenge Gate!</span>
               ) : (
                 <span>
-                  Readiness Level: <strong className="text-amber-400">Needs more practice</strong>
+                  Readiness Level: <strong className="text-amber-400">Keep practicing</strong>
                 </span>
               )}
             </h2>
           </div>
           <span className="font-mono text-xs text-text-muted">
-            {topicSolvedCount} / {PRACTICE_CAPABILITY_THRESHOLD} Solved ({progressPercent}%)
+            {globalSolvedCount} / {PRACTICE_CAPABILITY_THRESHOLD} problems solved ({progressPercent}%)
           </span>
         </div>
 
@@ -227,10 +232,10 @@ export default function Roadmap() {
           <div className="flex h-2.5 w-full gap-[3px]">
             {Array.from({ length: 10 }).map((_, i) => {
               const segmentThreshold = (i + 1) * 10;
-              const filled = topicSolvedCount >= segmentThreshold;
+              const filled = globalSolvedCount >= segmentThreshold;
               const partial =
-                !filled && topicSolvedCount > i * 10
-                  ? Math.round(((topicSolvedCount - i * 10) / 10) * 100)
+                !filled && globalSolvedCount > i * 10
+                  ? Math.round(((globalSolvedCount - i * 10) / 10) * 100)
                   : 0;
               return (
                 <div
@@ -240,7 +245,7 @@ export default function Roadmap() {
                   {(filled || partial > 0) && (
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${
-                        isTopicCapable ? 'bg-emerald-500' : 'bg-gradient-to-r from-amber-500 to-orange'
+                        isChallengeReady ? 'bg-emerald-500' : 'bg-gradient-to-r from-amber-500 to-orange'
                       }`}
                       style={{ width: filled ? '100%' : `${partial}%` }}
                     />
@@ -256,12 +261,12 @@ export default function Roadmap() {
         </div>
 
         <p className="text-xs text-text-muted">
-          {isTopicCapable
-            ? `Excellent! You solved 50+ problems in ${activeTopic}. You are prepared for the 25-problem challenge gate.`
+          {isChallengeReady
+            ? `You've solved ${PRACTICE_CAPABILITY_THRESHOLD}+ practice problems. You're prepared for the 10-problem challenge gates.`
             : `Solve ${Math.max(
                 0,
-                PRACTICE_CAPABILITY_THRESHOLD - topicSolvedCount
-              )} more problems in ${activeTopic} in Practice Mode to build recommended foundation before attempting the 25-problem challenge gate.`}
+                PRACTICE_CAPABILITY_THRESHOLD - globalSolvedCount
+              )} more practice problems (any topic) to build a recommended foundation before attempting a 10-problem challenge gate.`}
         </p>
       </div>
 
@@ -313,9 +318,9 @@ export default function Roadmap() {
                     ? 'Topic Mastered'
                     : selected.status === 'locked'
                     ? 'Complete the previous topic challenge to unlock'
-                    : isTopicCapable
-                    ? 'Checkpoint challenge assessment ready'
-                    : 'Practice recommended before assessment'}
+                    : isChallengeReady
+                    ? 'Checkpoint challenge gate ready'
+                    : 'Practice recommended before the challenge gate'}
                 </p>
               </div>
 
