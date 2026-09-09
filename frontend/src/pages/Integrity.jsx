@@ -74,15 +74,15 @@ export default function Integrity() {
     },
     {
       id: 'telemetry',
-      title: 'Live WebSocket Telemetry',
+      title: 'Client-Verified Integrity',
       icon: Zap,
-      tag: 'Node.js · Express · Socket.io',
-      summary: 'Real-time multi-signal stream calculating the composite integrity index.',
-      description: 'A dedicated real-time Node.js server aggregates biometric events, window focus loss, and paste counts into a weighted tensor, broadcasting live status updates to both student and educator consoles.',
+      tag: 'Browser Detection · REST Persistence · Server-Side Scoring',
+      summary: 'Every signal is detected locally in real time, then independently re-verified from the server\'s own records at submission.',
+      description: 'Tab switches, large pastes, camera status, and keystroke rhythm are detected directly in the browser during the session for immediate feedback. Each event is persisted to the backend as it happens, and the authoritative integrity score is computed server-side from those stored records at submission — never from a value the client sends.',
       metrics: [
-        { label: 'Transport Layer', val: 'Low-Latency WebSocket Hub' },
+        { label: 'Transport Layer', val: 'Direct REST Event Logging' },
         { label: 'Composite Range', val: '0 – 100 Live Normalized Score' },
-        { label: 'Certification Gate', val: 'Minimum ≥ 85 to Mint Credential' }
+        { label: 'Certification Gate', val: 'Minimum ≥ 60 to Mint Credential' }
       ]
     }
   ];
@@ -155,7 +155,7 @@ export default function Integrity() {
               </div>
               <div className="text-left">
                 <h3 className="font-heading text-sm font-bold text-white">Live Proctoring Simulation Console</h3>
-                <p className="text-[11px] font-mono text-gray-400">Node.js WebSocket Hub: Connected · 4 Stream Channels Active</p>
+                <p className="text-[11px] font-mono text-gray-400">Proctoring Signals: Active · 4 Detection Channels Monitored</p>
               </div>
             </div>
 
