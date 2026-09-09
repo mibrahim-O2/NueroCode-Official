@@ -9,13 +9,12 @@
 
 ## Overview
 
-Running NeuroCode locally requires **five terminals**, each dedicated to a specific service.
+Running NeuroCode locally requires **four terminals**, each dedicated to a specific service.
 
 [Terminal 1 Piston API (WSL2 + Docker)](#terminal-1) &nbsp;•&nbsp;
 [Terminal 2 FastAPI Backend](#terminal-2) &nbsp;•&nbsp;
-[Terminal 3 Realtime Server (Node.js + Socket.io)](#terminal-3) &nbsp;•&nbsp;
-[Terminal 4 Vite Frontend](#terminal-4) &nbsp;•&nbsp;
-[Terminal 5 Optional (Testing / Git / Logs)](#terminal-5) &nbsp;•&nbsp;
+[Terminal 3 Vite Frontend](#terminal-3) &nbsp;•&nbsp;
+[Terminal 4 Optional (Testing / Git / Logs)](#terminal-4) &nbsp;•&nbsp;
 [Project Architecture](#project-architecture) &nbsp;•&nbsp;
 [Important Notes](#important-notes) &nbsp;•&nbsp;
 [Shutdown](#shutdown) &nbsp;•&nbsp;
@@ -189,57 +188,7 @@ http://localhost:8000
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
 
 <a id="terminal-3"></a>
-## Terminal 3 Realtime Server
-
-</div>
-
-**PowerShell (Windows):**
-
-```powershell
-cd realtime
-```
-
-**Install dependencies (first-time setup, and any time `package.json` changes):**
-
-```powershell
-npm install
-```
-
-Run:
-
-```powershell
-npm run dev
-```
-
-**Expected:**
-```
-> neurocode-realtime@0.1.0 dev
-> nodemon server.js
-
-[nodemon] 3.1.14
-[nodemon] to restart at any time, enter `rs`
-[nodemon] watching path(s): *.*
-[nodemon] watching extensions: js,mjs,cjs,json
-[nodemon] starting `node server.js`
-NeuroCode realtime server running on port 3001
-```
-
-Realtime Server URL:
-
-```
-http://localhost:3001
-```
-
-> **Note:** You only need to re-run `npm install` when dependencies change — not on every startup.
-
-<div align="center">
-
-[⬆ Back to Overview](#overview)
-
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
-
-<a id="terminal-4"></a> 
-## Terminal 4 Frontend
+## Terminal 3 Frontend
 
 </div>
 
@@ -276,8 +225,8 @@ http://localhost:5173
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
 
-<a id="terminal-5"></a>
-## Terminal 5 Optional (Testing / Git / Logs)
+<a id="terminal-4"></a>
+## Terminal 4 Optional (Testing / Git / Logs)
 
 </div>
 
@@ -315,9 +264,6 @@ VS Code
 ├── Backend (FastAPI)
 │      localhost:8000
 │
-├── Realtime Server (Node.js + Socket.io)
-│      localhost:3001
-│
 └── Piston API (Docker + WSL2)
        localhost:2000
 ```
@@ -326,15 +272,13 @@ VS Code
 ```
 Frontend
    │
-   ├──▶ Backend
-   │       │
-   │       ▼
-   │    Piston API
-   │       │
-   │       ▼
-   │    Python Runtime
-   │
-   └──▶ Realtime Server (Socket.io)
+   └──▶ Backend
+           │
+           ▼
+        Piston API
+           │
+           ▼
+        Python Runtime
 ```
 
 <div align="center">
@@ -433,8 +377,6 @@ docker-compose down
 - [ ] Backend venv created (`python -m venv venv`)
 - [ ] Backend dependencies installed (`pip install -r requirements.txt`)
 - [ ] Backend Running
-- [ ] Realtime dependencies installed (`npm install`)
-- [ ] Realtime Server Running
 - [ ] Frontend dependencies installed (`npm install`)
 - [ ] Frontend Running
 
@@ -448,31 +390,31 @@ docker-compose down
   <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
 </p>
 
-This section maps each of the four development terminals to its production equivalent — what changes, what stays the same, and why.
+This section maps each of the three development terminals to its production equivalent — what changes, what stays the same, and why.
 
 ---
 
-### Development (Current 4 Terminals)
+### Development (Current 3 Terminals)
  
 <div align="center">
 <pre>
 ┌─────────────────────────────────────────────────────────────────┐
 │                     DEVELOPMENT (Your Machine)                  │
 │                                                                 │
-│  Terminal 1          Terminal 2          Terminal 3   Terminal 4│
-│  ┌──────────┐        ┌──────────┐        ┌─────────┐  ┌────────┐│
-│  │  Piston  │        │ Backend  │        │Realtime │  │Frontend││
-│  │  Docker  │◄──────►│ FastAPI  │◄──────►│ Node.js │◄─┤  Vite  ││
-│  │  (WSL2)  │  HTTP  │ Uvicorn  │  WS/   │Socket.io│  │  Dev   ││
-│  │          │        │ --reload │  HTTP  │(nodemon)│  │ Server ││
-│  └──────────┘        └──────────┘        └─────────┘  └────────┘│
-│  :2000                :8000               :3001        :5173    │
+│  Terminal 1          Terminal 2          Terminal 3             │
+│  ┌──────────┐        ┌──────────┐        ┌────────┐             │
+│  │  Piston  │        │ Backend  │        │Frontend│             │
+│  │  Docker  │◄──────►│ FastAPI  │◄──────►│  Vite  │             │
+│  │  (WSL2)  │  HTTP  │ Uvicorn  │  HTTP  │  Dev   │             │
+│  │          │        │ --reload │        │ Server │             │
+│  └──────────┘        └──────────┘        └────────┘             │
+│  :2000                :8000               :5173                │
 └─────────────────────────────────────────────────────────────────┘
 
 </pre>
 </div>
 
-All four processes run on `localhost`, communicating over plain HTTP/WebSocket on different ports. Each needs its own terminal because each is a separate, long-running, blocking process (different language runtime, different lifecycle) — not an architectural requirement, just a dev-workflow one.
+All three processes run on `localhost`, communicating over plain HTTP on different ports. Each needs its own terminal because each is a separate, long-running, blocking process (different language runtime, different lifecycle) — not an architectural requirement, just a dev-workflow one.
 
 ---
 
@@ -485,13 +427,13 @@ All four processes run on `localhost`, communicating over plain HTTP/WebSocket o
 ┌────────────────────────────────────────────────────────────────────┐
 │                            PRODUCTION                              │
 │                                                                    │
-│   Vercel                    Railway                    Railway     │
-│  ┌──────────┐         ┌──────────────────┐        ┌──────────────┐ │
-│  │ Frontend │  HTTPS  │     Backend      │  HTTP  │   Realtime   │ │
-│  │ (static  │────────►│  FastAPI/Uvicorn │◄──────►│ Node/Socket. │ │
-│  │  build)  │  WSS    │  (managed,always │        │io (managed,  │ │
-│  │          │────────►│  on,auto-restart)│        │always on)    │ │
-│  └──────────┘         └─────────┬────────┘        └──────────────┘ │
+│   Vercel                    Railway                                │
+│  ┌──────────┐         ┌──────────────────┐                         │
+│  │ Frontend │  HTTPS  │     Backend      │                         │
+│  │ (static  │────────►│  FastAPI/Uvicorn │                         │
+│  │  build)  │         │  (managed,always │                         │
+│  │          │         │  on,auto-restart)│                         │
+│  └──────────┘         └─────────┬────────┘                         │
 │  CDN-served                     │ HTTP (internal)                  │
 │  no server                      ▼                                  │
 │                        ┌──────────────────┐                        │
@@ -510,12 +452,11 @@ All four processes run on `localhost`, communicating over plain HTTP/WebSocket o
 
 | Dev (Terminal)                          | Production Equivalent                                                                 |
 |------------------------------------------|-----------------------------------------------------------------------------------------|
-| **Terminal 4**  Vite dev server          | Gone entirely. `npm run build` → static HTML/CSS/JS, served by **Vercel** behind a CDN. No Node process running in production. |
+| **Terminal 3**  Vite dev server          | Gone entirely. `npm run build` → static HTML/CSS/JS, served by **Vercel** behind a CDN. No Node process running in production. |
 | **Terminal 2**  `uvicorn --reload`       | Same Uvicorn command, minus `--reload`, run as a **Railway-managed process**. Railway restarts it automatically on crash. |
-| **Terminal 3**  `npm run dev` (nodemon)  | Plain `node server.js` (no nodemon — dev-only watcher), run as a **Railway-managed process**. |
 | **Terminal 1**  Piston (WSL2 Docker)     | Same Docker image, deployed as a container on **Railway** (or a dedicated small Linux VM) — not on a personal Windows/WSL2 machine. |
 
-In production there are no terminals in the everyday sense — all four become background services managed by a hosting platform, which starts them, restarts them on crash, and exposes logs through a dashboard instead of a terminal window.
+In production there are no terminals in the everyday sense — all three become background services managed by a hosting platform, which starts them, restarts them on crash, and exposes logs through a dashboard instead of a terminal window.
 
 </div>
 
@@ -533,12 +474,11 @@ The **named volume + `restart: unless-stopped` fix** (see Permanent Fix section)
 
 ### Environment Variable Switch (Dev → Prod)
 
-Only URLs change the communication mechanism (HTTP/WebSocket) stays identical. This is why every service reads these as env vars instead of hardcoding `localhost`.
+Only URLs change the communication mechanism (HTTP) stays identical. This is why every service reads these as env vars instead of hardcoding `localhost`.
 
 | Variable              | Development                          | Production                                  |
 |------------------------|----------------------------------------|-----------------------------------------------|
 | `VITE_BACKEND_URL`     | `http://localhost:8000`               | `https://your-app.up.railway.app`             |
-| `VITE_SOCKET_URL`      | `http://localhost:3001`               | `wss://your-realtime.up.railway.app`          |
 | `PISTON_API`           | `http://localhost:2000/api/v2`        | Internal Railway service URL / private network address |
 
 Switching environments is a **config change, not a code change**.
@@ -547,8 +487,8 @@ Switching environments is a **config change, not a code change**.
 
 ### Summary
 
-- **Dev:** 4 terminals, all `localhost`, manually started/watched.
-- **Prod:** 3 managed services (Backend, Realtime, Piston) on Railway + 1 static site (Frontend) on Vercel CDN. No terminals, no manual restarts, dashboard-based logs.
+- **Dev:** 3 terminals, all `localhost`, manually started/watched.
+- **Prod:** 2 managed services (Backend, Piston) on Railway + 1 static site (Frontend) on Vercel CDN. No terminals, no manual restarts, dashboard-based logs.
 - The Piston bind-mount race condition is a **Windows/WSL2-specific problem** it does not exist on Railway's Linux-native environment, independent of the permanent fix already applied.
 
 <div align="center">
