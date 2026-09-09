@@ -1,53 +1,49 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { io } from 'socket.io-client';
+import { useCallback, useMemo, useState } from 'react';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+/**
+ * Local, client-side proctoring score + event feed for the student's own
+ * in-session visibility.
+ *
+ * There is NO real-time socket server in this codebase, so this hook does
+ * not connect to anything. It simply accumulates the proctoring events
+ * that the browser actually detects during the session (tab switches,
+ * large pastes, camera alerts, keystroke-rhythm alerts) and derives a
+ * live score from the SAME penalty weights the backend uses.
+ *
+ * The backend independently computes and enforces the authoritative
+ * integrity score from the persisted `proctoring_logs` rows after
+ * submission. This local number is purely UX feedback; the two normally
+ * agree because they sum the same events, just in two places for two
+ * purposes.
+ */
 
-export function useProctoringSocket(sessionId) {
-  const socketRef = useRef(null);
-  const [score, setScore] = useState(100);
-  const [log, setLog] = useState([]);
-  const [connected, setConnected] = useState(false);
+// Penalty weights — kept in lockstep with the backend
+// (backend/app/services/assessment_service.py INTEGRITY_EVENT_PENALTIES):
+// tab_switch -5, paste -8, camera_alert -10, keystroke_alert -6, floor 0.
+const EVENT_META = {
+  tab_switch: { penalty: 5, message: 'Tab switch / window left focus' },
+  paste: { penalty: 8, message: 'Large paste into the editor' },
+  camera_alert: { penalty: 10, message: 'Camera check failed (no face, multiple faces, or access denied)' },
+  keystroke_alert: { penalty: 6, message: 'Unusual typing rhythm detected' },
+};
 
-  useEffect(() => {
-    if (!sessionId) return undefined;
+export function useProctoringSocket() {
+  // Newest first, matching how ProctoringLogFeed renders the list.
+  const [events, setEvents] = useState([]);
 
-    const socket = io(SOCKET_URL);
-    socketRef.current = socket;
+  const score = useMemo(() => {
+    const penalty = events.reduce((sum, e) => sum + (EVENT_META[e.eventType]?.penalty ?? 0), 0);
+    return Math.max(0, 100 - penalty);
+  }, [events]);
 
-    socket.on('connect', () => {
-      setConnected(true);
-      socket.emit('proctor:join', sessionId);
-    });
+  const recordEvent = useCallback((eventType, severity) => {
+    const meta = EVENT_META[eventType];
+    if (!meta) return;
+    setEvents((prev) => [
+      { eventType, severity, message: meta.message, timestamp: Date.now() },
+      ...prev,
+    ]);
+  }, []);
 
-    socket.on('proctor:state', (state) => {
-      setScore(state.score);
-      setLog(state.log);
-    });
-
-    socket.on('proctor:score_update', ({ score: newScore }) => setScore(newScore));
-
-    socket.on('proctor:log_update', (entry) => {
-      setLog((prev) => [entry, ...prev].slice(0, 50));
-    });
-
-    socket.on('disconnect', () => setConnected(false));
-
-    return () => socket.disconnect();
-  }, [sessionId]);
-
-  // Stable identities across re-renders (only change if sessionId changes),
-  // so consumers using these in effect/useCallback dependency arrays don't
-  // get retriggered just because unrelated state (score/log) updated.
-  const emit = useCallback(
-    (eventName) => socketRef.current?.emit(eventName, { sessionId }),
-    [sessionId]
-  );
-
-  const emitTabSwitch = useCallback(() => emit('proctor:tab_switch'), [emit]);
-  const emitPaste = useCallback(() => emit('proctor:paste'), [emit]);
-  const emitCameraAlert = useCallback(() => emit('proctor:camera_alert'), [emit]);
-  const emitKeystrokeAlert = useCallback(() => emit('proctor:keystroke_alert'), [emit]);
-
-  return { connected, score, log, emitTabSwitch, emitPaste, emitCameraAlert, emitKeystrokeAlert };
+  return { score, log: events, recordEvent };
 }
