@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
-import TestModePanel from '@/components/common/TestModePanel';
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -25,8 +24,6 @@ export default function DashboardLayout() {
           <Outlet />
         </main>
       </div>
-
-      <TestModePanel />
     </div>
   );
 }
