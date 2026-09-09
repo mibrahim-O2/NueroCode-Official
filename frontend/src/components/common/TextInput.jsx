@@ -7,7 +7,7 @@ const TextInput = forwardRef(function TextInput({ icon: Icon, error, className, 
       <div
         className={cn(
           'flex items-center gap-2 rounded-input border bg-elevated px-3.5 py-2.5',
-          error ? 'border-status-error' : 'border-border focus-within:border-emerald',
+          error ? 'border-status-error' : 'border-border focus-within:border-orange',
           'transition-colors duration-200'
         )}
       >
