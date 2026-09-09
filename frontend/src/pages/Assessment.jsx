@@ -42,37 +42,35 @@ export default function Assessment() {
   const certRef = useRef(null);
 
   const sessionId = question?.id || null;
-  const { score, log, connected, emitTabSwitch, emitPaste, emitCameraAlert, emitKeystrokeAlert } =
-    useProctoringSocket(sessionId);
+  const { score, log, recordEvent } = useProctoringSocket();
 
   const logBoth = useCallback(
-    (eventType, severity, emitFn) => {
-      emitFn();
+    (eventType, severity) => {
+      // Local live feedback (score badge + log feed) …
+      recordEvent(eventType, severity);
+      // … and the authoritative persisted record the backend grades from.
       if (sessionId) logProctoringEvent(sessionId, eventType, severity).catch(() => {});
     },
-    [sessionId]
+    [sessionId, recordEvent]
   );
 
   useTabVisibility(
-    useCallback(() => stage === 'active' && logBoth('tab_switch', 'medium', emitTabSwitch), [stage, logBoth, emitTabSwitch])
+    useCallback(() => stage === 'active' && logBoth('tab_switch', 'medium'), [stage, logBoth])
   );
   useKeystrokeMonitor(
-    useCallback(
-      () => stage === 'active' && logBoth('keystroke_alert', 'high', emitKeystrokeAlert),
-      [stage, logBoth, emitKeystrokeAlert]
-    )
+    useCallback(() => stage === 'active' && logBoth('keystroke_alert', 'high'), [stage, logBoth])
   );
 
   const handlePasteDetected = useCallback(
     (pastedLength) => {
-      if (stage === 'active' && pastedLength >= LARGE_PASTE_THRESHOLD) logBoth('paste', 'high', emitPaste);
+      if (stage === 'active' && pastedLength >= LARGE_PASTE_THRESHOLD) logBoth('paste', 'high');
     },
-    [stage, logBoth, emitPaste]
+    [stage, logBoth]
   );
 
   const handleCameraAlert = useCallback(() => {
-    if (stage === 'active') logBoth('camera_alert', 'critical', emitCameraAlert);
-  }, [stage, logBoth, emitCameraAlert]);
+    if (stage === 'active') logBoth('camera_alert', 'critical');
+  }, [stage, logBoth]);
 
   useEffect(() => {
     getAvailableClusters()
@@ -100,7 +98,10 @@ export default function Assessment() {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      const outcome = await submitAssessment(question.id, language, code, score);
+      // No integrity value is passed — the backend recomputes the
+      // authoritative score server-side from proctoring_logs. `score`
+      // here is local UX feedback only.
+      const outcome = await submitAssessment(question.id, language, code);
       setResult(outcome);
       if (outcome.credential) {
         const url = `${VERIFY_BASE_URL}/verify/${outcome.credential.verify_uuid}`;
@@ -289,9 +290,7 @@ export default function Assessment() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-heading font-semibold text-2xl text-text-primary">{question.title}</h1>
-          <p className="mt-1 font-body text-sm text-text-muted">
-            {connected ? 'Proctoring active — chatbot disabled' : 'Connecting…'}
-          </p>
+          <p className="mt-1 font-body text-sm text-text-muted">Proctoring active</p>
         </div>
         <div className="flex items-center gap-3">
           <Timer durationSeconds={question.duration_seconds} resetKey={question.id} />
