@@ -9,8 +9,8 @@ export default function EmptyState({ icon: Icon, title, description, className }
       )}
     >
       {Icon && (
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald/10">
-          <Icon className="h-6 w-6 text-emerald" />
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange/10">
+          <Icon className="h-6 w-6 text-orange" />
         </div>
       )}
       <h2 className="font-heading font-semibold text-lg text-text-primary">{title}</h2>
