@@ -1,6 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: 'class',
+  // The app themes via a `data-theme` attribute on <html> set by
+  // ThemeContext (plus CSS variables), not a `.dark` class. Point the
+  // `dark:` variant at the real mechanism so any future `dark:` utility
+  // tracks the in-app theme toggle rather than the OS preference.
+  darkMode: ['selector', '[data-theme="dark"]'],
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
