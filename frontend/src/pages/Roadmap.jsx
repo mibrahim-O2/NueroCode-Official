@@ -148,7 +148,7 @@ export default function Roadmap() {
   // Full-page Centered Animated Logo Loader using Project Logo Component
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-obsidian/95 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm">
         <div className="relative flex items-center justify-center">
           {/* Pulsing Outer Neon Glow */}
           <div className="absolute h-32 w-32 animate-ping rounded-full bg-orange/15 duration-1000" />
