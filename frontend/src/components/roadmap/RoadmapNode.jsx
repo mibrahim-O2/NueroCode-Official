@@ -37,7 +37,7 @@ export default function RoadmapNode({
           whileTap={!isLocked ? { scale: 0.94 } : {}}
           className={cn(
             'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-200',
-            isCompleted && 'border-emerald bg-emerald text-white shadow-[0_0_12px_rgba(16,185,129,0.25)]',
+            isCompleted && 'border-status-success bg-status-success text-white shadow-[0_0_12px_rgba(16,185,129,0.25)]',
             isActive && 'border-orange bg-orange/10 text-orange animate-pulse',
             isLocked && 'cursor-not-allowed border-border bg-elevated text-text-disabled'
           )}
@@ -51,7 +51,7 @@ export default function RoadmapNode({
           <div
             className={cn(
               'mt-1 w-0.5 flex-1 transition-colors duration-300',
-              isCompleted ? 'bg-emerald' : 'bg-border'
+              isCompleted ? 'bg-status-success' : 'bg-border'
             )}
             style={{ minHeight: 36 }}
           />
@@ -140,7 +140,7 @@ export default function RoadmapNode({
             </div>
 
             {isCompleted && (
-              <span className="text-[11px] font-mono text-emerald flex items-center gap-1">
+              <span className="text-[11px] font-mono text-status-success flex items-center gap-1">
                 <CheckCircle2 className="h-3.5 w-3.5" /> Node Passed
               </span>
             )}
