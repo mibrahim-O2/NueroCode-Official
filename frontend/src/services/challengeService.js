@@ -1,46 +1,39 @@
-// src/services/challengeService.js
 import { apiClient } from '@/services/apiClient';
+
+// apiClient.get / apiClient.post return the parsed JSON body directly
+// (see services/apiClient.js) — there is no axios-style { data } wrapper.
 
 export const challengeService = {
   /**
-   * Fetch active challenge session or generate a new 25-problem set for a roadmap node
-   * @param {string} nodeId - UUID of the target roadmap node
-   * @param {string} [provider='gemini'] - AI provider identifier
+   * Fetch the student's challenge session for a roadmap node, generating a
+   * fresh 10-problem pool (4 easy / 4 medium / 2 hard) if none exists.
+   * Returns { challenge, practice_count, practice_threshold, is_capable }.
+   * @param {string} nodeId  UUID of the target roadmap node
+   * @param {string} [provider]  optional AI provider override (admin-gated server-side)
    */
-  async getChallenge(nodeId, provider = 'gemini') {
-    const response = await apiClient.get(`/challenges/${nodeId}`, {
-      params: { provider },
-    });
-    return response.data;
+  async getChallenge(nodeId, provider) {
+    const params = new URLSearchParams();
+    if (provider) params.set('provider', provider);
+    const qs = params.toString();
+    return await apiClient.get(`/challenges/${nodeId}${qs ? `?${qs}` : ''}`);
   },
 
   /**
-   * Submit and evaluate code for an individual question in the challenge pool (1–25)
-   * @param {string} nodeId - UUID of the target roadmap node
-   * @param {Object} payload - { question_index: number, code: string, language: string }
+   * Grade one question in the pool.
+   * @param {string} nodeId
+   * @param {Object} payload  { question_index: number, code: string, language: string }
+   * Returns { passed, passed_count, total_count, results, question_index,
+   *           solved_count, total_questions, all_completed, score, status, node_completion }.
    */
   async submitChallengeQuestion(nodeId, payload) {
-    const response = await apiClient.post(`/challenges/${nodeId}/submit-question`, payload);
-    return response.data;
+    return await apiClient.post(`/challenges/${nodeId}/submit-question`, payload);
   },
 
   /**
-   * Submit entire challenge batch (legacy/fallback checkpoint submit)
-   * @param {string} nodeId - UUID of the target roadmap node
-   * @param {Object} payload - { code: string, language: string }
-   */
-  async submitChallenge(nodeId, payload) {
-    const response = await apiClient.post(`/challenges/${nodeId}/submit`, payload);
-    return response.data;
-  },
-
-  /**
-   * Get challenge attempt history and mastery state for the target node
-   * @param {string} nodeId - UUID of the target roadmap node
+   * The single challenge session for this node, wrapped as { challenges: [...] }.
    */
   async getChallengeHistory(nodeId) {
-    const response = await apiClient.get(`/challenges/${nodeId}/history`);
-    return response.data;
+    return await apiClient.get(`/challenges/${nodeId}/history`);
   },
 };
 
