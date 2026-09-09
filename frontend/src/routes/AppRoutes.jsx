@@ -2,7 +2,6 @@
 import { Routes, Route } from 'react-router-dom';
 import Home from '@/pages/Home';
 import Integrity from '@/pages/Integrity';
-import LogoTest from '@/pages/LogoTest';
 import Login from '@/pages/Login';
 import VerifyCredential from '@/pages/VerifyCredential';
 import NotFound from '@/pages/NotFound';
@@ -28,7 +27,6 @@ export default function AppRoutes() {
       {/* Public Routes */}
       <Route path="/" element={<Home />} />
       <Route path="/integrity" element={<Integrity />} />
-      <Route path="/logo-test" element={<LogoTest />} />
       <Route path="/login" element={<Login />} />
       <Route path="/verify/:uuid" element={<VerifyCredential />} />
 
