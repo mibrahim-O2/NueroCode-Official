@@ -4,7 +4,6 @@ import LoadingScreen from '@/components/common/LoadingScreen';
 import AppRoutes from '@/routes/AppRoutes';
 import { AuthProvider } from '@/context/AuthContext';
 import { ThemeProvider } from '@/context/ThemeContext';
-import { TestModeProvider } from '@/context/TestModeContext';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 
 export default function App() {
@@ -24,9 +23,7 @@ export default function App() {
       <BrowserRouter>
         <ThemeProvider>
           <AuthProvider>
-            <TestModeProvider>
-              <AppRoutes />
-            </TestModeProvider>
+            <AppRoutes />
           </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>
