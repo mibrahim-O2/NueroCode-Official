@@ -118,6 +118,11 @@ async def instant_problem(topic: str, difficulty: str = "medium", current_user: 
 async def simulate_submission(payload: SimulateSubmissionRequest, current_user: dict = Depends(get_current_user)):
     if payload.outcome not in ("pass", "fail"):
         raise HTTPException(status_code=400, detail="outcome must be 'pass' or 'fail'")
+    # submissions.difficulty is CHECK-constrained to these values in the DB;
+    # validate here so a bad value fails with a clear 400 instead of a
+    # constraint-violation 500 inside create_submission().
+    if payload.difficulty not in ("easy", "medium", "hard"):
+        raise HTTPException(status_code=400, detail="difficulty must be one of: easy, medium, hard")
 
     if payload.outcome == "pass":
         results = [

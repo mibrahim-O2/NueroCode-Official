@@ -10,11 +10,8 @@ posthog==4.8.0
 sentence-transformers==3.0.1
 openai==1.43.0
 httpx==0.27.2
-tree-sitter>=0.22.0
-tree-sitter-python
-tree-sitter-javascript
-tree-sitter-cpp
-tree-sitter-java
+tree-sitter==0.21.3
+tree-sitter-languages==1.10.2
 scikit-learn==1.5.1
 opencv-python-headless==4.10.0.84
 google-generativeai==0.8.3

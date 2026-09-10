@@ -2,7 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.middleware.auth_middleware import get_current_user
 from app.schemas.assessment_schemas import StartAssessmentRequest, SubmitAssessmentRequest, ProctoringLogRequest
-from app.services.assessment_service import get_available_clusters, start_assessment, submit_assessment
+from app.services.assessment_service import (
+    get_available_clusters,
+    start_assessment,
+    submit_assessment,
+    get_owned_assessment,
+)
 from app.database.repositories import log_proctoring_event
 from app.services.piston_service import PistonRuntimeUnavailableError, PistonExecutionError
 from app.utils.provider_access import validate_provider_request
@@ -53,5 +58,10 @@ async def submit(
 async def proctoring_log(
     assessment_id: str, payload: ProctoringLogRequest, current_user: dict = Depends(get_current_user)
 ):
+    assessment = get_owned_assessment(current_user["id"], assessment_id)
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+    if assessment["status"] != "in_progress":
+        raise HTTPException(status_code=409, detail="Assessment is not in progress")
     log_proctoring_event(assessment_id, payload.event_type, payload.severity, payload.metadata)
     return {"logged": True}

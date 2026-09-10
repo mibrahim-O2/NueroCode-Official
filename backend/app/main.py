@@ -69,6 +69,24 @@ if settings.TEST_MODE:
         "Do not deploy to production with TEST_MODE=true."
     )
 
+_INSECURE_DEFAULTS = [
+    name
+    for name, is_default in (
+        ("JWT_SECRET", settings.JWT_SECRET == "dev-secret-change-me"),
+        ("PROVIDER_SWITCH_PASSCODE", settings.PROVIDER_SWITCH_PASSCODE == "neurocode-dev-passcode"),
+    )
+    if is_default
+]
+if _INSECURE_DEFAULTS:
+    import logging
+    logging.getLogger(__name__).warning(
+        "%s still %s the built-in placeholder value — anyone can forge sessions / "
+        "unlock the provider switch. Override %s in the environment before any real deployment.",
+        " and ".join(_INSECURE_DEFAULTS),
+        "use" if len(_INSECURE_DEFAULTS) > 1 else "uses",
+        "them" if len(_INSECURE_DEFAULTS) > 1 else "it",
+    )
+
 @app.get("/health")
 def health_check():
     try:

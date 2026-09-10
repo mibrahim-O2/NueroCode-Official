@@ -13,18 +13,49 @@ so `x in a_set` isn't flagged the same way as `x in a_list`.
 """
 
 import re
-import warnings
+from functools import lru_cache
 
-# tree_sitter_languages (a third-party helper library) still calls
-# tree-sitter's OLD, deprecated Language() constructor internally,
-# regardless of which tree-sitter version is installed — this is inside
-# that library's own code, not ours, so it can't be fixed by changing
-# our code or pinning a version. Silencing this specific warning message
-# is the correct fix here, since the deprecated call still works
-# correctly today; it's just noisy.
-warnings.filterwarnings("ignore", message="Language\\(path, name\\) is deprecated")
+# Dependency migration: requirements.txt now pins tree-sitter>=0.22 plus
+# the individual per-language grammar packages (tree-sitter-python,
+# tree-sitter-javascript, tree-sitter-cpp, tree-sitter-java) instead of
+# the old all-in-one `tree_sitter_languages` package, which only worked
+# with tree-sitter < 0.22 and fails to import on a clean install. We build
+# parsers directly from each grammar module's language() PyCapsule.
+#
+# A fallback to the legacy `tree_sitter_languages.get_parser` is kept ONLY
+# so an environment still mid-upgrade (old package installed, new ones
+# not yet) keeps working — the primary, supported path is the per-language
+# packages. Behavior and the get_parser(language) signature are identical
+# either way.
+try:
+    from tree_sitter import Language, Parser
+    import tree_sitter_python
+    import tree_sitter_javascript
+    import tree_sitter_cpp
+    import tree_sitter_java
 
-from tree_sitter_languages import get_parser
+    _LANGUAGE_MODULES = {
+        "python": tree_sitter_python,
+        "javascript": tree_sitter_javascript,
+        "cpp": tree_sitter_cpp,
+        "java": tree_sitter_java,
+    }
+
+    @lru_cache(maxsize=None)
+    def get_parser(language: str):
+        """Returns a ready-to-use tree_sitter.Parser for the given internal
+        language name. Drop-in replacement for the previous
+        `tree_sitter_languages.get_parser`."""
+        module = _LANGUAGE_MODULES.get(language)
+        if module is None:
+            raise LookupError(f"No Tree-sitter grammar available for language: {language!r}")
+        return Parser(Language(module.language()))
+
+except ImportError:  # pragma: no cover - legacy fallback for a half-upgraded env
+    import warnings
+
+    warnings.filterwarnings("ignore", message="Language\\(path, name\\) is deprecated")
+    from tree_sitter_languages import get_parser  # noqa: F401
 
 LOOP_NODE_TYPES = {
     "python": {"for_statement", "while_statement"},

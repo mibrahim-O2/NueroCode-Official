@@ -7,10 +7,14 @@ yet — a student with no failed/inefficient submissions gets "continue
 in order," not a fabricated recommendation.
 """
 
+import logging
+
 from sklearn.metrics.pairwise import cosine_similarity
 
 from app.database.chroma_client import roadmap_collection, get_embedding_fn
 from app.database.repositories import get_roadmap_for_user, get_recent_submissions
+
+logger = logging.getLogger(__name__)
 
 # Must match the topic names seeded in roadmap_nodes (Phase 6's DEFAULT_TOPICS).
 TOPIC_CONCEPTS = {
@@ -47,6 +51,18 @@ def _build_struggle_text(submissions: list[dict]) -> str | None:
     return " ".join(struggle_signals) if struggle_signals else None
 
 
+def _positional_recommendation(locked_nodes: list[dict]) -> dict:
+    """The default 'continue in order' recommendation — used when there's
+    no struggle signal yet, and also as the graceful fallback if the
+    ChromaDB-backed similarity path is unavailable."""
+    next_node = min(locked_nodes, key=lambda n: n["position"])
+    return {
+        "recommended_topic": next_node["topic"],
+        "reason": "You're on track — continue with your roadmap in order.",
+        "confidence": None,
+    }
+
+
 def recommend_next_topic(user_id: str) -> dict:
     nodes = get_roadmap_for_user(user_id)
     locked_nodes = [n for n in nodes if n["status"] == "locked"]
@@ -58,34 +74,31 @@ def recommend_next_topic(user_id: str) -> dict:
     struggle_text = _build_struggle_text(recent_submissions)
 
     if not struggle_text:
-        next_node = min(locked_nodes, key=lambda n: n["position"])
-        return {
-            "recommended_topic": next_node["topic"],
-            "reason": "You're on track — continue with your roadmap in order.",
-            "confidence": None,
-        }
+        return _positional_recommendation(locked_nodes)
 
-    _ensure_roadmap_concepts_seeded()
+    # Any ChromaDB / embedding failure degrades to the positional
+    # recommendation rather than 500-ing the endpoint (analysis_service
+    # and chatbot_service already swallow Chroma errors the same way).
+    try:
+        _ensure_roadmap_concepts_seeded()
 
-    embedder = get_embedding_fn()
-    query_vector = embedder([struggle_text])[0]
+        embedder = get_embedding_fn()
+        query_vector = embedder([struggle_text])[0]
 
-    locked_topics = [n["topic"] for n in locked_nodes]
-    concept_data = roadmap_collection().get(ids=locked_topics, include=["embeddings"])
-    available_ids = concept_data.get("ids", [])
-    available_vectors = concept_data.get("embeddings", [])
+        locked_topics = [n["topic"] for n in locked_nodes]
+        concept_data = roadmap_collection().get(ids=locked_topics, include=["embeddings"])
+        available_ids = concept_data.get("ids", [])
+        available_vectors = concept_data.get("embeddings", [])
 
-    if not available_ids:
-        next_node = min(locked_nodes, key=lambda n: n["position"])
-        return {
-            "recommended_topic": next_node["topic"],
-            "reason": "You're on track — continue with your roadmap in order.",
-            "confidence": None,
-        }
+        if not available_ids:
+            return _positional_recommendation(locked_nodes)
 
-    similarities = cosine_similarity([query_vector], available_vectors)[0]
-    best_index = int(similarities.argmax())
-    best_topic = available_ids[best_index]
+        similarities = cosine_similarity([query_vector], available_vectors)[0]
+        best_index = int(similarities.argmax())
+        best_topic = available_ids[best_index]
+    except Exception:
+        logger.warning("recommendation: ChromaDB path failed, falling back to positional order", exc_info=True)
+        return _positional_recommendation(locked_nodes)
 
     return {
         "recommended_topic": best_topic,

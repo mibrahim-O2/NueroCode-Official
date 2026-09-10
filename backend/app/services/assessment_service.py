@@ -16,6 +16,7 @@ import json
 import logging
 
 from app.config.settings import settings
+from app.constants import TOPIC_FIX_MAP
 from app.ai.provider_factory import get_ai_provider
 from app.ai.code_analysis import analyze_code
 from app.services.problem_service import _extract_json, _validate_canonical_solution
@@ -30,6 +31,7 @@ from app.database.repositories import (
     create_credential,
     upsert_learning_analytics,
     supabase,
+    _parse_timestamp,
 )
 
 CLUSTERS = [
@@ -231,8 +233,6 @@ def _identify_weak_topic(cluster: dict, complexity: str, anti_patterns: list[dic
     cluster, that's the weak concept. Otherwise falls back to a
     complexity-based guess rather than leaving the student with no
     guidance at all."""
-    from app.services.analysis_service import TOPIC_FIX_MAP
-
     for pattern in anti_patterns:
         fix_topic = TOPIC_FIX_MAP.get(pattern["key"])
         if fix_topic and fix_topic in cluster["topics"]:
@@ -244,8 +244,53 @@ def _identify_weak_topic(cluster: dict, complexity: str, anti_patterns: list[dic
     return cluster["topics"][0]
 
 
+# Server-authoritative integrity scoring. THIS dict is the single source
+# of truth for the per-event penalty weights (tab_switch -5, paste -8,
+# camera_alert -10, keystroke_alert -6; score starts at 100, floored at 0).
+# The frontend keeps its own hardcoded copy of these same values in
+# frontend/src/hooks/useProctoringSocket.js purely for live client-side
+# UX feedback during the session — there is no shared or imported constant
+# between the two, so if these weights ever change here, that frontend
+# copy must be updated by hand to match.
+INTEGRITY_EVENT_PENALTIES = {
+    "tab_switch": 5,
+    "paste": 8,
+    "camera_alert": 10,
+    "keystroke_alert": 6,
+}
+
+
+def get_owned_assessment(user_id: str, assessment_id: str) -> dict | None:
+    """Returns the assessment row only if it belongs to `user_id`, else None.
+    Used to authorize per-assessment sub-actions (e.g. proctoring logs)."""
+    result = (
+        supabase.table("assessments")
+        .select("id,status")
+        .eq("id", assessment_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+    return result.data[0] if result.data else None
+
+
+def compute_integrity_score(assessment_id: str) -> float:
+    """Recomputes the integrity score from the persisted proctoring_logs
+    rows for an assessment. This is the ONLY value trusted for pass/fail
+    and credential issuance — the client-supplied integrity_score is
+    ignored (kept on the request schema only for payload compatibility)."""
+    logs = (
+        supabase.table("proctoring_logs")
+        .select("event_type")
+        .eq("assessment_id", assessment_id)
+        .execute()
+        .data
+    )
+    penalty = sum(INTEGRITY_EVENT_PENALTIES.get(row["event_type"], 0) for row in logs)
+    return float(max(0, 100 - penalty))
+
+
 def submit_assessment(
-    user_id: str, assessment_id: str, language: str, source_code: str, integrity_score: float
+    user_id: str, assessment_id: str, language: str, source_code: str, client_integrity_score: float = 100
 ) -> dict:
     assessment_result = (
         supabase.table("assessments").select("*").eq("id", assessment_id).eq("user_id", user_id).execute()
@@ -257,10 +302,14 @@ def submit_assessment(
     if assessment["status"] != "in_progress":
         raise PermissionError("Assessment already completed")
 
-    created_at = datetime.datetime.fromisoformat(assessment["created_at"].replace("Z", "+00:00"))
+    created_at = _parse_timestamp(assessment["created_at"])
     elapsed = (datetime.datetime.now(datetime.timezone.utc) - created_at).total_seconds()
     if elapsed > settings.ASSESSMENT_DURATION_SECONDS + GRACE_PERIOD_SECONDS:
         raise TimeoutError("Assessment time limit exceeded")
+
+    # The client value (client_integrity_score) is deliberately discarded —
+    # the authoritative score is recomputed from proctoring_logs here.
+    integrity_score = compute_integrity_score(assessment_id)
 
     question = assessment["generated_question"]
     outcome = run_submission(question, language, source_code)

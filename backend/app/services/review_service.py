@@ -6,7 +6,11 @@ Dashboard loads rather than via a scheduled task."""
 from datetime import datetime, timezone
 
 from app.config.settings import settings
-from app.database.repositories import get_roadmap_for_user, get_last_submission_date_for_topic
+from app.database.repositories import (
+    get_roadmap_for_user,
+    get_last_submission_date_for_topic,
+    _parse_timestamp,
+)
 
 
 def get_due_reviews(user_id: str) -> list[dict]:
@@ -17,7 +21,7 @@ def get_due_reviews(user_id: str) -> list[dict]:
     for node in nodes:
         if node["status"] != "completed" or not node.get("completed_at"):
             continue
-        completed_at = datetime.fromisoformat(node["completed_at"].replace("Z", "+00:00"))
+        completed_at = _parse_timestamp(node["completed_at"])
         days_since_completion = (now - completed_at).days
         if days_since_completion < settings.REVIEW_DUE_DAYS:
             continue

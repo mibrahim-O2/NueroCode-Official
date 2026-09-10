@@ -5,13 +5,9 @@ when a detected gap maps to a specific upcoming topic.
 
 from app.ai.code_analysis import analyze_code
 from app.ai.provider_factory import get_ai_provider
+from app.constants import TOPIC_FIX_MAP
 from app.database.chroma_client import submissions_collection
 from app.database.repositories import promote_roadmap_topic, update_submission_analysis
-
-TOPIC_FIX_MAP = {
-    "count_in_loop": "Hash Maps",
-    "linear_membership_check": "Hash Maps",
-}
 
 FEEDBACK_SYSTEM_PROMPT = """You are a supportive coding mentor for NeuroCode, an educational \
 platform. Given a static analysis of a student's submitted solution, write brief, encouraging, \

@@ -4,13 +4,21 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.middleware.auth_middleware import get_current_user
 from app.schemas.submission_schemas import SubmitRequest, SubmitResponse
-from app.database.repositories import get_problem_by_id, create_submission
+from app.database.repositories import get_problem_by_id, create_submission, get_submissions_for_user
 from app.services.execution_service import run_submission
 from app.services.analysis_service import analyze_submission
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/submissions", tags=["submissions"])
+
+
+@router.get("/mine")
+async def my_submissions(current_user: dict = Depends(get_current_user)):
+    """The authenticated student's own submissions ('My Submissions' page).
+    Lives here (with submission data) rather than in the teacher-comments
+    router where it was historically defined."""
+    return get_submissions_for_user(current_user["id"])
 
 
 @router.post("/execute", response_model=SubmitResponse)

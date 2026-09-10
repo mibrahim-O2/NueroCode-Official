@@ -1,9 +1,9 @@
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 from fastapi import APIRouter, Depends
 
-from app.database.repositories import update_user_preferences, update_user_profile
+from app.database.repositories import update_user_preferences, update_user_profile, _parse_timestamp
 from app.middleware.auth_middleware import get_current_user
 from app.schemas.profile_schemas import UpdatePreferencesRequest, UpdateProfileRequest
 from app.services.supabase_service import supabase
@@ -15,13 +15,13 @@ router = APIRouter(prefix="/profile", tags=["profile"])
 
 @router.patch("/me")
 async def update_profile(payload: UpdateProfileRequest, current_user: dict = Depends(get_current_user)):
-    user_id = current_user.get("id") or current_user.get("uid")
+    user_id = current_user["id"]
     return update_user_profile(user_id, payload.dict(exclude_unset=True))
 
 
 @router.patch("/me/preferences")
 async def update_preferences(payload: UpdatePreferencesRequest, current_user: dict = Depends(get_current_user)):
-    user_id = current_user.get("id") or current_user.get("uid")
+    user_id = current_user["id"]
     return update_user_preferences(user_id, payload.preferences)
 
 
@@ -38,7 +38,7 @@ def _empty_charts_response(total_xp: int = 0, level: int = 1) -> Dict[str, Any]:
 @router.get("/analytics/user-charts")
 async def get_user_charts(current_user: dict = Depends(get_current_user)) -> Dict[str, Any]:
     # Resolve user ID across auth providers
-    user_id = current_user.get("id") or current_user.get("uid")
+    user_id = current_user["id"]
 
     # 1. Fetch official profile metrics directly from the users table
     try:
@@ -68,12 +68,20 @@ async def get_user_charts(current_user: dict = Depends(get_current_user)) -> Dic
     activity_map: Dict[str, int] = {}
     topic_map: Dict[str, int] = {}
 
+    # Bounded to the last ~12 months — the exact window the activity
+    # heatmap renders, and the XP timeline is built from roadmap_nodes
+    # (not submissions) — with a hard row cap as a final safety net so a
+    # very heavy user can never make this query (or the Python loop
+    # below) grow without limit.
+    charts_window_start = (datetime.now(timezone.utc) - timedelta(days=372)).isoformat()
     try:
         sub_res = (
             supabase.table("submissions")
             .select("created_at, topic, execution_result")
             .eq("user_id", user_id)
+            .gte("created_at", charts_window_start)
             .order("created_at", desc=False)
+            .limit(2000)
             .execute()
         )
         submissions = sub_res.data or []
@@ -156,7 +164,7 @@ async def get_user_charts(current_user: dict = Depends(get_current_user)) -> Dic
         start_date_label = "Joined"
         if account_created_at:
             try:
-                acc_dt = datetime.fromisoformat(str(account_created_at).replace("Z", "+00:00"))
+                acc_dt = _parse_timestamp(str(account_created_at))
                 start_date_label = acc_dt.strftime("%b %d")
             except Exception:
                 pass

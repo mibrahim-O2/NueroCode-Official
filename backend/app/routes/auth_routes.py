@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.schemas.auth_schemas import LoginRequest, LoginResponse, UserOut
 from app.services.firebase_service import verify_id_token

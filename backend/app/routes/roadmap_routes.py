@@ -19,7 +19,7 @@ router = APIRouter(prefix="/roadmap", tags=["roadmap"])
 
 @router.get("/", response_model=List[RoadmapNodeOut])
 async def get_roadmap(current_user: dict = Depends(get_current_user)):
-    user_id = current_user.get("id") or current_user.get("uid")
+    user_id = current_user["id"]
     nodes = get_roadmap_for_user(user_id)
     if not nodes:
         nodes = seed_default_roadmap(user_id)
@@ -31,7 +31,7 @@ async def get_topic_progress(current_user: dict = Depends(get_current_user)) -> 
     """
     Returns submission counts per topic without failing on missing status columns.
     """
-    user_id = current_user.get("id") or current_user.get("uid")
+    user_id = current_user["id"]
     topic_counts: Dict[str, int] = {}
 
     try:
@@ -88,7 +88,7 @@ async def get_topic_progress(current_user: dict = Depends(get_current_user)) -> 
 
 @router.post("/{node_id}/start", response_model=RoadmapNodeOut)
 async def start_node(node_id: str, current_user: dict = Depends(get_current_user)):
-    user_id = current_user.get("id") or current_user.get("uid")
+    user_id = current_user["id"]
     node = mark_node_in_progress(node_id, user_id)
     if not node:
         raise HTTPException(
@@ -100,7 +100,7 @@ async def start_node(node_id: str, current_user: dict = Depends(get_current_user
 
 @router.post("/{node_id}/complete", response_model=CompleteNodeResponse)
 async def complete_node(node_id: str, current_user: dict = Depends(get_current_user)):
-    user_id = current_user.get("id") or current_user.get("uid")
+    user_id = current_user["id"]
     result = complete_roadmap_node(node_id, user_id)
     if not result:
         raise HTTPException(

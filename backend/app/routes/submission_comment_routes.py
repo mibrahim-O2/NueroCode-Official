@@ -6,15 +6,9 @@ from app.database.repositories import (
     get_submission_by_id,
     add_submission_comment,
     get_comments_for_submission,
-    get_submissions_for_user,
 )
 
 router = APIRouter(prefix="/submissions", tags=["submission-comments"])
-
-
-@router.get("/mine")
-async def my_submissions(current_user: dict = Depends(get_current_user)):
-    return get_submissions_for_user(current_user["id"])
 
 
 @router.get("/{submission_id}/comments")
