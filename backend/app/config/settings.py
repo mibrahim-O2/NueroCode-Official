@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     JWT_SECRET: str = "dev-secret-change-me"
     JWT_EXPIRE_MINUTES: int = 1440
     CHROMA_DB_PATH: str = "./chromadb"
-    PISTON_API: str = "https://emkc.org/api/v2/piston"
+    PISTON_API: str = "http://localhost:2000/api/v2"
     MODEL_NAME: str = "claude-sonnet-4-6"
 
     APP_ENV: str = "development"
