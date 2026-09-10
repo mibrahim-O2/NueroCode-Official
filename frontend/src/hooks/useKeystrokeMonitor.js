@@ -2,7 +2,11 @@ import { useEffect, useRef } from 'react';
 import { checkKeystrokeRhythm } from '@/services/proctoringService';
 
 const BATCH_INTERVAL_MS = 30000;
-const MIN_SAMPLES = 6;
+// N raw timestamps produce N-1 intervals. The backend rhythm analyzer
+// (backend/app/services/proctoring_service.py) rejects any sample with
+// fewer than 8 intervals, so we need at least 9 timestamps here. Keep
+// this value in sync with that backend minimum.
+const MIN_SAMPLES = 9;
 
 const MODIFIER_KEYS = new Set(['Control', 'Meta', 'Shift', 'Alt']);
 
