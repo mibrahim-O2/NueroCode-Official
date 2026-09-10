@@ -148,7 +148,7 @@ export default function Dashboard() {
               showMonthLabels
               gutterSize={2}
               classForValue={(val) => {
-                if (!val || val.count === 0) return 'fill-[#1a1a24]';
+                if (!val || val.count === 0) return 'fill-[#EDE4D8] dark:fill-[#241B13]';
                 if (val.count === 1) return 'fill-orange/30';
                 if (val.count <= 3) return 'fill-orange/60';
                 return 'fill-orange';
@@ -160,7 +160,7 @@ export default function Dashboard() {
 
         <div className="flex items-center justify-end gap-2 text-[11px] text-text-muted">
           <span>Less</span>
-          <span className="h-2.5 w-2.5 rounded-sm bg-[#1a1a24]" />
+          <span className="h-2.5 w-2.5 rounded-sm bg-[#EDE4D8] dark:bg-[#241B13]" />
           <span className="h-2.5 w-2.5 rounded-sm bg-orange/30" />
           <span className="h-2.5 w-2.5 rounded-sm bg-orange/60" />
           <span className="h-2.5 w-2.5 rounded-sm bg-orange" />
