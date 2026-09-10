@@ -1,0 +1,1 @@
+grant select, insert, update, delete on public.roadmap_challenges to service_role;

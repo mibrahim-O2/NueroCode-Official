@@ -1,319 +1,298 @@
+"""Topic Mastery Gate ("challenge") — a 10-problem, no-AI-assist pool a
+student must fully clear to complete a roadmap node.
+
+Everything here is built on the contracts already used elsewhere in this
+codebase rather than bespoke APIs:
+
+* Problem generation mirrors app/services/problem_service.py exactly —
+  SYSTEM_PROMPT + _build_user_prompt + provider.generate() + _extract_json
+  + _validate_canonical_solution (which runs the canonical solution
+  through Piston and rewrites each test case's expected_output from the
+  real execution output). The 10 problems are generated as 10 separate
+  validated calls, one per problem, never a single "generate a pool"
+  call.
+* Grading reuses app/services/execution_service.run_submission — the same
+  function Practice and Assessment use. Piston is never called directly
+  from here.
+* Node completion delegates to
+  app/database/repositories.complete_roadmap_node, so a challenge-gate
+  completion produces byte-for-byte identical XP / level / streak /
+  next-node-unlock results to completing a node any other way. No XP or
+  leveling formula is reimplemented here.
+"""
+
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-from fastapi import HTTPException, status
 
-from app.services.supabase_service import supabase
-from app.services.piston_service import execute_code
+from app.ai.gemini_provider import GeminiQuotaExceededError
 from app.ai.provider_factory import get_ai_provider
+from app.services import problem_service
+from app.services.execution_service import run_submission
+from app.services.piston_service import ensure_runtime_available, PistonExecutionError
+from app.database.repositories import (
+    supabase,
+    get_roadmap_for_user,
+    complete_roadmap_node,
+    count_passing_submissions,
+)
 
 logger = logging.getLogger(__name__)
 
+# 10-problem pool: 4 Easy, 4 Medium, 2 Hard.
+CHALLENGE_TIER_DISTRIBUTION = (("easy", 4), ("medium", 4), ("hard", 2))
+TOTAL_CHALLENGE_QUESTIONS = sum(count for _, count in CHALLENGE_TIER_DISTRIBUTION)  # 10
+
+# Informational only — surfaced to the client, never blocks a challenge.
 PRACTICE_READINESS_THRESHOLD = 50
-TOTAL_CHALLENGE_QUESTIONS = 25
+
+_STARTER_CODE = "def solve(*args):\n    # Write your solution here\n    pass\n"
+
+_REQUIRED_PROBLEM_KEYS = {
+    "title", "description", "examples", "constraints",
+    "expected_complexity", "canonical_solution", "test_cases",
+}
 
 
-class ChallengeService:
-    @staticmethod
-    async def get_or_generate_challenge(
-        user_id: str,
-        node_id: str,
-        provider_name: str = "gemini"
-    ) -> Dict[str, Any]:
-        """
-        Retrieves an ongoing 25-question challenge session (12 Easy, 10 Medium, 3 Hard)
-        for a node or generates a new one. Also returns practice capability metrics.
-        """
+# --- Generation ----------------------------------------------------------
+
+def _generate_one_problem(provider, topic: str, difficulty: str, avoid_titles: list[str]) -> dict:
+    """Generates ONE fully execution-validated problem, mirroring the
+    per-attempt loop in problem_service.generate_problem (same
+    SYSTEM_PROMPT, _build_user_prompt, _extract_json and
+    _validate_canonical_solution). Returns the validated problem dict —
+    its test_cases already carry real expected_output values written by
+    _validate_canonical_solution."""
+    for attempt in range(1, 4):
         try:
-            # 1. Fetch user practice readiness (Accepted submissions count)
-            practice_res = (
-                supabase.table("submissions")
-                .select("id", count="exact")
-                .eq("user_id", user_id)
-                .eq("status", "Accepted")
-                .execute()
+            raw = provider.generate(
+                problem_service.SYSTEM_PROMPT,
+                problem_service._build_user_prompt(topic, difficulty, avoid_titles),
             )
-            total_solved = (
-                practice_res.count
-                if practice_res.count is not None
-                else len(practice_res.data or [])
-            )
-            is_capable = total_solved >= PRACTICE_READINESS_THRESHOLD
+            problem = problem_service._extract_json(raw)
 
-            # 2. Check for an existing active or passed challenge session
-            res = (
-                supabase.table("roadmap_challenges")
-                .select("*")
-                .eq("user_id", user_id)
-                .eq("node_id", node_id)
-                .order("created_at", desc=True)
-                .execute()
-            )
-
-            if res.data and len(res.data) > 0:
-                active_challenge = res.data[0]
-                return {
-                    "challenge": active_challenge,
-                    "practice_count": total_solved,
-                    "practice_threshold": PRACTICE_READINESS_THRESHOLD,
-                    "is_capable": is_capable
-                }
-
-            # 3. Retrieve node metadata (topic, difficulty, position)
-            node_res = (
-                supabase.table("roadmap_nodes")
-                .select("*")
-                .eq("id", node_id)
-                .execute()
-            )
-
-            if not node_res.data:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Roadmap node '{node_id}' not found."
+            if not _REQUIRED_PROBLEM_KEYS.issubset(problem.keys()):
+                logger.warning(
+                    "challenge gen [%s/%s] attempt %d: response missing required keys",
+                    topic, difficulty, attempt,
                 )
+                continue
 
-            node = node_res.data[0]
-            topic = node.get("topic", "Data Structures & Algorithms")
-
-            # 4. Generate 25-problem assessment pool (12 Easy, 10 Medium, 3 Hard)
-            ai_provider = get_ai_provider(provider_name)
-
-            if hasattr(ai_provider, "generate_challenge_pool"):
-                questions = await ai_provider.generate_challenge_pool(
-                    topic=topic,
-                    easy_count=12,
-                    medium_count=10,
-                    hard_count=3
+            validation = problem_service._validate_canonical_solution(problem)
+            if not validation["valid"]:
+                logger.warning(
+                    "challenge gen [%s/%s] attempt %d: canonical solution failed validation (%s)",
+                    topic, difficulty, attempt, validation["reason"],
                 )
-            elif hasattr(ai_provider, "generate_assessment_set"):
-                questions = await ai_provider.generate_assessment_set(
-                    topic=topic,
-                    distribution={"easy": 12, "medium": 10, "hard": 3}
-                )
-            else:
-                questions: List[Dict[str, Any]] = []
-                distribution = [("Easy", 12), ("Medium", 10), ("Hard", 3)]
-                for diff, count in distribution:
-                    for i in range(count):
-                        problem = await ai_provider.generate_problem(
-                            topic=topic,
-                            difficulty=diff,
-                            problem_type="challenge"
-                        )
-                        questions.append({
-                            "index": len(questions),
-                            "title": problem.get("title", f"{topic} {diff} Problem {i + 1}"),
-                            "description": problem.get("description", ""),
-                            "difficulty": diff,
-                            "starter_code": problem.get("starter_code", "# Write your solution here\n\ndef solution():\n    pass\n"),
-                            "test_cases": problem.get("test_cases", [])
-                        })
+                continue
 
-            now_iso = datetime.now(timezone.utc).isoformat()
-            challenge_data = {
-                "user_id": user_id,
-                "node_id": node_id,
-                "questions": questions,
-                "current_index": 0,
-                "solved_indices": [],
-                "status": "in_progress",
-                "score": 0.0,
-                "created_at": now_iso,
-                "updated_at": now_iso
-            }
+            return problem
 
-            insert_res = (
-                supabase.table("roadmap_challenges")
-                .upsert(challenge_data, on_conflict="user_id,node_id")
-                .execute()
+        except GeminiQuotaExceededError:
+            raise  # quota exhausted — retrying is pointless
+        except PistonExecutionError:
+            raise  # cannot validate without Piston — abort the whole pool
+        except Exception:
+            logger.exception(
+                "challenge gen [%s/%s] attempt %d: unexpected error", topic, difficulty, attempt
+            )
+            continue
+
+    raise RuntimeError(
+        f"Could not generate a valid {difficulty} problem for '{topic}' after 3 attempts"
+    )
+
+
+def _generate_challenge_pool(topic: str, provider_override: str | None) -> list[dict]:
+    """Builds the full 10-problem pool via 10 independent validated
+    generations (4 easy, 4 medium, 2 hard)."""
+    ensure_runtime_available("python")  # fail fast, same as problem_service
+    provider = get_ai_provider(provider_override)
+
+    questions: list[dict] = []
+    seen_titles: list[str] = []
+
+    for tier, count in CHALLENGE_TIER_DISTRIBUTION:
+        for _ in range(count):
+            problem = _generate_one_problem(provider, topic, tier, seen_titles)
+            seen_titles.append(problem["title"])
+            index = len(questions)
+            questions.append({
+                "index": index,
+                "difficulty": tier,
+                "title": problem["title"],
+                "description": problem["description"],
+                "examples": problem["examples"],
+                "constraints": problem["constraints"],
+                "expected_complexity": problem["expected_complexity"],
+                "starter_code": _STARTER_CODE,
+                # Kept server-side for grading; stripped from every
+                # client-facing response by _public_question().
+                "test_cases": problem["test_cases"],
+            })
+            logger.info(
+                "challenge pool for %r: generated %d/%d (%s)",
+                topic, index + 1, TOTAL_CHALLENGE_QUESTIONS, tier,
             )
 
-            if not insert_res.data:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Failed to persist challenge session."
-                )
+    return questions
 
-            return {
-                "challenge": insert_res.data[0],
-                "practice_count": total_solved,
-                "practice_threshold": PRACTICE_READINESS_THRESHOLD,
-                "is_capable": is_capable
-            }
 
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Error in get_or_generate_challenge: {str(e)}", exc_info=True)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Challenge setup failed: {str(e)}"
-            )
+# --- Client-safe serialization ----------------------------------------
 
-    @staticmethod
-    async def submit_challenge_question(
-        user_id: str,
-        node_id: str,
-        question_index: int,
-        code: str,
-        language: str = "python"
-    ) -> Dict[str, Any]:
-        """
-        Executes code for an individual question in the 25-problem challenge pool.
-        When all 25 questions pass, marks challenge passed, completes node, and unlocks next node.
-        """
+def _public_question(question: dict) -> dict:
+    """Question view returned to the client — never exposes test cases."""
+    return {k: v for k, v in question.items() if k != "test_cases"}
+
+
+def _public_challenge(row: dict) -> dict:
+    row = dict(row)
+    row["questions"] = [_public_question(q) for q in (row.get("questions") or [])]
+    return row
+
+
+def _readiness(user_id: str) -> dict:
+    solved = count_passing_submissions(user_id)
+    return {
+        "practice_count": solved,
+        "practice_threshold": PRACTICE_READINESS_THRESHOLD,
+        "is_capable": solved >= PRACTICE_READINESS_THRESHOLD,
+    }
+
+
+# --- Persistence helpers ----------------------------------------------
+
+def _get_challenge_row(user_id: str, node_id: str) -> dict | None:
+    result = (
+        supabase.table("roadmap_challenges")
+        .select("*")
+        .eq("user_id", user_id)
+        .eq("node_id", node_id)
+        .limit(1)
+        .execute()
+    )
+    return result.data[0] if result.data else None
+
+
+def _resolve_node(user_id: str, node_id: str) -> dict:
+    node = next((n for n in get_roadmap_for_user(user_id) if n["id"] == node_id), None)
+    if node is None:
+        raise LookupError("That roadmap node was not found for your account.")
+    if node["status"] == "locked":
+        raise PermissionError("Complete the earlier topics before attempting this challenge gate.")
+    return node
+
+
+# --- Public service API ----------------------------------------------
+
+def get_or_generate_challenge(user_id: str, node_id: str, provider_override: str | None = None) -> dict:
+    """Returns the student's existing challenge session for this node, or
+    generates a fresh 10-problem pool if none exists yet."""
+    existing = _get_challenge_row(user_id, node_id)
+    if existing:
+        return {"challenge": _public_challenge(existing), **_readiness(user_id)}
+
+    node = _resolve_node(user_id, node_id)
+    topic = node.get("topic") or "Data Structures & Algorithms"
+
+    questions = _generate_challenge_pool(topic, provider_override)
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    row = {
+        "user_id": user_id,
+        "node_id": node_id,
+        "questions": questions,
+        "current_index": 0,
+        "solved_indices": [],
+        "status": "in_progress",
+        "score": 0,
+        "created_at": now_iso,
+        "updated_at": now_iso,
+    }
+    inserted = (
+        supabase.table("roadmap_challenges")
+        .upsert(row, on_conflict="user_id,node_id")
+        .execute()
+    )
+    if not inserted.data:
+        raise RuntimeError("Failed to persist the generated challenge session")
+
+    return {"challenge": _public_challenge(inserted.data[0]), **_readiness(user_id)}
+
+
+def submit_challenge_question(
+    user_id: str, node_id: str, question_index: int, code: str, language: str = "python"
+) -> dict:
+    """Grades one submitted question through execution_service.run_submission.
+    When all 10 are solved, marks the session passed and completes the
+    roadmap node via repositories.complete_roadmap_node."""
+    row = _get_challenge_row(user_id, node_id)
+    if row is None:
+        raise LookupError("No active challenge session was found for this node.")
+
+    questions = row.get("questions") or []
+    if not isinstance(question_index, int) or not (0 <= question_index < len(questions)):
+        raise ValueError("That question does not exist in this challenge.")
+
+    target = questions[question_index]
+    outcome = run_submission({"test_cases": target.get("test_cases", [])}, language, code)
+    if "error" in outcome:
+        if outcome.get("error_type") == "infrastructure":
+            # Surfaced to the route as a 503 with a generic message.
+            raise PistonExecutionError(outcome["error"])
+        raise ValueError("Your submission could not be run. Check your code and try again.")
+
+    passed = bool(outcome.get("all_passed"))
+    status = row.get("status", "in_progress")
+    solved = sorted(set(row.get("solved_indices") or []))
+    node_completion = None
+
+    if passed and status == "in_progress":
+        solved = sorted(set(solved) | {question_index})
+
+    all_completed = len(solved) >= TOTAL_CHALLENGE_QUESTIONS
+    score = round(len(solved) / TOTAL_CHALLENGE_QUESTIONS * 100, 2)
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    update = {
+        "solved_indices": solved,
+        "current_index": question_index,
+        "score": score,
+        "updated_at": now_iso,
+    }
+
+    if all_completed and status == "in_progress":
+        update["status"] = "passed"
+        update["completed_at"] = now_iso
+        status = "passed"
         try:
-            # 1. Fetch challenge record
-            challenge_res = (
-                supabase.table("roadmap_challenges")
-                .select("*")
-                .eq("user_id", user_id)
-                .eq("node_id", node_id)
-                .execute()
+            # Identical XP / level / streak / next-node-unlock path as the
+            # normal roadmap completion flow — nothing recomputed here.
+            node_completion = complete_roadmap_node(node_id, user_id)
+        except Exception:
+            logger.exception(
+                "challenge: complete_roadmap_node failed (node=%s user=%s)", node_id, user_id
             )
+            node_completion = None
 
-            if not challenge_res.data:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Active challenge session not found."
-                )
+    supabase.table("roadmap_challenges").update(update).eq("id", row["id"]).execute()
 
-            challenge = challenge_res.data[0]
-            questions = challenge.get("questions", [])
+    return {
+        "passed": passed,
+        "passed_count": outcome.get("passed_count", 0),
+        "total_count": outcome.get("total_count", 0),
+        "results": outcome.get("results", []),
+        "question_index": question_index,
+        "solved_count": len(solved),
+        "total_questions": TOTAL_CHALLENGE_QUESTIONS,
+        "all_completed": all_completed,
+        "score": score,
+        "status": status,
+        "node_completion": node_completion,
+    }
 
-            if question_index < 0 or question_index >= len(questions):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Invalid question index {question_index}."
-                )
 
-            target_question = questions[question_index]
-            test_cases = target_question.get("test_cases", [])
-
-            if not test_cases:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Question has no evaluation test cases."
-                )
-
-            # 2. Sandboxed execution via Piston execute_code
-            test_results = await execute_code(
-                code=code,
-                language=language,
-                test_cases=test_cases
-            )
-
-            results_list = test_results.get("test_cases", []) if isinstance(test_results, dict) else []
-            total_cases = len(results_list)
-            passed_cases = sum(1 for tc in results_list if tc.get("passed", False))
-            passed = total_cases > 0 and (passed_cases == total_cases)
-
-            # 3. Update solved indices
-            solved_indices = set(challenge.get("solved_indices") or [])
-            if passed:
-                solved_indices.add(question_index)
-
-            solved_list = sorted(list(solved_indices))
-            total_questions = len(questions) if len(questions) > 0 else TOTAL_CHALLENGE_QUESTIONS
-            is_all_completed = len(solved_list) == total_questions
-            score = round((len(solved_list) / total_questions) * 100, 2)
-            now_iso = datetime.now(timezone.utc).isoformat()
-
-            update_payload: Dict[str, Any] = {
-                "solved_indices": solved_list,
-                "current_index": question_index,
-                "score": score,
-                "updated_at": now_iso
-            }
-
-            # 4. Handle complete challenge passing
-            if is_all_completed:
-                update_payload["status"] = "passed"
-                update_payload["completed_at"] = now_iso
-
-                # Fetch node details
-                node_res = (
-                    supabase.table("roadmap_nodes")
-                    .select("*")
-                    .eq("id", node_id)
-                    .execute()
-                )
-
-                if node_res.data:
-                    current_node = node_res.data[0]
-                    current_position = current_node.get("position")
-                    if current_position is None:
-                        current_position = current_node.get("node_index", 0)
-                    xp_reward = current_node.get("xp_reward", 150)
-
-                    # Mark current roadmap node complete
-                    supabase.table("roadmap_nodes").update({
-                        "status": "completed",
-                        "xp_earned": xp_reward,
-                        "updated_at": now_iso
-                    }).eq("id", node_id).execute()
-
-                    # Unlock the sequential next roadmap node (supports position and node_index schemas)
-                    if "position" in current_node:
-                        supabase.table("roadmap_nodes").update({
-                            "status": "unlocked",
-                            "updated_at": now_iso
-                        }).eq("user_id", user_id).eq("position", current_position + 1).eq("status", "locked").execute()
-                    else:
-                        supabase.table("roadmap_nodes").update({
-                            "status": "unlocked",
-                            "updated_at": now_iso
-                        }).eq("user_id", user_id).eq("node_index", current_position + 1).eq("status", "locked").execute()
-
-                    # Reward User XP
-                    user_res = supabase.table("users").select("xp").eq("id", user_id).execute()
-                    if user_res.data:
-                        current_xp = user_res.data[0].get("xp", 0) or 0
-                        supabase.table("users").update({
-                            "xp": current_xp + xp_reward
-                        }).eq("id", user_id).execute()
-
-            supabase.table("roadmap_challenges").update(update_payload).eq("id", challenge["id"]).execute()
-
-            return {
-                "passed": passed,
-                "passed_cases": passed_cases,
-                "total_cases": total_cases,
-                "question_index": question_index,
-                "solved_count": len(solved_list),
-                "total_questions": total_questions,
-                "all_completed": is_all_completed,
-                "score": score,
-                "results": test_results
-            }
-
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Error in submit_challenge_question: {str(e)}", exc_info=True)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Question evaluation failed: {str(e)}"
-            )
-
-    @staticmethod
-    async def get_challenge_history(user_id: str, node_id: str) -> Dict[str, Any]:
-        """
-        Returns the challenge history and question progress for a specific node.
-        """
-        try:
-            res = (
-                supabase.table("roadmap_challenges")
-                .select("*")
-                .eq("user_id", user_id)
-                .eq("node_id", node_id)
-                .execute()
-            )
-            return {"challenges": res.data or []}
-        except Exception as e:
-            logger.error(f"Error in get_challenge_history: {str(e)}", exc_info=True)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to fetch challenge history: {str(e)}"
-            )
+def get_challenge_history(user_id: str, node_id: str) -> dict:
+    """The single challenge session for this node (unique per user+node),
+    wrapped in a list for a stable response shape."""
+    row = _get_challenge_row(user_id, node_id)
+    return {"challenges": [_public_challenge(row)] if row else []}

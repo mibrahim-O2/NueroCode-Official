@@ -783,6 +783,21 @@ def has_passing_submission(user_id: str, problem_id: str) -> bool:
     return any((r.get("execution_result") or {}).get("all_passed") for r in rows)
 
 
+def count_passing_submissions(user_id: str) -> int:
+    """Total number of a user's fully-passing submissions, derived from
+    execution_result->>'all_passed' — the same truth source as
+    has_passing_submission (the submissions table has no status column).
+    Used by the challenge gate's practice-readiness indicator."""
+    rows = (
+        supabase.table("submissions")
+        .select("execution_result")
+        .eq("user_id", user_id)
+        .execute()
+        .data
+    )
+    return sum(1 for r in rows if (r.get("execution_result") or {}).get("all_passed"))
+
+
 # --- Profile & Preferences -------------------------------------------------
 
 def update_user_profile(user_id: str, updates: dict) -> dict:
