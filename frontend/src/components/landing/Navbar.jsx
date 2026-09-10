@@ -12,6 +12,8 @@ const NAV_LINKS = [
   { label: 'Team', href: '#team' },
 ];
 
+const DOCS_URL = 'https://github.com/mibrahim-O2/NueroCode-Official/blob/main/docs/DOCUMENTATION.md';
+
 export default function Navbar() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -47,6 +49,15 @@ export default function Navbar() {
               {link.label}
             </button>
           ))}
+          <a
+            href={DOCS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'var(--l-text-secondary)' }}
+            className="transition-opacity hover:opacity-80"
+          >
+            Documentation
+          </a>
         </nav>
 
         <div className="flex items-center gap-3">
@@ -93,6 +104,9 @@ export default function Navbar() {
               {link.label}
             </button>
           ))}
+          <a href={DOCS_URL} target="_blank" rel="noopener noreferrer" className="py-1 text-sm" style={{ color: 'var(--l-text-secondary)' }}>
+            Documentation ↗
+          </a>
           <button
             onClick={toggleTheme}
             className="flex items-center gap-2 self-start rounded-full border px-3 py-2 text-xs"

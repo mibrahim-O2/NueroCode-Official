@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import Logo from '@/components/common/Logo';
 
+const DOCS_URL = 'https://github.com/mibrahim-O2/NueroCode-Official/blob/main/docs/DOCUMENTATION.md';
+
 export default function Footer() {
   return (
     <footer className="border-t px-6 py-14" style={{ borderColor: 'var(--l-border)' }}>
@@ -31,6 +33,7 @@ export default function Footer() {
           <p className="mb-3 text-sm font-medium" style={{ color: 'var(--l-text-primary)' }}>Project</p>
           <ul className="space-y-2 text-sm" style={{ color: 'var(--l-text-muted)' }}>
             <li><a href="#team">Team</a></li>
+            <li><a href={DOCS_URL} target="_blank" rel="noopener noreferrer">Documentation ↗</a></li>
           </ul>
         </div>
 
