@@ -15,18 +15,19 @@ so `x in a_set` isn't flagged the same way as `x in a_list`.
 import re
 from functools import lru_cache
 
-# Dependency migration: requirements.txt now pins tree-sitter>=0.22 plus
-# the individual per-language grammar packages (tree-sitter-python,
-# tree-sitter-javascript, tree-sitter-cpp, tree-sitter-java) instead of
-# the old all-in-one `tree_sitter_languages` package, which only worked
-# with tree-sitter < 0.22 and fails to import on a clean install. We build
-# parsers directly from each grammar module's language() PyCapsule.
+# Tree-sitter parser acquisition. requirements.txt currently pins the
+# legacy all-in-one stack (tree-sitter==0.21.3 + tree-sitter-languages
+# ==1.10.2), so on a normal install the `except ImportError` fallback
+# below — `tree_sitter_languages.get_parser` — is the path that actually
+# runs.
 #
-# A fallback to the legacy `tree_sitter_languages.get_parser` is kept ONLY
-# so an environment still mid-upgrade (old package installed, new ones
-# not yet) keeps working — the primary, supported path is the per-language
-# packages. Behavior and the get_parser(language) signature are identical
-# either way.
+# The `try` block targets a newer layout (tree-sitter>=0.22 plus the
+# individual per-language grammar packages tree-sitter-python /
+# -javascript / -cpp / -java), building parsers directly from each
+# grammar module's language() PyCapsule. It is kept so that an
+# environment on those newer pins keeps working without a code change.
+# Behavior and the get_parser(language) signature are identical either
+# way.
 try:
     from tree_sitter import Language, Parser
     import tree_sitter_python
