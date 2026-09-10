@@ -18,7 +18,7 @@ const TEAM = [
   },
   {
     name: 'Muhammad Ibrahim',
-    role: 'Full Stack Design · Backend & Systems Architect · AI & Gamified Engineer',
+    role: 'Lead Engineer & Full-Stack Architect · Backend, AI Integration & Gamification Systems',
     badge: 'Team Leader',
     accent: 'gold',
     avatar: 'https://github.com/mibrahim-O2.png',
@@ -38,10 +38,10 @@ const TEAM = [
     avatar: 'https://github.com/AliMugheri.png',
     links: {
       github: 'https://github.com/AliMugheri',
-      linkedin: 'https://linkedin.com/in/REPLACE_ALI_LINKEDIN',
-      email: 'mailto:REPLACE_ALI_EMAIL@example.com',
+      linkedin:'https://www.linkedin.com/in/ali-mugheri-515484368?utm_source=share_via&utm_content=profile&utm_medium=member_android',
+      email: 'mailto:Alibaloch35400@gmail.com',
       x: 'https://x.com/REPLACE_ALI_X',
-      facebook: 'https://facebook.com/REPLACE_ALI_FACEBOOK',
+      facebook:'https://www.facebook.com/share/1DgLMacU2y/',
     },
   },
 ];
