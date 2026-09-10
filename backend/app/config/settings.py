@@ -4,14 +4,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    ANTHROPIC_API_KEY: str = ""
     SUPABASE_URL: str = ""
     SUPABASE_SERVICE_ROLE_KEY: str = ""
     JWT_SECRET: str = "dev-secret-change-me"
     JWT_EXPIRE_MINUTES: int = 1440
     CHROMA_DB_PATH: str = "./chromadb"
     PISTON_API: str = "http://localhost:2000/api/v2"
-    MODEL_NAME: str = "claude-sonnet-4-6"
 
     APP_ENV: str = "development"
     FRONTEND_URL: str = "http://localhost:5173"
