@@ -46,33 +46,6 @@ GRACE_PERIOD_SECONDS = 60  # tolerate minor client/server clock drift
 
 PASS_ASSESSMENT_SCORE = 70
 
-# Fixed, known-correct question used only when settings.TEST_MODE is true.
-# Manually verified — canonical solution is trivially correct, so it is
-# NOT re-validated through Piston on every use (that would just burn
-# Piston round trips checking something already known to be right).
-TEST_MODE_QUESTION = {
-    "title": "Sum of Two Numbers",
-    "description": (
-        "Given two integers a and b, return their sum. This is a fixed, deterministic "
-        "question used only in TEST_MODE for development testing of the assessment pipeline."
-    ),
-    "examples": [
-        {"input": "2, 3", "output": "5", "explanation": "2 + 3 = 5"},
-        {"input": "-1, 1", "output": "0"},
-        {"input": "10, 15", "output": "25"},
-    ],
-    "constraints": ["-1000 <= a, b <= 1000"],
-    "expected_complexity": "O(1)",
-    "canonical_solution": "def solve(a, b):\n    return a + b\n",
-    "test_cases": [
-        {"input": [2, 3], "expected_output": 5},
-        {"input": [-1, 1], "expected_output": 0},
-        {"input": [10, 15], "expected_output": 25},
-        {"input": [0, 0], "expected_output": 0},
-        {"input": [100, -50], "expected_output": 50},
-    ],
-}
-
 ASSESSMENT_SYSTEM_PROMPT = """You are NeuroCode's assessment question generator. You create a single, \
 original, comprehensive coding problem that requires combining concepts from MULTIPLE topics together \
 — not a simple single-concept exercise.
@@ -134,29 +107,10 @@ def start_assessment(user_id: str, cluster_name: str, provider_override: str | N
 
     duration = settings.ASSESSMENT_DURATION_SECONDS
 
-    # TEST_MODE skips the AI generation call, but grading (submit_assessment)
-    # still calls Piston to run the submitted solution — so Piston health is
-    # checked either way. Failing here also means a broken Piston is caught
+    # Grading (submit_assessment) calls Piston to run the submitted solution,
+    # so Piston health is checked here too — a broken Piston is caught
     # immediately, before the student even starts, rather than at submit time.
     ensure_runtime_available("python")
-
-    if settings.TEST_MODE:
-        logger.warning(
-            "TEST_MODE active — using fixed deterministic question (user=%s, cluster=%s)", user_id, cluster_name
-        )
-        saved = create_assessment(user_id, cluster_name, TEST_MODE_QUESTION)
-        return {
-            "id": saved["id"],
-            "cluster": cluster_name,
-            "title": TEST_MODE_QUESTION["title"],
-            "description": TEST_MODE_QUESTION["description"],
-            "examples": TEST_MODE_QUESTION["examples"],
-            "constraints": TEST_MODE_QUESTION["constraints"],
-            "expected_complexity": TEST_MODE_QUESTION["expected_complexity"],
-            "duration_seconds": duration,
-            "test_mode": True,
-            "provider_used": provider_override or settings.AI_PROVIDER,
-        }
 
     provider = get_ai_provider(provider_override)
     topics_text = " and ".join(cluster["topics"])

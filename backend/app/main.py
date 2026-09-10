@@ -14,7 +14,6 @@ from app.routes import (
     assessment_routes,
     credential_routes,
     admin_routes,
-    test_mode_routes,
     interview_routes,
     submission_comment_routes,
     solution_routes,
@@ -54,20 +53,12 @@ app.include_router(proctoring_routes.router)
 app.include_router(assessment_routes.router)
 app.include_router(credential_routes.router)
 app.include_router(admin_routes.router)
-app.include_router(test_mode_routes.router)
 app.include_router(interview_routes.router)
 app.include_router(submission_comment_routes.router)
 app.include_router(solution_routes.router)
 app.include_router(review_routes.router)
 app.include_router(discussion_routes.router)
 app.include_router(profile_routes.router)
-
-if settings.TEST_MODE:
-    import logging
-    logging.getLogger(__name__).warning(
-        "TEST_MODE is ENABLED — demo/simulation endpoints are live. "
-        "Do not deploy to production with TEST_MODE=true."
-    )
 
 _INSECURE_DEFAULTS = [
     name

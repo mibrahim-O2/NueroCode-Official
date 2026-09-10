@@ -36,10 +36,8 @@ class Settings(BaseSettings):
     INTERVIEW_DURATION_SECONDS: int = 1800
     REVIEW_DUE_DAYS: int = 7
 
-    # Development/testing-only overrides. All default to production values —
-    # TEST_MODE=false, real thresholds, real 45-minute timer — so the app
-    # behaves identically to before unless these are explicitly set.
-    TEST_MODE: bool = False
+    # Assessment scoring/timing overrides. Default to production values —
+    # real thresholds, real 45-minute timer.
     INTEGRITY_PASS_THRESHOLD: float = 60
     ASSESSMENT_DURATION_SECONDS: int = 2700  # 45 minutes
 
