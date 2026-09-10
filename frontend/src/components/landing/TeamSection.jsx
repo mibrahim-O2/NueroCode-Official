@@ -25,6 +25,7 @@ const TEAM = [
     links: {
       github: 'https://github.com/mibrahim-O2',
       linkedin: 'https://github.com/mibrahim-O2',
+      email: 'mailto:mibrahimkhalid306@gmail.com',
       x: 'https://x.com/MIbraheem_02',
       facebook: 'https://web.facebook.com/mibrahim.O2',
     },
@@ -38,6 +39,7 @@ const TEAM = [
     links: {
       github: 'https://github.com/AliMugheri',
       linkedin:'https://www.linkedin.com/in/ali-mugheri-515484368?utm_source=share_via&utm_content=profile&utm_medium=member_android',
+      email: 'mailto:alibaloch35400@gmail.com',
       x: 'https://x.com/REPLACE_ALI_X',
       facebook:'https://www.facebook.com/share/1DgLMacU2y/',
     },
