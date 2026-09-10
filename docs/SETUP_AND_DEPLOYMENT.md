@@ -123,6 +123,10 @@ Expected:
   {
     "language": "c",
     "version": "10.2.0"
+  },
+  {
+    "language": "c++",
+    "version": "10.2.0"
   }
 ]
 ```
@@ -480,6 +484,17 @@ Only URLs change the communication mechanism (HTTP) stays identical. This is why
 |------------------------|----------------------------------------|-----------------------------------------------|
 | `VITE_BACKEND_URL`     | `http://localhost:8000`               | `https://your-app.up.railway.app`             |
 | `PISTON_API`           | `http://localhost:2000/api/v2`        | Internal Railway service URL / private network address |
+| `SUPABASE_URL`         | Supabase project URL                   | same (per-environment project)                |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service-role key         | same (keep secret; server-only)               |
+| `JWT_SECRET`           | any local string                       | strong random secret                          |
+| `GEMINI_API_KEY`       | Google AI Studio key                   | same                                          |
+| `FRONTEND_URL`         | `http://localhost:5173`               | `https://your-frontend.vercel.app` (CORS origin) |
+| `FIREBASE_SERVICE_ACCOUNT_PATH` | `./firebase-service-account.json` | path/secret file mounted on the host     |
+| `ADMIN_EMAIL`          | your admin account email               | same                                          |
+| `INTEGRITY_PASS_THRESHOLD` | `60`                               | `60` (tune as needed)                         |
+| `ASSESSMENT_DURATION_SECONDS` | `2700`                          | `2700`                                        |
+| `REVIEW_DUE_DAYS`      | `7`                                    | `7`                                           |
+| `INTERVIEW_DURATION_SECONDS` | `1800`                           | `1800`                                        |
 
 Switching environments is a **config change, not a code change**.
 
