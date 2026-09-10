@@ -41,7 +41,6 @@ export default function AppRoutes() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/roadmap" element={<Roadmap />} />
         <Route path="/practice" element={<Practice />} />
-        <Route path="/practice/:nodeId" element={<Practice />} />
         <Route path="/challenge" element={<Challenge />} />
         <Route path="/challenge/:nodeId" element={<Challenge />} />
         <Route path="/interview" element={<MockInterview />} />
