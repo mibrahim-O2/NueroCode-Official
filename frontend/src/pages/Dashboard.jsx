@@ -148,7 +148,7 @@ export default function Dashboard() {
               showMonthLabels
               gutterSize={2}
               classForValue={(val) => {
-                if (!val || val.count === 0) return 'fill-[#EDE4D8] dark:fill-[#241B13]';
+                if (!val || val.count === 0) return 'fill-[#D9CEBF] dark:fill-[#241B13]';
                 if (val.count === 1) return 'fill-orange/30';
                 if (val.count <= 3) return 'fill-orange/60';
                 return 'fill-orange';
