@@ -17,6 +17,7 @@ import {
 
 import { useAuth } from '@/context/AuthContext';
 import { getReviewDue } from '@/services/roadmapService';
+import { getUserCharts } from '@/services/profileService';
 
 function StatCard({ icon: Icon, label, value, accent }) {
   return (
@@ -44,44 +45,13 @@ export default function Dashboard() {
   });
   const [loadingAnalytics, setLoadingAnalytics] = useState(true);
 
-  // AuthContext stores the session token under 'neurocode_token' (see
-  // AuthContext.jsx) — this previously checked 'token' / 'access_token' /
-  // 'auth_token' instead, none of which are ever actually set, so this
-  // request went out with no Authorization header on every load and the
-  // charts always fell back to the flat placeholder line below.
-  const getStoredToken = () => {
-    return (
-      localStorage.getItem('neurocode_token') ||
-      localStorage.getItem('token') ||
-      localStorage.getItem('access_token') ||
-      localStorage.getItem('auth_token') ||
-      sessionStorage.getItem('neurocode_token') ||
-      sessionStorage.getItem('token') ||
-      sessionStorage.getItem('access_token') ||
-      ''
-    );
-  };
-
   useEffect(() => {
     refreshUser();
     getReviewDue().then(setDueReviews).catch(() => setDueReviews([]));
 
-    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-    const token = getStoredToken();
-
-    fetch(`${apiBase}/profile/analytics/user-charts`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(`HTTP ${res.status}: ${errText}`);
-        }
-        return res.json();
-      })
+    // Goes through the shared apiClient (same token handling and
+    // VITE_BACKEND_URL as every other request in the app).
+    getUserCharts()
       .then((data) => {
         setAnalyticsData({
           heatmap: Array.isArray(data?.heatmap) ? data.heatmap : [],
