@@ -23,6 +23,8 @@ async def start(payload: StartInterviewRequest, current_user: dict = Depends(get
 async def submit(session_id: str, payload: SubmitInterviewRequest, current_user: dict = Depends(get_current_user)):
     try:
         return submit_interview(current_user["id"], session_id, payload.language, payload.source_code)
+    except TimeoutError as exc:
+        raise HTTPException(status_code=408, detail=str(exc))
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 

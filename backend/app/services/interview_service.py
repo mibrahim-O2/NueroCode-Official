@@ -6,6 +6,7 @@ the existing grading pipeline (execution_service.run_submission)
 directly — no new execution or grading logic.
 """
 
+import datetime
 import logging
 
 from app.ai.provider_factory import get_ai_provider
@@ -19,9 +20,14 @@ from app.database.repositories import (
     create_interview_session,
     get_interview_session,
     update_interview_session,
+    _parse_timestamp,
 )
 
 logger = logging.getLogger(__name__)
+
+# Tolerate minor client/server clock drift and in-flight submit latency,
+# mirroring assessment_service.GRACE_PERIOD_SECONDS.
+GRACE_PERIOD_SECONDS = 60
 
 INTERVIEW_SYSTEM_PROMPT = """You are generating a realistic technical coding interview question.
 Respond with ONLY a JSON object: title, description, examples (list of {input, output, explanation}),
@@ -89,6 +95,15 @@ def submit_interview(user_id: str, session_id: str, language: str, source_code: 
         raise ValueError("Interview session not found.")
     if session["status"] != "in_progress":
         raise ValueError("This interview session has already been completed.")
+
+    # Server-authoritative time check, mirroring assessment_service. The
+    # client timer is advisory only; a late submission is rejected here
+    # regardless of what the browser sends.
+    started_at = _parse_timestamp(session["started_at"])
+    elapsed = (datetime.datetime.now(datetime.timezone.utc) - started_at).total_seconds()
+    time_limit = session.get("time_limit_seconds") or settings.INTERVIEW_DURATION_SECONDS
+    if elapsed > time_limit + GRACE_PERIOD_SECONDS:
+        raise TimeoutError("Interview time limit exceeded — this submission is too late to be graded.")
 
     # test_cases were stripped from the client-visible question but are
     # still needed here for grading — stored in the full session row.
