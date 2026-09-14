@@ -31,6 +31,22 @@ class Settings(BaseSettings):
     # Gates the admin-only real-provider-switch UI flow. Change this from
     # the placeholder before any real evaluation/demo.
     PROVIDER_SWITCH_PASSCODE: str = "neurocode-dev-passcode"
+
+    # --- Demo Mode -----------------------------------------------------------
+    # OWNER_EMAIL is the ONE account allowed to see or use Demo Mode — the
+    # project owner. NeuroCode is a solo FYP, so this is simply my own login
+    # email. It deliberately has no usable default: an empty value means
+    # nobody is the owner, and demo_routes refuses every /demo/* request
+    # until it is set. The real value must only ever come from .env — it is
+    # never written into code.
+    OWNER_EMAIL: str = ""
+    # DEMO_MODE_PASSCODE is the second gate, entered once per browser session
+    # before Demo Mode can be switched on (same UX as PROVIDER_SWITCH_PASSCODE).
+    # Also no usable default: demo_routes treats an empty passcode as "not
+    # configured" and never verifies it, so an unconfigured install can't be
+    # unlocked by submitting an empty string.
+    DEMO_MODE_PASSCODE: str = ""
+
     INTERVIEW_DURATION_SECONDS: int = 1800
     REVIEW_DUE_DAYS: int = 7
 
