@@ -255,7 +255,22 @@ def _find_set_like_variables(full_source: str) -> set:
     return names
 
 
+# Matches a for-clause up to and including its own `in` keyword — both a loop
+# header (`for x in nums:`) and a comprehension (`sum(v for v in vals)`).
+_FOR_CLAUSE_PATTERN = re.compile(r"\bfor\b[^:]*?\bin\b")
+
+
 def _line_flags_membership_check(line: str, set_like_vars: set) -> bool:
+    # Bug fix: a for-clause's `in` is iteration syntax, not a membership test.
+    # Loop spans include the loop's own header line, so before this strip
+    # EVERY Python for-loop matched the regex below — even a correct O(n)
+    # `for i in range(n):` was reported as a "linear membership check" and
+    # could reorder a student's roadmap toward Hash Maps. Stripping the
+    # for-clause first leaves genuine checks like `if x in seen_list:` flagged
+    # exactly as before. Found while building Demo Mode, whose correct fixed
+    # solutions were being flagged; fixed here in the shared analyzer rather
+    # than worked around, so real and demo grading stay identical.
+    line = _FOR_CLAUSE_PATTERN.sub("", line)
     match = re.search(r"(?<!not )\bin\s+([a-zA-Z_]\w*)\b", line)
     if not match:
         return False
