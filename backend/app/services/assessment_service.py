@@ -227,6 +227,19 @@ def get_owned_assessment(user_id: str, assessment_id: str) -> dict | None:
     return result.data[0] if result.data else None
 
 
+def integrity_score_from_events(event_types: list[str]) -> float:
+    """The integrity scoring rule itself: start at 100, subtract each
+    event's INTEGRITY_EVENT_PENALTIES weight, floor at 0.
+
+    Split out of compute_integrity_score (no behavior change) so Demo Mode
+    scores its demo_proctoring_logs with this exact function instead of a
+    copied formula. Demo attempts live in a separate table, but the scoring
+    must be identical — the demo exists to show real integrity scoring.
+    """
+    penalty = sum(INTEGRITY_EVENT_PENALTIES.get(event_type, 0) for event_type in event_types)
+    return float(max(0, 100 - penalty))
+
+
 def compute_integrity_score(assessment_id: str) -> float:
     """Recomputes the integrity score from the persisted proctoring_logs
     rows for an assessment. This is the ONLY value trusted for pass/fail
@@ -239,8 +252,38 @@ def compute_integrity_score(assessment_id: str) -> float:
         .execute()
         .data
     )
-    penalty = sum(INTEGRITY_EVENT_PENALTIES.get(row["event_type"], 0) for row in logs)
-    return float(max(0, 100 - penalty))
+    # Delegates to the shared rule above so real and demo scoring can't drift.
+    return integrity_score_from_events([row["event_type"] for row in logs])
+
+
+# --- Shared pass / flag / badge rules ---------------------------------------
+# Split out of submit_assessment (no behavior change) so Demo Mode's demo
+# assessment submit applies these exact thresholds instead of copying them.
+# Demo attempts are stored in their own table, but pass/fail, integrity
+# flagging and credential tier must be decided identically to the real
+# assessment — otherwise the demo would be showing a different rulebook.
+
+def is_integrity_flagged(integrity_score: float) -> bool:
+    """True when the server-computed integrity score is below the configured
+    pass threshold, meaning the attempt is marked 'flagged' for review."""
+    return integrity_score < settings.INTEGRITY_PASS_THRESHOLD
+
+
+def is_assessment_passed(assessment_score: float, integrity_score: float) -> bool:
+    """A pass needs BOTH a high enough test score and a clean enough
+    integrity score — a perfect solution with a failing integrity score
+    still does not pass."""
+    return assessment_score >= PASS_ASSESSMENT_SCORE and integrity_score >= settings.INTEGRITY_PASS_THRESHOLD
+
+
+def badge_level_for_score(assessment_score: float) -> str:
+    """Credential tier earned by a passing score: platinum 90+, gold 80+,
+    otherwise silver."""
+    if assessment_score >= 90:
+        return "platinum"
+    if assessment_score >= 80:
+        return "gold"
+    return "silver"
 
 
 def submit_assessment(
@@ -283,17 +326,12 @@ def submit_assessment(
         duration=int(elapsed),
     )
 
-    if integrity_score < settings.INTEGRITY_PASS_THRESHOLD:
+    if is_integrity_flagged(integrity_score):
         supabase.table("assessments").update({"status": "flagged"}).eq("id", assessment_id).execute()
 
-    passed = assessment_score >= PASS_ASSESSMENT_SCORE and integrity_score >= settings.INTEGRITY_PASS_THRESHOLD
+    passed = is_assessment_passed(assessment_score, integrity_score)
     if passed:
-        if assessment_score >= 90:
-            badge_level = "platinum"
-        elif assessment_score >= 80:
-            badge_level = "gold"
-        else:
-            badge_level = "silver"
+        badge_level = badge_level_for_score(assessment_score)
 
         credential = create_credential(
             user_id=user_id,
