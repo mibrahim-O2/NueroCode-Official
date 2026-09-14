@@ -65,17 +65,25 @@ _INSECURE_DEFAULTS = [
     for name, is_default in (
         ("JWT_SECRET", settings.JWT_SECRET == "dev-secret-change-me"),
         ("PROVIDER_SWITCH_PASSCODE", settings.PROVIDER_SWITCH_PASSCODE == "neurocode-dev-passcode"),
+        # Demo Mode settings have no default at all, so "insecure" here means
+        # "unset". They're flagged in this same block on purpose: an unset
+        # OWNER_EMAIL / DEMO_MODE_PASSCODE silently leaves Demo Mode locked
+        # for everyone, and that should be obvious at boot, not discovered
+        # mid-presentation.
+        ("OWNER_EMAIL", not settings.OWNER_EMAIL.strip()),
+        ("DEMO_MODE_PASSCODE", not settings.DEMO_MODE_PASSCODE.strip()),
     )
     if is_default
 ]
 if _INSECURE_DEFAULTS:
     import logging
+    # Message reworded to cover both cases now in this list — placeholder
+    # secrets (a security risk) and unset Demo Mode settings (feature locked).
     logging.getLogger(__name__).warning(
-        "%s still %s the built-in placeholder value — anyone can forge sessions / "
-        "unlock the provider switch. Override %s in the environment before any real deployment.",
-        " and ".join(_INSECURE_DEFAULTS),
-        "use" if len(_INSECURE_DEFAULTS) > 1 else "uses",
-        "them" if len(_INSECURE_DEFAULTS) > 1 else "it",
+        "Insecure or missing settings: %s. A placeholder JWT_SECRET / PROVIDER_SWITCH_PASSCODE lets "
+        "anyone forge sessions or unlock the provider switch; an unset OWNER_EMAIL / DEMO_MODE_PASSCODE "
+        "leaves Demo Mode locked for everyone. Set these in the environment before any real deployment.",
+        ", ".join(_INSECURE_DEFAULTS),
     )
 
 @app.get("/health")
