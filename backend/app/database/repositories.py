@@ -47,9 +47,26 @@ def create_roadmap_node(user_id: str, topic: str, difficulty: str, position: int
     return supabase.table("roadmap_nodes").insert(data).execute().data[0]
 
 
-def get_roadmap_for_user(user_id: str) -> list[dict]:
+# Demo Mode reuses the roadmap functions below against its own separate
+# demo_roadmap_progress table (migration 027), so the demo roadmap's seeding,
+# starting, completing and adaptive reordering run this exact code rather
+# than a forked copy. `table` defaults to the real roadmap_nodes table, so
+# every existing caller is unchanged. Only these two tables are accepted, and
+# the value always comes from backend code, never from a request.
+ROADMAP_TABLES = ("roadmap_nodes", "demo_roadmap_progress")
+
+
+def _roadmap_table(table: str) -> str:
+    """Guards the `table` parameter so a typo (or any future misuse) fails
+    loudly instead of silently reading or writing some other table."""
+    if table not in ROADMAP_TABLES:
+        raise ValueError(f"Unsupported roadmap table: {table!r}")
+    return table
+
+
+def get_roadmap_for_user(user_id: str, table: str = "roadmap_nodes") -> list[dict]:
     return (
-        supabase.table("roadmap_nodes")
+        supabase.table(_roadmap_table(table))
         .select("*")
         .eq("user_id", user_id)
         .order("position")
@@ -58,10 +75,15 @@ def get_roadmap_for_user(user_id: str) -> list[dict]:
     )
 
 
-def seed_default_roadmap(user_id: str) -> list[dict]:
+def seed_default_roadmap(
+    user_id: str, topics: list[tuple[str, str]] | None = None, table: str = "roadmap_nodes"
+) -> list[dict]:
+    # `topics` defaults to the real 10-topic DEFAULT_TOPICS; Demo Mode passes
+    # its fixed 5-topic list. Position 0 unlocked, everything else locked,
+    # either way.
     now = datetime.now(timezone.utc).isoformat()
     rows = []
-    for i, (topic, difficulty) in enumerate(DEFAULT_TOPICS):
+    for i, (topic, difficulty) in enumerate(topics or DEFAULT_TOPICS):
         status = "unlocked" if i == 0 else "locked"
         rows.append({
             "user_id": user_id,
@@ -72,18 +94,19 @@ def seed_default_roadmap(user_id: str) -> list[dict]:
             "xp_earned": 0,
             "unlocked_at": now if status == "unlocked" else None,
         })
-    return supabase.table("roadmap_nodes").insert(rows).execute().data
+    return supabase.table(_roadmap_table(table)).insert(rows).execute().data
 
 
-def mark_node_in_progress(node_id: str, user_id: str) -> dict | None:
-    existing = supabase.table("roadmap_nodes").select("*").eq("id", node_id).eq("user_id", user_id).execute()
+def mark_node_in_progress(node_id: str, user_id: str, table: str = "roadmap_nodes") -> dict | None:
+    roadmap_table = _roadmap_table(table)
+    existing = supabase.table(roadmap_table).select("*").eq("id", node_id).eq("user_id", user_id).execute()
     if not existing.data:
         return None
     node = existing.data[0]
     if node["status"] not in ("unlocked", "in_progress"):
         return None
     return (
-        supabase.table("roadmap_nodes")
+        supabase.table(roadmap_table)
         .update({"status": "in_progress"})
         .eq("id", node_id)
         .execute()
@@ -91,8 +114,9 @@ def mark_node_in_progress(node_id: str, user_id: str) -> dict | None:
     )
 
 
-def complete_roadmap_node(node_id: str, user_id: str) -> dict | None:
-    existing = supabase.table("roadmap_nodes").select("*").eq("id", node_id).eq("user_id", user_id).execute()
+def complete_roadmap_node(node_id: str, user_id: str, table: str = "roadmap_nodes") -> dict | None:
+    roadmap_table = _roadmap_table(table)
+    existing = supabase.table(roadmap_table).select("*").eq("id", node_id).eq("user_id", user_id).execute()
     if not existing.data:
         return None
     node = existing.data[0]
@@ -103,7 +127,7 @@ def complete_roadmap_node(node_id: str, user_id: str) -> dict | None:
     now = datetime.now(timezone.utc).isoformat()
 
     updated_node = (
-        supabase.table("roadmap_nodes")
+        supabase.table(roadmap_table)
         .update({"status": "completed", "xp_earned": xp_reward, "completed_at": now})
         .eq("id", node_id)
         .execute()
@@ -115,17 +139,20 @@ def complete_roadmap_node(node_id: str, user_id: str) -> dict | None:
     # has already been earned.
     next_position = node["position"] + 1
     next_node = (
-        supabase.table("roadmap_nodes")
+        supabase.table(roadmap_table)
         .select("*")
         .eq("user_id", user_id)
         .eq("position", next_position)
         .execute()
     )
     if next_node.data and next_node.data[0]["status"] == "locked":
-        supabase.table("roadmap_nodes").update(
+        supabase.table(roadmap_table).update(
             {"status": "unlocked", "unlocked_at": now}
         ).eq("id", next_node.data[0]["id"]).execute()
 
+    # XP always lands on the real users row, whichever roadmap table the
+    # completion came from — Demo Mode's XP / level / streak are real by
+    # design, and this is the one function that awards them.
     updated_user, leveled_up = update_user_progress(user_id, xp_reward)
 
     return {
@@ -136,11 +163,20 @@ def complete_roadmap_node(node_id: str, user_id: str) -> dict | None:
     }
 
 
+def level_for_xp(xp: int) -> int:
+    """The single leveling formula: a new level every 500 XP.
+
+    Pulled out of update_user_progress (no behavior change) so Demo Mode's
+    dashboard reset — which reverses exactly the XP Demo Mode awarded —
+    recomputes the level with this same rule instead of a copy of it."""
+    return (xp // 500) + 1
+
+
 def update_user_progress(user_id: str, xp_delta: int) -> tuple[dict, bool]:
     user = supabase.table("users").select("*").eq("id", user_id).execute().data[0]
     old_level = user["level"]
     new_xp = user["xp"] + xp_delta
-    new_level = (new_xp // 500) + 1
+    new_level = level_for_xp(new_xp)
     leveled_up = new_level > old_level
 
     now = datetime.now(timezone.utc)
@@ -186,7 +222,9 @@ def update_submission_analysis(
     )
 
 
-def promote_roadmap_topic(user_id: str, current_topic: str, target_topic: str) -> bool:
+def promote_roadmap_topic(
+    user_id: str, current_topic: str, target_topic: str, table: str = "roadmap_nodes"
+) -> bool:
     """Moves target_topic's roadmap node to just after current_topic's node.
 
     Only reorders nodes that are still 'locked' (untouched, upcoming) —
@@ -198,8 +236,12 @@ def promote_roadmap_topic(user_id: str, current_topic: str, target_topic: str) -
     Returns True only if a reorder actually happened, so callers can tell
     a real promotion apart from a silent no-op (e.g. target already
     completed, or already earlier in the sequence).
+
+    `table` lets Demo Mode run this exact reorder against its separate
+    demo_roadmap_progress table (see ROADMAP_TABLES above).
     """
-    nodes = get_roadmap_for_user(user_id)
+    roadmap_table = _roadmap_table(table)
+    nodes = get_roadmap_for_user(user_id, table=roadmap_table)
     current_node = next((n for n in nodes if n["topic"] == current_topic), None)
     target_node = next((n for n in nodes if n["topic"] == target_topic), None)
 
@@ -211,7 +253,7 @@ def promote_roadmap_topic(user_id: str, current_topic: str, target_topic: str) -
     if old_position <= new_position:
         return False
 
-    supabase.table("roadmap_nodes").update({"position": -1}).eq("id", target_node["id"]).execute()
+    supabase.table(roadmap_table).update({"position": -1}).eq("id", target_node["id"]).execute()
 
     shifting = sorted(
         [n for n in nodes if new_position <= n["position"] < old_position],
@@ -219,9 +261,9 @@ def promote_roadmap_topic(user_id: str, current_topic: str, target_topic: str) -
         reverse=True,
     )
     for n in shifting:
-        supabase.table("roadmap_nodes").update({"position": n["position"] + 1}).eq("id", n["id"]).execute()
+        supabase.table(roadmap_table).update({"position": n["position"] + 1}).eq("id", n["id"]).execute()
 
-    supabase.table("roadmap_nodes").update({"position": new_position}).eq("id", target_node["id"]).execute()
+    supabase.table(roadmap_table).update({"position": new_position}).eq("id", target_node["id"]).execute()
     return True
 
 
@@ -385,7 +427,18 @@ def _summarize_violation_types(logs: list[dict]) -> list[dict]:
 
 
 def get_cohort_overview() -> list[dict]:
-    students = get_all_users(role="student")
+    # get_all_users already excludes the demo cohort (see its comment above),
+    # so the real educator cohort view never includes Demo Student A/B/C.
+    return build_cohort_overview(get_all_users(role="student"))
+
+
+def build_cohort_overview(students: list[dict]) -> list[dict]:
+    """Adds topics_completed, integrity_flags and violation_types to each
+    student row.
+
+    Split out of get_cohort_overview (no behavior change) so Demo Mode's
+    GET /demo/cohort/overview runs this exact aggregation over the three demo
+    cohort accounts, instead of a second copy of the query logic."""
     if not students:
         return []
     student_ids = [s["id"] for s in students]
