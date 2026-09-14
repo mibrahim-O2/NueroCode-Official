@@ -79,14 +79,7 @@ def analyze_submission(
         # supplementary and should never fail the submission response.
         pass
 
-    reordered_topic = None
-    for pattern in analysis["anti_patterns"]:
-        fix_topic = TOPIC_FIX_MAP.get(pattern["key"])
-        if not fix_topic or fix_topic == topic:
-            continue
-        if promote_roadmap_topic(user_id, current_topic=topic, target_topic=fix_topic):
-            reordered_topic = fix_topic
-            break
+    reordered_topic = reorder_roadmap_for_anti_patterns(user_id, topic, analysis["anti_patterns"])
 
     return {
         "complexity": analysis["complexity"],
@@ -94,3 +87,23 @@ def analyze_submission(
         "feedback": feedback,
         "reordered_topic": reordered_topic,
     }
+
+
+def reorder_roadmap_for_anti_patterns(
+    user_id: str, topic: str, anti_patterns: list[dict], table: str = "roadmap_nodes"
+) -> str | None:
+    """The adaptive-roadmap rule: the first detected anti-pattern that maps
+    (via TOPIC_FIX_MAP) to a DIFFERENT topic promotes that topic to just after
+    the current one. Returns the promoted topic, or None if nothing moved.
+
+    Pulled out of analyze_submission (no behavior change) so Demo Mode runs
+    this exact rule against its separate demo_roadmap_progress table — the
+    live anti-pattern reorder shown in a demo is the real engine, not a copy.
+    """
+    for pattern in anti_patterns:
+        fix_topic = TOPIC_FIX_MAP.get(pattern["key"])
+        if not fix_topic or fix_topic == topic:
+            continue
+        if promote_roadmap_topic(user_id, current_topic=topic, target_topic=fix_topic, table=table):
+            return fix_topic
+    return None
