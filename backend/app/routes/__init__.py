@@ -17,6 +17,8 @@
     discussion_routes,
     profile_routes,
     challenge_routes,
+    # Demo Mode (owner-only presenter mode) — see demo_routes.py.
+    demo_routes,
 )
 
 __all__ = [
@@ -38,4 +40,5 @@ __all__ = [
     "discussion_routes",
     "profile_routes",
     "challenge_routes",
+    "demo_routes",
 ]
