@@ -317,6 +317,13 @@ def get_leaderboard(limit: int = 20) -> list[dict]:
     result = (
         supabase.table("users")
         .select("id,name,avatar_url,xp,level,role")
+        # Demo cohort exclusion (migration 026). This filter is UNCONDITIONAL:
+        # it applies whether Demo Mode is on or off, so Demo Student A/B/C can
+        # never appear on the real leaderboard. Serves both GET /leaderboard/
+        # and the educator/admin GET /admin/analytics/leaderboard. Demo Mode's
+        # own leaderboard reads those accounts through a separate,
+        # demo-only query instead.
+        .eq("is_demo_cohort", False)
         .order("xp", desc=True)
         .limit(limit)
         .execute()
@@ -326,8 +333,27 @@ def get_leaderboard(limit: int = 20) -> list[dict]:
 
 # --- Admin / Educator -------------------------------------------------
 
+def get_demo_cohort_user_ids() -> list[str]:
+    """IDs of the fixed demo cohort accounts (Demo Student A/B/C).
+
+    Real aggregates over tables that have no is_demo_cohort column of their
+    own (learning_analytics, assessments, credentials) use this to exclude
+    those accounts' rows. Returns [] until Demo Mode has been activated once.
+    """
+    rows = supabase.table("users").select("id").eq("is_demo_cohort", True).execute().data
+    return [row["id"] for row in rows]
+
+
 def get_all_users(role: str | None = None) -> list[dict]:
-    query = supabase.table("users").select("id,name,email,role,xp,level,streak,created_at")
+    # Demo cohort exclusion (migration 026), UNCONDITIONAL — on or off, Demo
+    # Student A/B/C never appear in the real admin user list. This one filter
+    # also covers get_cohort_overview below, which builds the educator cohort
+    # view from get_all_users(role="student").
+    query = (
+        supabase.table("users")
+        .select("id,name,email,role,xp,level,streak,created_at")
+        .eq("is_demo_cohort", False)
+    )
     if role:
         query = query.eq("role", role)
     return query.order("created_at", desc=True).execute().data
@@ -441,7 +467,15 @@ def get_student_timeline(user_id: str) -> dict:
 def get_skill_gap_summary() -> list[dict]:
     """Aggregates weak_topics across all students' learning_analytics rows
     into a frequency count, for the 'common error patterns' chart."""
-    rows = supabase.table("learning_analytics").select("weak_topics").execute().data
+    query = supabase.table("learning_analytics").select("weak_topics")
+    # Demo cohort exclusion (migration 026), UNCONDITIONAL — on or off.
+    # learning_analytics has no is_demo_cohort column of its own, so Demo
+    # Student A/B/C's rows are excluded by user id instead, and never feed
+    # the real GET /admin/analytics/skill-gaps chart.
+    demo_cohort_ids = get_demo_cohort_user_ids()
+    if demo_cohort_ids:
+        query = query.not_.in_("user_id", demo_cohort_ids)
+    rows = query.execute().data
     counts: dict[str, int] = {}
     for row in rows:
         for topic in row.get("weak_topics") or []:
@@ -450,13 +484,19 @@ def get_skill_gap_summary() -> list[dict]:
 
 
 def get_flagged_assessments() -> list[dict]:
-    result = (
+    query = (
         supabase.table("assessments")
         .select("id,user_id,topic_cluster,assessment_score,integrity_score,created_at,status")
         .eq("status", "flagged")
-        .order("created_at", desc=True)
-        .execute()
     )
+    # Demo cohort exclusion (migration 026), UNCONDITIONAL — on or off. The
+    # real GET /admin/analytics/integrity-flags list never includes a Demo
+    # Student A/B/C assessment. (Demo Mode's own integrity flags live in the
+    # separate demo_assessment_attempts table, so they can't reach here either.)
+    demo_cohort_ids = get_demo_cohort_user_ids()
+    if demo_cohort_ids:
+        query = query.not_.in_("user_id", demo_cohort_ids)
+    result = query.order("created_at", desc=True).execute()
     flagged = result.data
     if not flagged:
         return []
@@ -469,7 +509,15 @@ def get_flagged_assessments() -> list[dict]:
 
 
 def get_all_credentials_admin() -> list[dict]:
-    result = supabase.table("credentials").select("*").order("created_at", desc=True).execute()
+    query = supabase.table("credentials").select("*")
+    # Demo cohort exclusion (migration 026), UNCONDITIONAL — on or off. The
+    # real GET /admin/credentials list never shows a credential belonging to
+    # Demo Student A/B/C. (Credentials issued FROM Demo Mode live in the
+    # separate demo_credentials table and can't reach this query either.)
+    demo_cohort_ids = get_demo_cohort_user_ids()
+    if demo_cohort_ids:
+        query = query.not_.in_("user_id", demo_cohort_ids)
+    result = query.order("created_at", desc=True).execute()
     credentials = result.data
     if not credentials:
         return []
@@ -493,7 +541,13 @@ def reset_student_roadmap(user_id: str) -> list[dict]:
 # --- Admin: role safety + architecture-aware student resets ---------------
 
 def count_admins() -> int:
-    result = supabase.table("users").select("id").eq("role", "admin").execute()
+    # Demo cohort exclusion (migration 026), UNCONDITIONAL — on or off. Demo
+    # Mode lets the real role dropdown act on Demo Student A/B/C, so one of
+    # them could be made an admin. Those accounts can never log in, so they
+    # must never count toward the "at least one Administrator" rule —
+    # otherwise the last REAL admin could be demoted while a demo account
+    # silently satisfied that check.
+    result = supabase.table("users").select("id").eq("role", "admin").eq("is_demo_cohort", False).execute()
     return len(result.data)
 
 
