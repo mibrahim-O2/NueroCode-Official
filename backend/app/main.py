@@ -21,6 +21,7 @@ from app.routes import (
     discussion_routes,
     profile_routes,
     challenge_routes,
+    demo_routes,
 )
 from app.database.chroma_client import chroma_health_check
 from app.services.supabase_service import supabase
@@ -59,6 +60,12 @@ app.include_router(solution_routes.router)
 app.include_router(review_routes.router)
 app.include_router(discussion_routes.router)
 app.include_router(profile_routes.router)
+# Demo Mode. public_router holds only GET /demo/verify/{uuid}, which is
+# deliberately unauthenticated (like the real /verify/{uuid}) and always
+# answers "this is a demo credential". Every other /demo/* route lives on
+# `router`, whose owner-only check runs before anything else in each route.
+app.include_router(demo_routes.public_router)
+app.include_router(demo_routes.router)
 
 _INSECURE_DEFAULTS = [
     name
