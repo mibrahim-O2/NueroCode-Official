@@ -3,25 +3,36 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Users, AlertTriangle, TrendingUp, Loader2 } from 'lucide-react';
 import { getCohortOverview, getSkillGaps, getClassLeaderboard } from '@/services/adminService';
+import { getDemoCohortOverview, getDemoCohortLeaderboard } from '@/services/demoService';
+import { useDemoMode } from '@/context/DemoModeContext';
 import ViolationBadges from '@/components/common/ViolationBadges';
 import { cn } from '@/lib/utils';
 
 export default function Educator() {
   const navigate = useNavigate();
+  const { demoModeEnabled } = useDemoMode();
   const [students, setStudents] = useState([]);
   const [skillGaps, setSkillGaps] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Demo Mode shows the demo cohort instead of real students: Demo Student
+  // A/B/C plus the owner's live row under the demo persona. The skill-gap
+  // chart aggregates REAL students' learning analytics, so it stays empty in
+  // Demo Mode rather than mixing real data into the demo view.
   useEffect(() => {
-    Promise.all([getCohortOverview(), getSkillGaps(), getClassLeaderboard()])
+    setLoading(true);
+    const request = demoModeEnabled
+      ? Promise.all([getDemoCohortOverview(), Promise.resolve([]), getDemoCohortLeaderboard()])
+      : Promise.all([getCohortOverview(), getSkillGaps(), getClassLeaderboard()]);
+    request
       .then(([s, g, l]) => {
         setStudents(s);
         setSkillGaps(g);
         setLeaderboard(l);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [demoModeEnabled]);
 
   if (loading) {
     return (
