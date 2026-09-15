@@ -1,10 +1,10 @@
 import {
   Sparkles, Code2, Map, GitBranch, Gauge, ShieldCheck, Cpu,
-  Mic, MessageSquare, BookCheck, RotateCcw, Users,
+  Mic, MessageSquare, BookCheck, RotateCcw, Users, Presentation,
 } from 'lucide-react';
 import Reveal from './Reveal';
 
-// All twelve are real, shipped features as of this pass — no more
+// All thirteen are real, shipped features as of this pass — no more
 // Live/Soon split. Bento layout: two large tiles anchor the grid, the
 // rest fill in at standard size, giving visual variety without
 // inventing content.
@@ -29,6 +29,13 @@ const FEATURES = [
   { icon: BookCheck, title: 'Official Solutions', desc: 'Compare your approach against the validated correct solution once you finish.' },
   { icon: RotateCcw, title: 'Spaced Review', desc: "Gentle reminders to revisit topics you haven't practiced in a while." },
   { icon: Users, title: 'Peer Discussion', desc: 'See how others solved the same practice problem — never shown for assessments.' },
+  // DESCRIPTIVE ONLY. Demo Mode is gated to a single owner account, so this
+  // card must never link to, expose, or call any real /demo/* route or Demo
+  // Mode screen — it only describes the capability, like every tile here.
+  {
+    icon: Presentation, title: 'Guided Live Demo',
+    desc: 'A real, guided, end-to-end walkthrough of the platform — the AI-adaptive roadmap, real code execution and grading, proctored integrity signals, and publicly verifiable credentials — ready for live demonstration.',
+  },
 ];
 
 export default function FeatureGrid() {
