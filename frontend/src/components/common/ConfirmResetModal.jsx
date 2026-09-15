@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { X, AlertTriangle, Loader2 } from 'lucide-react';
 
-export default function ConfirmResetModal({ title, items, onCancel, onConfirm }) {
+// showReason (default true, so existing admin reset usage is unchanged) lets
+// Demo Mode's reset buttons reuse this exact confirmation step without
+// showing a "Reason" field that demo resets don't record anywhere.
+export default function ConfirmResetModal({ title, items, onCancel, onConfirm, showReason = true }) {
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
@@ -44,16 +47,18 @@ export default function ConfirmResetModal({ title, items, onCancel, onConfirm })
           </ul>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs text-text-muted">Reason (optional)</label>
-          <textarea
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            rows={2}
-            placeholder="e.g. Testing, student request, data correction…"
-            className="rounded-input border border-border bg-elevated px-3 py-2 text-sm text-text-primary outline-none transition-colors duration-200 focus:border-orange"
-          />
-        </div>
+        {showReason && (
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs text-text-muted">Reason (optional)</label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={2}
+              placeholder="e.g. Testing, student request, data correction…"
+              className="rounded-input border border-border bg-elevated px-3 py-2 text-sm text-text-primary outline-none transition-colors duration-200 focus:border-orange"
+            />
+          </div>
+        )}
 
         <p className="text-xs font-semibold text-status-error">This action cannot be undone.</p>
 
