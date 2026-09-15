@@ -32,7 +32,9 @@ export default function Footer() {
         <div>
           <p className="mb-3 text-sm font-medium" style={{ color: 'var(--l-text-primary)' }}>Project</p>
           <ul className="space-y-2 text-sm" style={{ color: 'var(--l-text-muted)' }}>
-            <li><a href="#team">Team</a></li>
+            {/* Label-only change for the solo-project rename: "Team" is now
+                "Developer". The #team anchor is unchanged so navigation still works. */}
+            <li><a href="#team">Developer</a></li>
             <li><a href={DOCS_URL} target="_blank" rel="noopener noreferrer">Documentation ↗</a></li>
           </ul>
         </div>
