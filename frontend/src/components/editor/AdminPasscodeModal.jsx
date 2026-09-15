@@ -2,7 +2,18 @@ import { useState } from 'react';
 import { ShieldCheck, X, Loader2 } from 'lucide-react';
 import { verifyProviderPasscode } from '@/services/adminService';
 
-export default function AdminPasscodeModal({ onClose, onSuccess }) {
+// verify / title / description / submitLabel are optional so Demo Mode can
+// reuse this exact modal for its own passcode (same UX, same styling) instead
+// of a lookalike copy. Their defaults are the original provider-switch
+// values, so the existing ModelSwitcher usage is unchanged.
+export default function AdminPasscodeModal({
+  onClose,
+  onSuccess,
+  verify = verifyProviderPasscode,
+  title = 'Administrator Verification',
+  description = 'Enter the provider-switch passcode to enable real OpenAI (GPT) generation for this session.',
+  submitLabel = 'Unlock OpenAI',
+}) {
   const [passcode, setPasscode] = useState('');
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -12,7 +23,7 @@ export default function AdminPasscodeModal({ onClose, onSuccess }) {
     setBusy(true);
     setError(null);
     try {
-      await verifyProviderPasscode(passcode);
+      await verify(passcode);
       onSuccess();
     } catch (err) {
       setError(err.message || 'Incorrect passcode.');
@@ -31,15 +42,15 @@ export default function AdminPasscodeModal({ onClose, onSuccess }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-orange" />
-            <h2 className="font-heading font-semibold text-text-primary">Administrator Verification</h2>
+            {/* Copy is prop-driven (defaults = original provider-switch text) so
+                Demo Mode reuses this same modal for its passcode. */}
+            <h2 className="font-heading font-semibold text-text-primary">{title}</h2>
           </div>
           <button type="button" onClick={onClose} className="text-text-muted hover:text-text-primary">
             <X className="h-4 w-4" />
           </button>
         </div>
-        <p className="text-sm text-text-muted">
-          Enter the provider-switch passcode to enable real OpenAI (GPT) generation for this session.
-        </p>
+        <p className="text-sm text-text-muted">{description}</p>
         <input
           type="password"
           autoFocus
@@ -55,7 +66,7 @@ export default function AdminPasscodeModal({ onClose, onSuccess }) {
           className="flex items-center justify-center gap-2 rounded-button bg-orange px-4 py-2.5 text-sm font-body text-white shadow-button transition-all duration-200 hover:bg-orange-hover active:scale-95 disabled:opacity-50"
         >
           {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-          Unlock OpenAI
+          {submitLabel}
         </button>
       </form>
     </div>
