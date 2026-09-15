@@ -6,14 +6,23 @@ import ProblemPanel from '@/components/editor/ProblemPanel';
 import TestResultsPanel from '@/components/editor/TestResultsPanel';
 import Timer from '@/components/editor/Timer';
 import { challengeService } from '@/services/challengeService';
+import { getDemoChallenge, submitDemoChallengeQuestion } from '@/services/demoService';
+import { useDemoMode } from '@/context/DemoModeContext';
 import { cn } from '@/lib/utils';
 
 const LANGUAGES = ['python', 'javascript', 'cpp'];
+// The demo Challenge Gate's fixed questions are authored and verified in
+// Python only, so only Python is offered for it.
+const DEMO_LANGUAGES = ['python'];
 const CHALLENGE_DURATION_SECONDS = 90 * 60;
 
 export default function Challenge() {
+  // In Demo Mode, nodeId is the demo roadmap topic name (e.g. "Two Pointers"),
+  // since demo nodes are addressed by topic rather than UUID.
   const { nodeId } = useParams();
   const navigate = useNavigate();
+  const { demoModeEnabled } = useDemoMode();
+  const languages = demoModeEnabled ? DEMO_LANGUAGES : LANGUAGES;
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
@@ -40,8 +49,11 @@ export default function Challenge() {
     (async () => {
       setLoading(true);
       setLoadError(null);
+      setSessionOver(null);
+      setResult(null);
+      setLanguage('python');
       try {
-        const data = await challengeService.getChallenge(nodeId);
+        const data = demoModeEnabled ? await getDemoChallenge(nodeId) : await challengeService.getChallenge(nodeId);
         if (cancelled) return;
         const session = data?.challenge ?? null;
         setChallengeSession(session);
@@ -64,7 +76,7 @@ export default function Challenge() {
     return () => {
       cancelled = true;
     };
-  }, [nodeId]);
+  }, [nodeId, demoModeEnabled]);
 
   const questions = challengeSession?.questions || [];
   const activeQuestion = questions[currentIndex] || null;
@@ -97,11 +109,12 @@ export default function Challenge() {
     setEvaluating(true);
     setSubmitError(null);
     try {
-      const res = await challengeService.submitChallengeQuestion(nodeId, {
-        question_index: currentIndex,
-        code,
-        language,
-      });
+      const payload = { question_index: currentIndex, code, language };
+      // Same real run_submission grading either way; demo progress is stored
+      // in demo_challenge_progress and completes the demo roadmap node.
+      const res = demoModeEnabled
+        ? await submitDemoChallengeQuestion(nodeId, payload)
+        : await challengeService.submitChallengeQuestion(nodeId, payload);
 
       // Shape TestResultsPanel expects: { results, passed_count, total_count, all_passed }
       setResult({
@@ -297,7 +310,7 @@ export default function Challenge() {
         <div className="flex flex-col lg:col-span-7">
           <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-2">
             <div className="flex overflow-hidden rounded-input border border-border">
-              {LANGUAGES.map((lang) => (
+              {languages.map((lang) => (
                 <button
                   key={lang}
                   onClick={() => handleLanguageChange(lang)}
