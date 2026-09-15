@@ -4,6 +4,7 @@ import Home from '@/pages/Home';
 import Integrity from '@/pages/Integrity';
 import Login from '@/pages/Login';
 import VerifyCredential from '@/pages/VerifyCredential';
+import DemoVerifyCredential from '@/pages/DemoVerifyCredential';
 import NotFound from '@/pages/NotFound';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -29,6 +30,9 @@ export default function AppRoutes() {
       <Route path="/integrity" element={<Integrity />} />
       <Route path="/login" element={<Login />} />
       <Route path="/verify/:uuid" element={<VerifyCredential />} />
+      {/* Demo credentials' QR codes and links land here, never on the real
+          /verify page — it only ever shows the "this is a demo credential" notice. */}
+      <Route path="/demo/verify/:uuid" element={<DemoVerifyCredential />} />
 
       {/* Authenticated Dashboard & Learning Routes */}
       <Route
