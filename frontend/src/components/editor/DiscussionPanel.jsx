@@ -1,25 +1,36 @@
 import { useEffect, useState } from 'react';
 import { Users, Loader2 } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { useDemoMode, useDisplayIdentity } from '@/context/DemoModeContext';
 import { getDiscussions, postDiscussion } from '@/services/discussionService';
+import { getDemoDiscussions, postDemoDiscussion } from '@/services/demoService';
 
 // No submission code is ever automatically shown here — anything a
 // student wants to share is something they choose to type themselves,
 // no separate "share my solution" consent mechanism needed.
 export default function DiscussionPanel({ problemId }) {
-  const { user } = useAuth();
+  const { demoModeEnabled } = useDemoMode();
+  // Posted comments show the display identity, which is the demo persona while
+  // Demo Mode is on (the backend stores that same name for demo comments).
+  const identity = useDisplayIdentity();
   const [comments, setComments] = useState([]);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
 
+  // In Demo Mode, problemId is the fixed demo problem_key and the thread
+  // lives in demo_discussion_comments.
   useEffect(() => {
-    getDiscussions(problemId).then(setComments).finally(() => setLoading(false));
-  }, [problemId]);
+    setLoading(true);
+    (demoModeEnabled ? getDemoDiscussions(problemId) : getDiscussions(problemId))
+      .then(setComments)
+      .finally(() => setLoading(false));
+  }, [problemId, demoModeEnabled]);
 
   const post = async () => {
     if (!text.trim()) return;
-    const c = await postDiscussion(problemId, text.trim());
-    setComments((prev) => [...prev, { ...c, user_name: user?.name }]);
+    const c = demoModeEnabled
+      ? await postDemoDiscussion(problemId, text.trim())
+      : await postDiscussion(problemId, text.trim());
+    setComments((prev) => [...prev, { ...c, user_name: identity.name }]);
     setText('');
   };
 
