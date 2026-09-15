@@ -16,8 +16,10 @@ import {
 } from 'recharts';
 
 import { useAuth } from '@/context/AuthContext';
+import { useDemoMode, useDisplayIdentity } from '@/context/DemoModeContext';
 import { getReviewDue } from '@/services/roadmapService';
 import { getUserCharts } from '@/services/profileService';
+import { getDemoDashboardCharts } from '@/services/demoService';
 
 function StatCard({ icon: Icon, label, value, accent }) {
   return (
@@ -35,7 +37,11 @@ function StatCard({ icon: Icon, label, value, accent }) {
 
 export default function Dashboard() {
   const { user, refreshUser } = useAuth();
-  const firstName = user?.name?.split(' ')[0] || 'there';
+  const { demoModeEnabled } = useDemoMode();
+  // Greeting uses the display identity, so Demo Mode greets the persona
+  // instead of the owner's real first name.
+  const identity = useDisplayIdentity();
+  const firstName = identity.name?.split(' ')[0] || 'there';
 
   const [dueReviews, setDueReviews] = useState([]);
   const [analyticsData, setAnalyticsData] = useState({
@@ -47,11 +53,17 @@ export default function Dashboard() {
 
   useEffect(() => {
     refreshUser();
-    getReviewDue().then(setDueReviews).catch(() => setDueReviews([]));
+    // Demo Mode swaps data sources: charts come from the demo tables via
+    // /demo/dashboard/charts, and the spaced-review banner (which reads the
+    // owner's REAL completed topics) is simply empty while Demo Mode is on.
+    // XP / level / streak stay real in both modes, by design.
+    const loadReviews = demoModeEnabled ? Promise.resolve([]) : getReviewDue();
+    loadReviews.then(setDueReviews).catch(() => setDueReviews([]));
 
     // Goes through the shared apiClient (same token handling and
     // VITE_BACKEND_URL as every other request in the app).
-    getUserCharts()
+    const loadCharts = demoModeEnabled ? getDemoDashboardCharts() : getUserCharts();
+    loadCharts
       .then((data) => {
         setAnalyticsData({
           heatmap: Array.isArray(data?.heatmap) ? data.heatmap : [],
@@ -83,7 +95,7 @@ export default function Dashboard() {
       })
       .finally(() => setLoadingAnalytics(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.xp, user?.level, user?.streak]);
+  }, [user?.xp, user?.level, user?.streak, demoModeEnabled]);
 
   const { today, oneYearAgo } = useMemo(() => {
     const end = new Date();
