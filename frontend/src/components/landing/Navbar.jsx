@@ -9,7 +9,10 @@ const NAV_LINKS = [
   { label: 'Platform', href: '#features' },
   { label: 'How It Works', href: '#how-it-works' },
   { label: 'Integrity', href: '#integrity' },
-  { label: 'Team', href: '#team' },
+  // Label-only change for the solo-project rename: the section is now a
+  // single developer card. The #team anchor itself is unchanged, so anchor
+  // navigation keeps working without touching every reference to it.
+  { label: 'Developer', href: '#team' },
 ];
 
 const DOCS_URL = 'https://github.com/mibrahim-O2/NueroCode-Official/blob/main/docs/DOCUMENTATION.md';
