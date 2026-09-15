@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Loader2, ChevronDown, ExternalLink, Award, AlertCircle, History } from 'lucide-react';
+import {
+  ShieldCheck,
+  Loader2,
+  ChevronDown,
+  ExternalLink,
+  Award,
+  AlertCircle,
+  History,
+  FlaskConical,
+  LogOut,
+  RotateCcw,
+} from 'lucide-react';
 import {
   getAllUsers,
   updateUserRole,
@@ -13,7 +24,11 @@ import {
   resetCredentialsModule,
   resetFullStudent,
 } from '@/services/adminService';
+import { getDemoCohortOverview, getDemoCredentials, resetDemoScope } from '@/services/demoService';
 import ConfirmResetModal from '@/components/common/ConfirmResetModal';
+import AdminPasscodeModal from '@/components/editor/AdminPasscodeModal';
+import { useAuth } from '@/context/AuthContext';
+import { useDemoMode } from '@/context/DemoModeContext';
 
 const ROLES = ['student', 'educator', 'admin'];
 
@@ -77,7 +92,62 @@ const RESET_ACTIONS = [
   },
 ];
 
+// The nine Demo Mode resets. Each maps to POST /demo/{scope}/reset, which
+// clears only that module's demo data (the owner's demo rows — or, for
+// Cohort, Demo Student A/B/C through the real admin reset). The item lists
+// describe exactly what the backend clears for that scope.
+const DEMO_RESET_ACTIONS = [
+  {
+    scope: 'dashboard',
+    label: 'Dashboard',
+    items: ['XP awarded by Demo Mode (reversed from the real XP total)', 'Level recalculated from the remaining XP'],
+  },
+  {
+    scope: 'roadmap',
+    label: 'Roadmap',
+    items: ['Demo topic completion and unlock state', 'Topic order (Hash Maps returns to last place)'],
+  },
+  {
+    scope: 'practice',
+    label: 'Practice',
+    items: ['Posts made in demo problem discussions (seeded examples stay)'],
+  },
+  {
+    scope: 'challenge',
+    label: 'Challenge Gate',
+    items: ['Solved Challenge Gate questions', 'Challenge Gate pass status'],
+  },
+  {
+    scope: 'interview',
+    label: 'Mock Interview',
+    items: ['Demo interview sessions and results'],
+  },
+  {
+    scope: 'submissions',
+    label: 'My Submissions',
+    items: ['Graded demo practice submissions', 'Teacher comments on them', 'The example submission is re-created'],
+  },
+  {
+    scope: 'assessment',
+    label: 'Assessment',
+    items: ['Demo assessment attempts and scores', 'Demo proctoring logs'],
+  },
+  {
+    scope: 'credentials',
+    label: 'Credentials',
+    items: ['Issued demo credentials'],
+  },
+  {
+    scope: 'cohort',
+    label: 'Cohort',
+    items: ['Demo Student A/B/C progress (real admin full reset)', 'Their starting progress is restored'],
+  },
+];
+
 export default function Admin() {
+  const { user, refreshUser } = useAuth();
+  const { isOwner, demoModeEnabled, persona, needsPasscode, confirmPasscode, enableDemoMode, exitDemoMode } =
+    useDemoMode();
   const [users, setUsers] = useState([]);
   const [credentials, setCredentials] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
@@ -86,9 +156,32 @@ export default function Admin() {
   const [openMenuUserId, setOpenMenuUserId] = useState(null);
   const [pendingReset, setPendingReset] = useState(null); // { userId, action }
 
+  const [demoBusy, setDemoBusy] = useState(false);
+  const [demoError, setDemoError] = useState(null);
+  const [showDemoPasscode, setShowDemoPasscode] = useState(false);
+  const [pendingDemoReset, setPendingDemoReset] = useState(null);
+
   const loadData = () => {
     setLoading(true);
-    Promise.all([getAllUsers(), getAllCredentialsAdmin(), getAuditLogs()])
+    // Demo Mode swaps this page's data source so real students' names never
+    // appear on screen during a presentation:
+    //  * User Management lists Demo Student A/B/C (real rows, so the real role
+    //    dropdown and real reset menu below act on them unmodified),
+    //  * All Credentials lists demo credentials (linking to the demo notice),
+    //  * Recent Admin Activity is narrowed to actions on the demo cohort.
+    const request = demoModeEnabled
+      ? Promise.all([getDemoCohortOverview(), getDemoCredentials(), getAuditLogs()]).then(([cohort, demoCreds, logs]) => {
+          const cohortStudents = cohort.filter((row) => !row.is_persona);
+          const cohortIds = new Set(cohortStudents.map((row) => row.id));
+          return [
+            cohortStudents,
+            demoCreds.map((c) => ({ ...c, student_name: persona?.display_name, is_demo: true })),
+            logs.filter((log) => cohortIds.has(log.target_user_id)),
+          ];
+        })
+      : Promise.all([getAllUsers(), getAllCredentialsAdmin(), getAuditLogs()]);
+
+    request
       .then(([u, c, logs]) => {
         setUsers(u);
         setCredentials(c);
@@ -111,7 +204,10 @@ export default function Admin() {
       .catch(() => {});
   };
 
-  useEffect(loadData, []);
+  // Reloads whenever Demo Mode is switched on or off, so the data source
+  // always matches the current mode.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(loadData, [demoModeEnabled]);
 
   const handleRoleChange = async (userId, newRole) => {
     setRoleError(null);
@@ -127,6 +223,47 @@ export default function Admin() {
   const handleResetConfirm = async (reason) => {
     await pendingReset.action.fn(pendingReset.userId, reason);
     setPendingReset(null);
+    loadData();
+  };
+
+  // --- Demo Mode controls (owner only; the backend is the real gate) --------
+
+  const runDemoAction = async (action) => {
+    setDemoBusy(true);
+    setDemoError(null);
+    try {
+      await action();
+    } catch (err) {
+      setDemoError(err.message || 'Demo Mode action failed.');
+    } finally {
+      setDemoBusy(false);
+    }
+  };
+
+  const handleDemoToggle = () => {
+    if (demoModeEnabled) {
+      runDemoAction(exitDemoMode);
+      return;
+    }
+    // First activation per session goes through the passcode modal; switching
+    // on also re-checks the passcode server-side.
+    if (needsPasscode) {
+      setShowDemoPasscode(true);
+      return;
+    }
+    runDemoAction(enableDemoMode);
+  };
+
+  const handleDemoPasscodeSuccess = () => {
+    setShowDemoPasscode(false);
+    runDemoAction(enableDemoMode);
+  };
+
+  const handleDemoResetConfirm = async () => {
+    await resetDemoScope(pendingDemoReset.scope);
+    setPendingDemoReset(null);
+    // Dashboard/Cohort resets change XP; the cohort reset changes this page's tables.
+    refreshUser();
     loadData();
   };
 
@@ -153,6 +290,77 @@ export default function Admin() {
         </Link>
       </div>
 
+      {/* Demo Mode section — rendered only for the owner. isOwner comes from a
+          successful /demo/status response, so a non-owner never sees it; even
+          if they did, every /demo/* call would be rejected server-side. */}
+      {isOwner && (
+        <div className="rounded-card border border-border bg-card p-5 shadow-card">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="flex items-center gap-2 font-heading font-semibold text-text-primary">
+                <FlaskConical className="h-4 w-4 text-orange" /> Demo Mode
+              </h2>
+              <p className="mt-1 text-xs text-text-muted">
+                Presenter mode with fixed demo content. Switching it on or off never changes real account data.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={demoModeEnabled}
+                aria-label="Toggle Demo Mode"
+                onClick={handleDemoToggle}
+                disabled={demoBusy}
+                className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border transition-colors duration-200 disabled:opacity-50 ${
+                  demoModeEnabled ? 'border-status-success bg-status-success' : 'border-border bg-elevated'
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 rounded-full bg-white shadow-card transition-transform duration-200 ${
+                    demoModeEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+              <span className={`w-6 text-xs font-semibold ${demoModeEnabled ? 'text-status-success' : 'text-text-muted'}`}>
+                {demoBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : demoModeEnabled ? 'On' : 'Off'}
+              </span>
+              <button
+                type="button"
+                onClick={() => runDemoAction(exitDemoMode)}
+                disabled={demoBusy || !demoModeEnabled}
+                className="flex items-center gap-1.5 rounded-button border border-border px-3 py-2 text-xs text-text-secondary transition-all duration-200 hover:border-orange hover:text-orange active:scale-95 disabled:opacity-50"
+              >
+                <LogOut className="h-3.5 w-3.5" /> Exit Demo
+              </button>
+            </div>
+          </div>
+
+          {demoError && (
+            <div className="animate-slide-fade-in mt-4 flex items-center gap-2 rounded-input border border-status-error/40 bg-status-error/10 px-4 py-3 text-sm text-status-error">
+              <AlertCircle className="h-4 w-4 shrink-0" /> {demoError}
+            </div>
+          )}
+
+          <div className="mt-4 border-t border-border pt-4">
+            <p className="mb-2 text-xs uppercase text-text-muted">Reset demo data</p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {DEMO_RESET_ACTIONS.map((action) => (
+                <button
+                  key={action.scope}
+                  type="button"
+                  onClick={() => setPendingDemoReset(action)}
+                  disabled={demoBusy}
+                  className="flex items-center justify-center gap-1.5 rounded-input border border-border px-2.5 py-1.5 text-xs text-text-secondary transition-colors duration-200 hover:border-orange hover:text-orange disabled:opacity-50"
+                >
+                  <RotateCcw className="h-3 w-3" /> {action.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {roleError && (
         <div className="animate-slide-fade-in flex items-center gap-2 rounded-input border border-status-error/40 bg-status-error/10 px-4 py-3 text-sm text-status-error">
           <AlertCircle className="h-4 w-4 shrink-0" /> {roleError}
@@ -161,6 +369,11 @@ export default function Admin() {
 
       <div className="rounded-card border border-border bg-card shadow-card">
         <h2 className="p-5 pb-0 font-heading font-semibold text-text-primary">User Management</h2>
+        {demoModeEnabled && (
+          <p className="px-5 pt-1 text-xs text-text-muted">
+            Demo Mode: showing Demo Student A, B and C. The role dropdown and reset menu are the real admin actions.
+          </p>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
@@ -254,10 +467,11 @@ export default function Admin() {
                   <td className="px-5 py-3 text-text-primary">{c.student_name}</td>
                   <td className="px-5 py-3 capitalize text-gold">{c.badge_level}</td>
                   <td className="px-5 py-3 text-text-secondary">{c.topics_mastered.join(', ')}</td>
-                  <td className="px-5 py-3 text-text-secondary">{c.assessment_score}%</td>
+                  <td className="px-5 py-3 text-text-secondary">{c.assessment_score ?? '—'}%</td>
                   <td className="px-5 py-3">
-                   <a 
-                      href={`/verify/${c.verify_uuid}`}
+                    {/* Demo credentials must never open the real verify page. */}
+                    <a
+                      href={c.is_demo ? `/demo/verify/${c.verify_uuid}` : `/verify/${c.verify_uuid}`}
                       target="_blank"
                       rel="noreferrer"
                       className="flex items-center gap-1 text-xs text-orange hover:underline"
@@ -298,7 +512,10 @@ export default function Admin() {
               {auditLogs.map((log) => (
                 <tr key={log.id} className="animate-slide-fade-in border-b border-border transition-colors duration-200 last:border-0 hover:bg-elevated/50">
                   <td className="px-5 py-3 text-text-muted">{new Date(log.created_at).toLocaleString()}</td>
-                  <td className="px-5 py-3 text-text-secondary">{log.admin_name}</td>
+                  {/* In Demo Mode the owner's own admin actions show under the persona name. */}
+                  <td className="px-5 py-3 text-text-secondary">
+                    {demoModeEnabled && log.admin_id === user?.id ? persona?.display_name : log.admin_name}
+                  </td>
                   <td className="px-5 py-3 text-text-secondary">{log.target_user_name}</td>
                   <td className="px-5 py-3 font-mono text-xs text-orange">{log.action}</td>
                   <td className="px-5 py-3 text-text-muted">{log.reason || '—'}</td>
@@ -322,6 +539,29 @@ export default function Admin() {
           items={pendingReset.action.items}
           onCancel={() => setPendingReset(null)}
           onConfirm={handleResetConfirm}
+        />
+      )}
+
+      {/* Same confirmation component as the real resets, minus the reason field. */}
+      {pendingDemoReset && (
+        <ConfirmResetModal
+          title={`Reset Demo ${pendingDemoReset.label}`}
+          items={pendingDemoReset.items}
+          showReason={false}
+          onCancel={() => setPendingDemoReset(null)}
+          onConfirm={handleDemoResetConfirm}
+        />
+      )}
+
+      {/* Same passcode modal as the provider switch, with Demo Mode copy. */}
+      {showDemoPasscode && (
+        <AdminPasscodeModal
+          verify={confirmPasscode}
+          title="Demo Mode Verification"
+          description="Enter the Demo Mode passcode to switch Demo Mode on for this session."
+          submitLabel="Unlock Demo Mode"
+          onClose={() => setShowDemoPasscode(false)}
+          onSuccess={handleDemoPasscodeSuccess}
         />
       )}
     </div>
