@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronUp, Sparkles, Cpu, Bot, Lock, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useDemoMode } from '@/context/DemoModeContext';
 import AdminPasscodeModal from './AdminPasscodeModal';
 import SubscriptionPaywall from '@/components/paywall/SubscriptionPaywall';
 
@@ -14,11 +15,18 @@ const PROVIDER_ORDER = ['gemini', 'openai', 'claude'];
 
 export default function ModelSwitcher({ activeProvider, onProviderChange, onGenerate, loading, disabled, hasProblem }) {
   const { user } = useAuth();
+  const { demoModeEnabled } = useDemoMode();
   const [open, setOpen] = useState(false);
   const [showPasscode, setShowPasscode] = useState(false);
   const [paywallProvider, setPaywallProvider] = useState(null);
   const [openAiUnlocked, setOpenAiUnlocked] = useState(false);
   const menuRef = useRef(null);
+
+  // In Demo Mode the switcher behaves exactly as it does for a real student:
+  // OpenAI and Claude both open the real SubscriptionPaywall, even though the
+  // owner is an admin. (Demo content is fixed, so no provider is ever called.)
+  const canUnlockOpenAi = user?.role === 'admin' && !demoModeEnabled;
+  const openAiAvailable = openAiUnlocked && !demoModeEnabled;
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -40,11 +48,11 @@ export default function ModelSwitcher({ activeProvider, onProviderChange, onGene
     }
 
     if (providerKey === 'openai') {
-      if (openAiUnlocked) {
+      if (openAiAvailable) {
         onProviderChange('openai');
         return;
       }
-      if (user?.role === 'admin') {
+      if (canUnlockOpenAi) {
         setShowPasscode(true);
       } else {
         setPaywallProvider('openai');
@@ -91,7 +99,7 @@ export default function ModelSwitcher({ activeProvider, onProviderChange, onGene
           {PROVIDER_ORDER.filter((key) => key !== activeProvider).map((key) => {
             const meta = PROVIDER_META[key];
             const Icon = meta.icon;
-            const locked = key === 'claude' || (key === 'openai' && !openAiUnlocked);
+            const locked = key === 'claude' || (key === 'openai' && !openAiAvailable);
             return (
               <button
                 key={key}
