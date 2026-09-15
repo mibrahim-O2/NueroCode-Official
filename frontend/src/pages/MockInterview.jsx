@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Timer as TimerIcon, Loader2, ShieldAlert } from 'lucide-react';
 import { startInterview, submitInterview } from '@/services/interviewService';
+import { startDemoInterview, submitDemoInterview } from '@/services/demoService';
+import { useDemoMode } from '@/context/DemoModeContext';
 import CodeEditor, { DEFAULT_SNIPPETS } from '@/components/editor/CodeEditor';
 import Timer from '@/components/editor/Timer';
 import ProblemPanel from '@/components/editor/ProblemPanel';
@@ -9,6 +11,7 @@ import ProblemPanel from '@/components/editor/ProblemPanel';
 // by design, same principle Assessment already enforces.
 
 export default function MockInterview() {
+  const { demoModeEnabled } = useDemoMode();
   const [stage, setStage] = useState('setup'); // setup | active | results
   const [topic, setTopic] = useState('Arrays');
   const [difficulty, setDifficulty] = useState('medium');
@@ -19,11 +22,23 @@ export default function MockInterview() {
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
 
+  // Switching Demo Mode on or off returns to setup, so a real session and a
+  // demo session are never mixed.
+  useEffect(() => {
+    setStage('setup');
+    setSession(null);
+    setResult(null);
+    setError(null);
+  }, [demoModeEnabled]);
+
   const handleStart = async () => {
     setLoading(true);
     setError(null);
     try {
-      const s = await startInterview(topic, difficulty);
+      // Demo Mode serves one of 3 fixed topics (the typed topic picks which;
+      // difficulty is fixed per demo question) and stores the session in
+      // demo_interview_sessions. Grading is the same real pipeline.
+      const s = demoModeEnabled ? await startDemoInterview(topic) : await startInterview(topic, difficulty);
       setSession(s);
       setCode(DEFAULT_SNIPPETS.python);
       setStage('active');
@@ -37,7 +52,9 @@ export default function MockInterview() {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const outcome = await submitInterview(session.id, language, code);
+      const outcome = demoModeEnabled
+        ? await submitDemoInterview(session.id, language, code)
+        : await submitInterview(session.id, language, code);
       setResult(outcome);
       setStage('results');
     } catch (err) {
