@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Sparkles, Loader2, AlertCircle, RefreshCw, Play } from 'lucide-react';
 import { generateProblem } from '@/services/problemService';
 import { submitCode } from '@/services/submissionService';
+import { getDemoPracticeCatalog, getDemoPracticeProblem, submitDemoPractice } from '@/services/demoService';
+import { useDemoMode } from '@/context/DemoModeContext';
 import ProblemPanel from '@/components/editor/ProblemPanel';
 import CodeEditor, { DEFAULT_SNIPPETS } from '@/components/editor/CodeEditor';
 import TestResultsPanel from '@/components/editor/TestResultsPanel';
@@ -16,9 +18,23 @@ const DIFFICULTIES = ['easy', 'medium', 'hard'];
 const ROADMAP_DIFFICULTY_MAP = { beginner: 'easy', intermediate: 'medium', advanced: 'hard' };
 const PROVIDER_DISPLAY = { gemini: 'Gemini', openai: 'GPT (OpenAI)', claude: 'Claude (Sonnet 5)' };
 
+// Demo Mode's "Generate" serves one of the fixed demo problems instead of
+// calling the AI: it prefers the selected difficulty, then the typed topic,
+// and cycles to the next matching problem on "Generate Another".
+function pickDemoProblemKey(catalog, topic, difficulty, currentKey) {
+  const byDifficulty = catalog.filter((p) => p.difficulty === difficulty);
+  const pool = byDifficulty.length ? byDifficulty : catalog;
+  const byTopic = pool.filter((p) => p.topic.toLowerCase() === topic.trim().toLowerCase());
+  const onlyRepeat = byTopic.length === 1 && byTopic[0].key === currentKey;
+  const candidates = byTopic.length && !onlyRepeat ? byTopic : pool;
+  const currentIndex = candidates.findIndex((p) => p.key === currentKey);
+  return candidates[(currentIndex + 1) % candidates.length].key;
+}
+
 export default function Practice() {
   const [searchParams] = useSearchParams();
   const rawDifficulty = searchParams.get('difficulty');
+  const { demoModeEnabled } = useDemoMode();
 
   const [topic, setTopic] = useState(searchParams.get('topic') || 'Arrays');
   const [difficulty, setDifficulty] = useState(
@@ -28,6 +44,7 @@ export default function Practice() {
   const [problem, setProblem] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [demoCatalog, setDemoCatalog] = useState([]);
 
   const [language, setLanguage] = useState('python');
   const [code, setCode] = useState(DEFAULT_SNIPPETS.python);
@@ -35,12 +52,34 @@ export default function Practice() {
   const [submitError, setSubmitError] = useState(null);
   const [result, setResult] = useState(null);
 
+  // Switching Demo Mode on or off clears whatever problem is open, so real
+  // and demo content never mix on screen, and loads the demo catalog.
+  useEffect(() => {
+    setProblem(null);
+    setResult(null);
+    setError(null);
+    setSubmitError(null);
+    setAiProvider('gemini');
+    if (demoModeEnabled) {
+      getDemoPracticeCatalog()
+        .then(setDemoCatalog)
+        .catch(() => setDemoCatalog([]));
+    }
+  }, [demoModeEnabled]);
+
   const handleGenerate = async () => {
     setLoading(true);
     setError(null);
     setResult(null);
     try {
-      const newProblem = await generateProblem(topic, difficulty, aiProvider);
+      let newProblem;
+      if (demoModeEnabled) {
+        const catalog = demoCatalog.length ? demoCatalog : await getDemoPracticeCatalog();
+        if (!demoCatalog.length) setDemoCatalog(catalog);
+        newProblem = await getDemoPracticeProblem(pickDemoProblemKey(catalog, topic, difficulty, problem?.key));
+      } else {
+        newProblem = await generateProblem(topic, difficulty, aiProvider);
+      }
       setProblem(newProblem);
       setLanguage('python');
       setCode(DEFAULT_SNIPPETS.python);
@@ -61,7 +100,11 @@ export default function Practice() {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const outcome = await submitCode(problem.id, language, code);
+      // Demo submissions are graded by the same real pipeline, but stored in
+      // demo_submissions and reorder the demo roadmap instead of the real one.
+      const outcome = demoModeEnabled
+        ? await submitDemoPractice(problem.key, language, code)
+        : await submitCode(problem.id, language, code);
       setResult(outcome);
     } catch (err) {
       setSubmitError(err.message || 'Execution failed. Please try again.');
@@ -147,8 +190,10 @@ export default function Practice() {
               </div>
             )}
             {/* Only offered after a genuine pass on THIS problem — the
-                backend independently re-checks this, this is just UI gating. */}
-            {result?.all_passed && <OfficialSolutionPanel problemId={problem.id} />}
+                backend independently re-checks this, this is just UI gating.
+                Not shown in Demo Mode: it reads the real problems table, and
+                demo solutions are covered in the presenter script instead. */}
+            {result?.all_passed && !demoModeEnabled && <OfficialSolutionPanel problemId={problem.id} />}
             {result?.all_passed && <DiscussionPanel problemId={problem.id} />}
           </div>
 
