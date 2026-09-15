@@ -8,7 +8,14 @@ import {
   submitAssessment,
   logProctoringEvent,
 } from '@/services/assessmentService';
+import {
+  getDemoAssessments,
+  startDemoAssessment,
+  submitDemoAssessment,
+  logDemoProctoringEvent,
+} from '@/services/demoService';
 import { useAuth } from '@/context/AuthContext';
+import { useDemoMode } from '@/context/DemoModeContext';
 import CertificateTemplate from '@/components/common/CertificateTemplate';
 import { exportCertificatePdf, buildLinkedInCaption, buildLinkedInShareUrl } from '@/utils/certificateShare';
 import ProblemPanel from '@/components/editor/ProblemPanel';
@@ -20,19 +27,27 @@ import ProctoringLogFeed from '@/components/assessment/ProctoringLogFeed';
 import { useProctoringSocket } from '@/hooks/useProctoringSocket';
 import { useTabVisibility } from '@/hooks/useTabVisibility';
 import { useKeystrokeMonitor } from '@/hooks/useKeystrokeMonitor';
+import { cn } from '@/lib/utils';
 
 const LARGE_PASTE_THRESHOLD = 30;
 const VERIFY_BASE_URL = window.location.origin;
 
 export default function Assessment() {
   const { user } = useAuth();
+  const { demoModeEnabled } = useDemoMode();
   const [clusters, setClusters] = useState([]);
   const [loadingClusters, setLoadingClusters] = useState(true);
+  // Demo Mode only: the inline "How to test integrity signals" guide, served
+  // by the backend from the same text docs/demo.md is generated from.
+  const [integrityGuide, setIntegrityGuide] = useState([]);
 
   const [stage, setStage] = useState('select'); // select | starting | active | result
   const [question, setQuestion] = useState(null);
   const [language] = useState('python');
   const [code, setCode] = useState(DEFAULT_SNIPPETS.python);
+  // Demo assessments have 3 questions: one editor buffer per question.
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [demoCodes, setDemoCodes] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
   const [startError, setStartError] = useState(null);
@@ -49,9 +64,13 @@ export default function Assessment() {
       // Local live feedback (score badge + log feed) …
       recordEvent(eventType, severity);
       // … and the authoritative persisted record the backend grades from.
-      if (sessionId) logProctoringEvent(sessionId, eventType, severity).catch(() => {});
+      // Demo attempts persist to demo_proctoring_logs; the detectors firing
+      // these events are the same real hooks either way.
+      if (!sessionId) return;
+      const persist = demoModeEnabled ? logDemoProctoringEvent : logProctoringEvent;
+      persist(sessionId, eventType, severity).catch(() => {});
     },
-    [sessionId, recordEvent]
+    [sessionId, recordEvent, demoModeEnabled]
   );
 
   useTabVisibility(
@@ -72,21 +91,40 @@ export default function Assessment() {
     if (stage === 'active') logBoth('camera_alert', 'critical');
   }, [stage, logBoth]);
 
-  useEffect(() => {
-    getAvailableClusters()
-      .then(setClusters)
-      .finally(() => setLoadingClusters(false));
-  }, []);
+  const loadClusters = useCallback(() => {
+    setLoadingClusters(true);
+    const request = demoModeEnabled
+      ? getDemoAssessments().then((data) => {
+          setIntegrityGuide(data.integrity_testing_guide || []);
+          return data.assessments || [];
+        })
+      : getAvailableClusters();
+    request.then(setClusters).finally(() => setLoadingClusters(false));
+  }, [demoModeEnabled]);
 
-  const handleStart = async (clusterName) => {
+  // Reloads (and leaves any open attempt) whenever Demo Mode is switched, so
+  // a real attempt and a demo attempt can never be on screen together.
+  useEffect(() => {
+    setStage('select');
+    setQuestion(null);
+    setResult(null);
+    setStartError(null);
+    loadClusters();
+  }, [loadClusters]);
+
+  const handleStart = async (cluster) => {
     setStage('starting');
     setStartError(null);
     setResult(null);
     setCredentialQr(null);
     setCode(DEFAULT_SNIPPETS.python);
     try {
-      const q = await startAssessment(clusterName);
+      // Demo assessments are started by key; the backend returns 403 with the
+      // unlock requirement if its unlock rule isn't met yet.
+      const q = demoModeEnabled ? await startDemoAssessment(cluster.key) : await startAssessment(cluster.name);
       setQuestion(q);
+      setQuestionIndex(0);
+      setDemoCodes((q.questions || []).map(() => DEFAULT_SNIPPETS.python));
       setCode(DEFAULT_SNIPPETS.python);
       setStage('active');
     } catch (err) {
@@ -99,9 +137,11 @@ export default function Assessment() {
     setSubmitting(true);
     try {
       // No integrity value is passed — the backend recomputes the
-      // authoritative score server-side from proctoring_logs. `score`
-      // here is local UX feedback only.
-      const outcome = await submitAssessment(question.id, language, code);
+      // authoritative score server-side from proctoring logs (demo logs in
+      // Demo Mode). `score` here is local UX feedback only.
+      const outcome = demoModeEnabled
+        ? await submitDemoAssessment(question.id, language, demoCodes)
+        : await submitAssessment(question.id, language, code);
       setResult(outcome);
       if (outcome.credential) {
         const url = `${VERIFY_BASE_URL}/verify/${outcome.credential.verify_uuid}`;
@@ -125,10 +165,7 @@ export default function Assessment() {
     setSubmitting(false);
     setCredentialQr(null);
     setStartError(null);
-    setLoadingClusters(true);
-    getAvailableClusters()
-      .then(setClusters)
-      .finally(() => setLoadingClusters(false));
+    loadClusters();
   };
 
   const handleExportPdf = () => {
@@ -175,7 +212,7 @@ export default function Assessment() {
         <div className="grid gap-4 md:grid-cols-2">
           {clusters.map((cluster) => (
             <div
-              key={cluster.name}
+              key={cluster.key || cluster.name}
               className="flex flex-col gap-3 rounded-card border border-border bg-card p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-dialog"
             >
               <div className="flex items-center justify-between">
@@ -193,7 +230,7 @@ export default function Assessment() {
                 <span className="text-xs text-orange">Passed — credential earned</span>
               ) : cluster.unlocked ? (
                 <button
-                  onClick={() => handleStart(cluster.name)}
+                  onClick={() => handleStart(cluster)}
                   disabled={stage === 'starting'}
                   className="flex items-center justify-center gap-2 rounded-button bg-orange px-4 py-2.5 text-sm font-body text-white shadow-button transition-all duration-200 hover:bg-orange-hover active:scale-95 disabled:opacity-50"
                 >
@@ -201,8 +238,12 @@ export default function Assessment() {
                   Start Assessment
                 </button>
               ) : (
+                // Same locked-state UI; demo assessments state their own
+                // unlock rule (from demo_content.py) instead of cluster topics.
                 <span className="text-xs text-text-disabled">
-                  Complete {cluster.topics.join(' & ')} in your roadmap to unlock
+                  {demoModeEnabled
+                    ? cluster.unlock_requirement
+                    : `Complete ${cluster.topics.join(' & ')} in your roadmap to unlock`}
                 </span>
               )}
             </div>
@@ -219,6 +260,16 @@ export default function Assessment() {
           <>
             <Award className="animate-celebrate h-12 w-12 text-gold" />
             <h2 className="font-heading font-semibold text-xl text-text-primary">Assessment Passed</h2>
+
+            {/* Demo credentials are presenter-issued, so a demo pass reports the
+                tier the real tier rule awarded and points to where to issue it. */}
+            {demoModeEnabled && result.earned_badge_level && (
+              <p className="max-w-sm text-sm text-text-muted">
+                Score: {result.assessment_score}% • Integrity: {result.integrity_score}% • Earned tier:{' '}
+                <strong className="capitalize text-gold">{result.earned_badge_level}</strong>. Issue the demo credential
+                from the Credentials page.
+              </p>
+            )}
 
             {result.credential && (
               <>
@@ -285,6 +336,17 @@ export default function Assessment() {
     );
   }
 
+  const demoQuestions = question?.questions || [];
+  const activeProblem = demoModeEnabled ? demoQuestions[questionIndex] || demoQuestions[0] : question;
+  const editorValue = demoModeEnabled ? demoCodes[questionIndex] ?? DEFAULT_SNIPPETS.python : code;
+  const handleEditorChange = (value) => {
+    if (demoModeEnabled) {
+      setDemoCodes((prev) => prev.map((existing, i) => (i === questionIndex ? value : existing)));
+    } else {
+      setCode(value);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -298,15 +360,54 @@ export default function Assessment() {
         </div>
       </div>
 
+      {/* Demo assessments have several questions, all graded together on
+          submit. Navigation reuses the Challenge Gate's question buttons. */}
+      {demoModeEnabled && demoQuestions.length > 0 && (
+        <div className="flex items-center gap-1.5 overflow-x-auto rounded-card border border-border bg-elevated/40 px-4 py-2">
+          <span className="mr-2 font-mono text-[11px] font-bold uppercase tracking-wider text-text-muted">
+            Questions:
+          </span>
+          {demoQuestions.map((q, idx) => (
+            <button
+              key={idx}
+              onClick={() => setQuestionIndex(idx)}
+              title={q.title}
+              className={cn(
+                'relative flex h-7 w-8 shrink-0 items-center justify-center rounded-md font-mono text-xs font-bold transition-all',
+                idx === questionIndex
+                  ? 'border border-orange bg-orange text-white'
+                  : 'border border-border bg-card text-text-muted hover:border-orange/40 hover:text-text-primary'
+              )}
+            >
+              {idx + 1}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="flex flex-col gap-6">
-          <ProblemPanel problem={{ ...question, difficulty: 'assessment' }} />
+          <ProblemPanel problem={{ ...activeProblem, difficulty: 'assessment' }} />
           <CameraMonitor onAlert={handleCameraAlert} />
           <ProctoringLogFeed log={log} />
+          {demoModeEnabled && integrityGuide.length > 0 && (
+            <div className="rounded-card border border-border bg-card p-5 shadow-card">
+              <h3 className="flex items-center gap-2 font-heading text-sm font-semibold text-text-primary">
+                <ShieldCheck className="h-4 w-4 text-orange" /> How to test integrity signals
+              </h3>
+              <ul className="mt-3 flex flex-col gap-2">
+                {integrityGuide.map((item) => (
+                  <li key={item.event_type} className="text-xs text-text-secondary">
+                    <span className="font-semibold text-text-primary">{item.label}:</span> {item.how_to_trigger}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-4">
-          <CodeEditor language={language} value={code} onChange={setCode} onPasteDetected={handlePasteDetected} />
+          <CodeEditor language={language} value={editorValue} onChange={handleEditorChange} onPasteDetected={handlePasteDetected} />
           <button
             onClick={handleSubmit}
             disabled={submitting}
