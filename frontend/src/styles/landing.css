@@ -1,10 +1,13 @@
 /* Landing-page-scoped design tokens. Palette derived from the new logo's
    two color hemispheres (warm orange, teal-green) plus the Arounda and
    fintech-dashboard references — orange primary, teal secondary, warm
-   near-black base. Gold stays minimal by design: the logo's own glow
-   accent and the Team Leader badge, nowhere else. Fully independent of
-   the app's own DESIGN_SYSTEM tokens — this file only affects the
-   landing page. */
+   near-black base. Gold stays minimal by design: small highlight accents
+   only (the social icon hover and one stat highlight). It previously also
+   styled a "Team Leader" badge; that badge was removed when this page moved
+   from a team grid to a single developer card (NeuroCode is a solo FYP), so
+   the comment no longer mentions it. --l-gold itself is still in use.
+   Fully independent of the app's own DESIGN_SYSTEM tokens — this file only
+   affects the landing page. */
 
 .landing-page {
   --l-bg: #0F0B08;
