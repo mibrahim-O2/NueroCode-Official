@@ -1,12 +1,18 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, Sun, Moon, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, Home } from 'lucide-react';
+import { Menu, Sun, Moon, ChevronDown, LogOut, User as UserIcon, Settings as SettingsIcon, Home, FlaskConical } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useDemoMode, useDisplayIdentity } from '@/context/DemoModeContext';
 
 export default function Topbar({ onMenuClick }) {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { demoModeEnabled } = useDemoMode();
+  // Name / avatar / subtitle come from useDisplayIdentity: the real account
+  // normally, the demo persona (with the NeuroCode logo mark) while Demo Mode
+  // is on, so the owner's real name and email never show during a demo.
+  const identity = useDisplayIdentity();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -45,21 +51,33 @@ export default function Topbar({ onMenuClick }) {
           {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
 
+        {/* Demo Mode badge — same height and border weight as the buttons
+            beside it, shown only while Demo Mode is on, so it is always
+            unambiguous which mode the screen is in. */}
+        {demoModeEnabled && (
+          <span
+            title="Demo Mode is on — fixed demo content"
+            className="flex h-9 items-center gap-1.5 rounded-input border border-orange/40 bg-orange/10 px-3 text-xs font-semibold text-orange"
+          >
+            <FlaskConical className="h-3.5 w-3.5" /> Demo Mode
+          </span>
+        )}
+
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setMenuOpen((o) => !o)}
             className="flex items-center gap-2 rounded-input border border-border px-2 py-1.5 transition-colors duration-200 hover:border-orange"
           >
-            {user?.avatar_url ? (
-              <img src={user.avatar_url} alt={user.name} className="h-7 w-7 rounded-full object-cover" />
+            {identity.avatarUrl ? (
+              <img src={identity.avatarUrl} alt={identity.name} className="h-7 w-7 rounded-full object-cover" />
             ) : (
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-elevated text-xs font-heading text-orange">
-                {user?.name?.[0]?.toUpperCase() || '?'}
+                {identity.name?.[0]?.toUpperCase() || '?'}
               </div>
             )}
             <div className="hidden text-left sm:block">
-              <p className="font-body text-xs leading-none text-text-primary">{user?.name}</p>
-              <p className="mt-0.5 text-[11px] leading-none text-text-muted">{user?.email}</p>
+              <p className="font-body text-xs leading-none text-text-primary">{identity.name}</p>
+              <p className="mt-0.5 text-[11px] leading-none text-text-muted">{identity.subtitle}</p>
             </div>
             <ChevronDown className="h-3.5 w-3.5 text-text-muted" />
           </button>
