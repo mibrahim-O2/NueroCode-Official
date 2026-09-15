@@ -5,6 +5,7 @@ import ProblemSolution from '@/components/landing/ProblemSolution';
 import HowItWorks from '@/components/landing/HowItWorks';
 import FeatureGrid from '@/components/landing/FeatureGrid';
 import IntegrityConsole from '@/components/landing/IntegrityConsole';
+import TechStack from '@/components/landing/TechStack';
 import TeamSection from '@/components/landing/TeamSection';
 import FinalCTA from '@/components/landing/FinalCTA';
 import Footer from '@/components/landing/Footer';
@@ -22,6 +23,9 @@ export default function Home() {
         <HowItWorks />
         <FeatureGrid />
         <IntegrityConsole />
+        {/* Tech stack sits after the feature and integrity showcases (what it
+            does) and right before the developer card (who built it with it). */}
+        <TechStack />
         <TeamSection />
         <FinalCTA />
       </main>
