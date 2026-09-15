@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { Loader2, Check, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useDemoMode, useDisplayIdentity } from '@/context/DemoModeContext';
 import { updateProfile } from '@/services/profileService';
 
 export default function Profile() {
   const { user, refreshUser } = useAuth();
+  const { demoModeEnabled } = useDemoMode();
+  const identity = useDisplayIdentity();
   const [name, setName] = useState(user?.name || '');
   const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || '');
   const [saving, setSaving] = useState(false);
@@ -12,6 +15,11 @@ export default function Profile() {
   const [errorMessage, setErrorMessage] = useState(null);
 
   const hasChanges = name !== (user?.name || '') || avatarUrl !== (user?.avatar_url || '');
+
+  // While Demo Mode is on, the header card shows the demo persona instead of
+  // the real name / email / photo (the editable preview state is ignored).
+  const headerAvatar = demoModeEnabled ? identity.avatarUrl : avatarUrl;
+  const headerInitial = (demoModeEnabled ? identity.name : name)?.[0]?.toUpperCase() || '?';
 
   const handleSave = async () => {
     setSaving(true);
@@ -37,65 +45,76 @@ export default function Profile() {
       </div>
 
       <div className="flex items-center gap-5 rounded-card border border-border bg-card p-6 shadow-card">
-        {avatarUrl ? (
-          <img src={avatarUrl} alt={name} className="h-16 w-16 rounded-full object-cover" />
+        {headerAvatar ? (
+          <img src={headerAvatar} alt={demoModeEnabled ? identity.name : name} className="h-16 w-16 rounded-full object-cover" />
         ) : (
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-elevated text-xl font-heading text-orange">
-            {name?.[0]?.toUpperCase() || '?'}
+            {headerInitial}
           </div>
         )}
         <div>
-          <p className="font-heading font-semibold text-text-primary">{user?.name}</p>
-          <p className="font-body text-sm text-text-muted">{user?.email}</p>
+          <p className="font-heading font-semibold text-text-primary">{demoModeEnabled ? identity.name : user?.name}</p>
+          <p className="font-body text-sm text-text-muted">{demoModeEnabled ? identity.subtitle : user?.email}</p>
           <p className="mt-1 font-body text-xs uppercase tracking-wide text-orange">{user?.role}</p>
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 rounded-card border border-border bg-card p-6 shadow-card">
-        <h2 className="font-heading font-semibold text-text-primary">Edit Profile</h2>
-
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs text-text-muted">Display Name</label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="rounded-input border border-border bg-elevated px-3 py-2.5 text-sm text-text-primary outline-none transition-colors duration-200 focus:border-orange"
-          />
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs text-text-muted">Avatar URL</label>
-          <input
-            value={avatarUrl}
-            onChange={(e) => setAvatarUrl(e.target.value)}
-            placeholder="https://…"
-            className="rounded-input border border-border bg-elevated px-3 py-2.5 text-sm text-text-primary outline-none transition-colors duration-200 focus:border-orange"
-          />
-          <p className="text-[11px] text-text-muted">
-            Paste a link to an image — direct image upload isn't available yet.
+      {demoModeEnabled ? (
+        // The edit form is pre-filled with the REAL name and photo URL, so it
+        // is replaced by this note during Demo Mode rather than shown on screen.
+        <div className="rounded-card border border-border bg-card p-6 shadow-card">
+          <p className="text-sm text-text-muted">
+            Profile editing is paused while Demo Mode is on, so the real name and photo stay off screen. Exit Demo
+            Mode to edit the profile.
           </p>
         </div>
+      ) : (
+        <div className="flex flex-col gap-4 rounded-card border border-border bg-card p-6 shadow-card">
+          <h2 className="font-heading font-semibold text-text-primary">Edit Profile</h2>
 
-        {status === 'success' && (
-          <p className="animate-slide-fade-in flex items-center gap-1.5 text-xs text-status-success">
-            <Check className="h-3.5 w-3.5" /> Profile updated.
-          </p>
-        )}
-        {status === 'error' && (
-          <p className="animate-slide-fade-in flex items-center gap-1.5 text-xs text-status-error">
-            <AlertCircle className="h-3.5 w-3.5" /> {errorMessage}
-          </p>
-        )}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs text-text-muted">Display Name</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="rounded-input border border-border bg-elevated px-3 py-2.5 text-sm text-text-primary outline-none transition-colors duration-200 focus:border-orange"
+            />
+          </div>
 
-        <button
-          onClick={handleSave}
-          disabled={saving || !hasChanges || !name.trim()}
-          className="flex w-fit items-center gap-2 rounded-button bg-orange px-4 py-2.5 text-sm font-body text-white shadow-button transition-all duration-200 hover:bg-orange-hover active:scale-95 disabled:opacity-50"
-        >
-          {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-          Save Changes
-        </button>
-      </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs text-text-muted">Avatar URL</label>
+            <input
+              value={avatarUrl}
+              onChange={(e) => setAvatarUrl(e.target.value)}
+              placeholder="https://…"
+              className="rounded-input border border-border bg-elevated px-3 py-2.5 text-sm text-text-primary outline-none transition-colors duration-200 focus:border-orange"
+            />
+            <p className="text-[11px] text-text-muted">
+              Paste a link to an image — direct image upload isn't available yet.
+            </p>
+          </div>
+
+          {status === 'success' && (
+            <p className="animate-slide-fade-in flex items-center gap-1.5 text-xs text-status-success">
+              <Check className="h-3.5 w-3.5" /> Profile updated.
+            </p>
+          )}
+          {status === 'error' && (
+            <p className="animate-slide-fade-in flex items-center gap-1.5 text-xs text-status-error">
+              <AlertCircle className="h-3.5 w-3.5" /> {errorMessage}
+            </p>
+          )}
+
+          <button
+            onClick={handleSave}
+            disabled={saving || !hasChanges || !name.trim()}
+            className="flex w-fit items-center gap-2 rounded-button bg-orange px-4 py-2.5 text-sm font-body text-white shadow-button transition-all duration-200 hover:bg-orange-hover active:scale-95 disabled:opacity-50"
+          >
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            Save Changes
+          </button>
+        </div>
+      )}
     </div>
   );
 }
