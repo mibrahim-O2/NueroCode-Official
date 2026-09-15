@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { MessageSquare, Loader2, AlertCircle } from 'lucide-react';
 import { getMySubmissions, getComments } from '@/services/submissionCommentService';
+import { getDemoMySubmissions, getDemoSubmissionComments } from '@/services/demoService';
+import { useDemoMode } from '@/context/DemoModeContext';
 
 export default function MySubmissions() {
+  const { demoModeEnabled } = useDemoMode();
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(null);
@@ -10,9 +13,15 @@ export default function MySubmissions() {
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsError, setCommentsError] = useState(null);
 
+  // Demo Mode lists only demo_submissions (and their demo teacher comments);
+  // real submissions are never shown alongside them.
   useEffect(() => {
-    getMySubmissions().then(setSubmissions).finally(() => setLoading(false));
-  }, []);
+    setLoading(true);
+    setExpanded(null);
+    (demoModeEnabled ? getDemoMySubmissions() : getMySubmissions())
+      .then(setSubmissions)
+      .finally(() => setLoading(false));
+  }, [demoModeEnabled]);
 
   const toggle = async (id) => {
     if (expanded === id) {
@@ -31,7 +40,7 @@ export default function MySubmissions() {
     setCommentsError(null);
     setCommentsLoading(true);
     try {
-      setComments(await getComments(id));
+      setComments(demoModeEnabled ? await getDemoSubmissionComments(id) : await getComments(id));
     } catch (err) {
       // Bug fix: this call had no error handling at all — a failed
       // request threw unhandled and left the student with no feedback
