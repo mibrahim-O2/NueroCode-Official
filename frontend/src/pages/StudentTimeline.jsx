@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, Award } from 'lucide-react';
 import { getStudentTimeline } from '@/services/adminService';
+import { getDemoStudentTimeline } from '@/services/demoService';
+import { useDemoMode } from '@/context/DemoModeContext';
 import ViolationBadges from '@/components/common/ViolationBadges';
 import TeacherCommentRow from '@/components/common/TeacherCommentRow';
 import { cn } from '@/lib/utils';
@@ -9,14 +11,20 @@ import { cn } from '@/lib/utils';
 export default function StudentTimeline() {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const { demoModeEnabled } = useDemoMode();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Demo Mode reads /demo/cohort/students/{id}/timeline, which only answers
+  // for Demo Student A/B/C and the owner's persona row (404 for any real
+  // student). Same response shape, so the page below renders unchanged.
   useEffect(() => {
-    getStudentTimeline(userId)
+    setLoading(true);
+    (demoModeEnabled ? getDemoStudentTimeline(userId) : getStudentTimeline(userId))
       .then(setData)
+      .catch(() => setData(null))
       .finally(() => setLoading(false));
-  }, [userId]);
+  }, [userId, demoModeEnabled]);
 
   if (loading) {
     return (
