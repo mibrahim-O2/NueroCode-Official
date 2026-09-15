@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Swords, Code2, AlertTriangle, CheckCircle2, Trophy } from 'lucide-react';
 import Logo from '@/components/common/Logo';
@@ -9,7 +9,14 @@ import {
   getRecommendation,
   getTopicProgress,
 } from '@/services/roadmapService';
+import {
+  getDemoRoadmap,
+  getDemoTopicProgress,
+  startDemoTopic,
+  completeDemoTopic,
+} from '@/services/demoService';
 import { useAuth } from '@/context/AuthContext';
+import { useDemoMode } from '@/context/DemoModeContext';
 import RoadmapNode from '@/components/roadmap/RoadmapNode';
 import LeaderboardCard from '@/components/dashboard/LeaderboardCard';
 
@@ -17,6 +24,7 @@ const PRACTICE_CAPABILITY_THRESHOLD = 50;
 
 export default function Roadmap() {
   const { user, updateUser } = useAuth();
+  const { demoModeEnabled } = useDemoMode();
   const navigate = useNavigate();
   const [nodes, setNodes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,19 +35,49 @@ export default function Roadmap() {
   const [banner, setBanner] = useState(null);
   const [recommendation, setRecommendation] = useState(null);
 
+  // Data source for this page. Demo Mode reads and writes the separate demo
+  // roadmap through /demo/* (demo topics are addressed by name, real nodes by
+  // id). The real recommendation engine reads the owner's REAL submissions,
+  // so it is skipped in Demo Mode — the demo shows adaptivity through the
+  // live anti-pattern reorder instead. Rendering below is identical either way.
+  const api = useMemo(
+    () =>
+      demoModeEnabled
+        ? {
+            getRoadmap: getDemoRoadmap,
+            getTopicProgress: getDemoTopicProgress,
+            startNode: (node) => startDemoTopic(node.topic),
+            completeNode: (node) => completeDemoTopic(node.topic),
+            getRecommendation: () => Promise.resolve(null),
+            challengePath: (node) => `/challenge/${encodeURIComponent(node.topic)}`,
+          }
+        : {
+            getRoadmap,
+            getTopicProgress,
+            startNode: (node) => startNode(node.id),
+            completeNode: (node) => completeNode(node.id),
+            getRecommendation,
+            challengePath: (node) => `/challenge/${node.id}`,
+          },
+    [demoModeEnabled]
+  );
+
   useEffect(() => {
+    setLoading(true);
     Promise.allSettled([
-      getRoadmap().then((res) => {
+      api.getRoadmap().then((res) => {
         const data = res?.data || res;
         const list = Array.isArray(data) ? data : [];
         setNodes(list);
         const current = list.find((n) => n?.status === 'unlocked' || n?.status === 'in_progress');
         setSelected(current || list[0] || null);
       }),
-      getRecommendation()
+      api
+        .getRecommendation()
         .then((res) => setRecommendation(res?.data || res))
         .catch(() => setRecommendation(null)),
-      getTopicProgress()
+      api
+        .getTopicProgress()
         .then((res) => {
           const data = res?.data?.topic_progress || res?.topic_progress || res || {};
           setTopicProgress(data);
@@ -48,7 +86,7 @@ export default function Roadmap() {
     ]).finally(() => {
       setLoading(false);
     });
-  }, []);
+  }, [api]);
 
   // The backend gates challenge-gate access on a GLOBAL count of passing
   // submissions across every topic (repositories.count_passing_submissions),
@@ -71,7 +109,7 @@ export default function Roadmap() {
   // depends on either one (node list, readiness bar, selected panel)
   // reflects the same server state after a mutation.
   const refreshRoadmapState = async () => {
-    const [roadmapRes, progressRes] = await Promise.allSettled([getRoadmap(), getTopicProgress()]);
+    const [roadmapRes, progressRes] = await Promise.allSettled([api.getRoadmap(), api.getTopicProgress()]);
 
     let list = [];
     if (roadmapRes.status === 'fulfilled') {
@@ -93,7 +131,7 @@ export default function Roadmap() {
     if (!node?.id) return;
     setActionPending(true);
     try {
-      const res = await startNode(node.id);
+      const res = await api.startNode(node);
       const updated = res?.data || res;
       setNodes((prev) => prev.map((n) => (n?.id === updated?.id ? updated : n)));
       setSelected(updated);
@@ -109,7 +147,7 @@ export default function Roadmap() {
 
   const handleTakeChallenge = (node) => {
     if (node?.id) {
-      navigate(`/challenge/${node.id}`);
+      navigate(api.challengePath(node));
     }
   };
 
@@ -117,7 +155,7 @@ export default function Roadmap() {
     if (!node?.id) return;
     setActionPending(true);
     try {
-      const res = await completeNode(node.id);
+      const res = await api.completeNode(node);
       const result = res?.data || res;
 
       const list = await refreshRoadmapState();
@@ -303,6 +341,13 @@ export default function Roadmap() {
               recommended={recommendation?.recommended_topic === node?.topic}
             />
           ))}
+          {/* Makes it explicit to evaluators that the 5-topic list is the demo
+              roadmap, not the full product roadmap. */}
+          {demoModeEnabled && (
+            <p className="text-xs text-text-muted">
+              This is a 5-topic demo roadmap for evaluation purposes. The real NeuroCode roadmap contains 10 topics.
+            </p>
+          )}
         </div>
 
         {/* Node Detail and Action Panel */}
