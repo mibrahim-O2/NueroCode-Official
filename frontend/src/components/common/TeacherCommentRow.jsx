@@ -1,19 +1,27 @@
 import { useState } from 'react';
 import { addComment, getComments } from '@/services/submissionCommentService';
+import { addDemoSubmissionComment, getDemoSubmissionComments } from '@/services/demoService';
 
 export default function TeacherCommentRow({ submission }) {
   const [open, setOpen] = useState(false);
   const [comments, setComments] = useState([]);
   const [text, setText] = useState('');
 
+  // Branches on the row's own is_demo flag (set by the backend on demo
+  // submissions) rather than the global mode, so a demo submission's comments
+  // always go to demo_submission_comments and a real one's to the real table.
+  const isDemo = !!submission.is_demo;
+
   const load = async () => {
     setOpen((o) => !o);
-    if (!open) setComments(await getComments(submission.id));
+    if (!open) setComments(await (isDemo ? getDemoSubmissionComments(submission.id) : getComments(submission.id)));
   };
 
   const submit = async () => {
     if (!text.trim()) return;
-    const c = await addComment(submission.id, text.trim());
+    const c = isDemo
+      ? await addDemoSubmissionComment(submission.id, text.trim())
+      : await addComment(submission.id, text.trim());
     setComments((prev) => [...prev, c]);
     setText('');
   };
