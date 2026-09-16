@@ -9,12 +9,26 @@ demo_content.py, re-run verify_demo_content, then re-run this. To change the
 narrative, edit the text below.
 """
 
+import re
 from pathlib import Path
 
 from app.demo import demo_content as content
 
 # backend/app/demo/generate_demo_docs.py -> repository root -> docs/demo.md
 DOC_PATH = Path(__file__).resolve().parents[3] / "docs" / "demo.md"
+
+# Every NeuroCode doc opens with the logo and ends with the same copyright
+# line. They're added here, at generation time, so regenerating demo.md
+# always keeps them.
+DOC_HEADER = '<div align="center">\n\n<img src="../frontend/src/assets/logo-mark.png" alt="NeuroCode logo" width="160"/>\n\n</div>\n\n'
+DOC_FOOTER = '\n\n---\n\n<div align="center">\n\n© 2026 NeuroCode\n\n</div>\n'
+
+
+def _normalize_dashes(text: str) -> str:
+    """Docs house style: no em dashes. Each one (with its surrounding spaces)
+    becomes a single space. Applied to the generated document only — the
+    in-app demo content in demo_content.py is left unchanged."""
+    return re.sub(r"[ \t]*—[ \t]*", " ", text)
 
 LANGUAGE_LABELS = {"python": "Python", "javascript": "JavaScript", "cpp": "C++"}
 
@@ -194,7 +208,8 @@ is on or off. They exist only to give the educator view something realistic to s
 
 
 def main() -> None:
-    DOC_PATH.write_text(build_document(), encoding="utf-8")
+    document = DOC_HEADER + build_document().rstrip() + DOC_FOOTER
+    DOC_PATH.write_text(_normalize_dashes(document), encoding="utf-8")
     print(f"Wrote {DOC_PATH}")
 
 
