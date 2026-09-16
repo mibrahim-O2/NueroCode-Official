@@ -42,8 +42,10 @@ export default function Footer() {
         <div>
           <p className="mb-3 text-sm font-medium" style={{ color: 'var(--l-text-primary)' }}>Account</p>
           <ul className="space-y-2 text-sm" style={{ color: 'var(--l-text-muted)' }}>
-            <li><Link to="/login">Sign In</Link></li>
-            <li><Link to="/login">Get Started</Link></li>
+            {/* Both point at the /get-started explainer rather than /login: the
+                deployed preview has no live backend to sign in to. */}
+            <li><Link to="/get-started">Sign In</Link></li>
+            <li><Link to="/get-started">Get Started</Link></li>
           </ul>
         </div>
       </div>
