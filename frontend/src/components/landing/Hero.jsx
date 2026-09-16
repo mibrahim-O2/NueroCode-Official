@@ -54,8 +54,10 @@ export default function Hero() {
           </p>
 
           <div className="mt-7 flex flex-wrap items-center gap-4">
+            {/* Signed-out visitors go to the /get-started explainer instead of
+                /login: the deployed preview has no live backend to sign in to. */}
             <Link
-              to={user ? '/dashboard' : '/login'}
+              to={user ? '/dashboard' : '/get-started'}
               className="inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold transition-transform hover:scale-[1.03]"
               style={{ backgroundColor: 'var(--l-orange)', color: '#1A0900' }}
             >
