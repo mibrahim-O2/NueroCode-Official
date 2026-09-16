@@ -6,6 +6,12 @@
   deployment through environment variables.
 -->
 
+<div align="center">
+
+<img src="../frontend/src/assets/logo-mark.png" alt="NeuroCode logo" width="160"/>
+
+</div>
+
 # NeuroCode Documentation
 
 ## Contents
@@ -25,19 +31,19 @@
 
 ## 1. What NeuroCode is
 
-NeuroCode is an AI-powered coding education platform that connects the whole learning path —
-**learn, practice, prove, and certify** — in one system. Students follow an adaptive roadmap of data
+NeuroCode is an AI-powered coding education platform that connects the whole learning path 
+**learn, practice, prove, and certify** in one system. Students follow an adaptive roadmap of data
 structures and algorithms topics, practice on AI-generated problems whose solutions have been
 **verified by actually running them**, get their own code executed and structurally analyzed, and
 finally take a **proctored assessment** that issues a **publicly verifiable credential**.
 
 Its core purpose is trust at every step:
-- **Problems are trustworthy** — an AI-written problem is only shown after its reference solution
+- **Problems are trustworthy** an AI-written problem is only shown after its reference solution
   runs correctly in a sandbox.
-- **Grading is real** — submissions run in Python, JavaScript or C++ against real test cases.
-- **Results are trustworthy** — assessments combine test results with four behavioral integrity
+- **Grading is real** submissions run in Python, JavaScript or C++ against real test cases.
+- **Results are trustworthy** assessments combine test results with four behavioral integrity
   signals, scored on the server.
-- **Credentials are checkable** — anyone with the link or QR code can verify one, no account needed.
+- **Credentials are checkable** anyone with the link or QR code can verify one, no account needed.
 
 There are three roles: **student**, **educator** and **admin** (see [section 5](#5-roles-at-a-glance)).
 
@@ -50,7 +56,7 @@ There are three roles: **student**, **educator** and **admin** (see [section 5](
 Open **Get Started / Sign In** and choose one of:
 - **Continue with Google**
 - **Continue with GitHub**
-- **Email and password** — create an account with your name, email and a password of at least
+- **Email and password** create an account with your name, email and a password of at least
   6 characters, or sign in to an existing one.
 
 Forgot your password? Choose **Forgot password?**, enter your email, and a reset link is sent to you.
@@ -63,9 +69,9 @@ Your role is re-checked on every request, so if an admin changes it, the change 
 
 Your home page after signing in shows:
 - **XP, Streak, Level and Role** cards.
-- **Activity & Daily Submissions** — a 12-month heatmap of every submission you made.
-- **XP Progression** — your XP over time, built from the dates you completed roadmap topics.
-- **Practice Solved by Topic** — how many practice problems you have fully passed per topic.
+- **Activity & Daily Submissions** a 12-month heatmap of every submission you made.
+- **XP Progression** your XP over time, built from the dates you completed roadmap topics.
+- **Practice Solved by Topic** how many practice problems you have fully passed per topic.
 - A **Quick Review** banner when a topic is due for revisiting (see [Spaced Review](#211-spaced-review)).
 
 ### 2.3 The adaptive roadmap
@@ -91,10 +97,10 @@ The **Roadmap** is a path of ten topics:
 - **Levels:** you gain a level for every 500 XP.
 - **Streak:** grows when you complete topics on consecutive days, and resets after a gap.
 - **Challenge Gate readiness bar:** counts your fully passing practice submissions toward a
-  recommended foundation of 50. It is guidance only — it never blocks you.
+  recommended foundation of 50. It is guidance only it never blocks you.
 - **Adaptive reordering:** when the code analyzer spots certain inefficiencies in your practice
   submissions (a membership check against a list inside a loop, or `.count()` inside a loop), it moves
-  **Hash Maps** — the topic that fixes them — to right after your current topic, as long as you haven't
+  **Hash Maps** the topic that fixes them to right after your current topic, as long as you haven't
   started it yet. The analysis panel tells you when this happens.
 - **Recommended next topic:** a banner that compares your recent struggles (failed submissions and
   detected inefficiencies) with the upcoming topics and suggests the closest match. With no struggle
@@ -125,22 +131,22 @@ passcode (see the [Admin guide](#4-admin-guide)).
   any detected inefficiencies (for Python), written feedback, and any roadmap reordering.
 
 **After you fully pass a problem:**
-- **Official Solution** — the verified reference solution, with a short explanation.
-- **How others solved this** — the peer discussion thread (see [Peer Discussion](#29-peer-discussion)).
+- **Official Solution** the verified reference solution, with a short explanation.
+- **How others solved this** the peer discussion thread (see [Peer Discussion](#29-peer-discussion)).
 
 **The learning assistant (hint-only).** A chat widget is available while you practice. It looks up
-your own most similar past submissions and uses them to give specific, 2–4 sentence hints — for
+your own most similar past submissions and uses them to give specific, 2–4 sentence hints for
 example pointing at the nested loop you used last time. It never gives full solutions:
 - Requests like "give me the code", "full solution" or "just tell me the answer" are refused
   **before** the AI is even called, with an invitation to think through the next step instead.
 - The AI itself is instructed to give only conceptual hints and guiding questions.
 
-The assistant is available only in Practice — never in Mock Interview or Assessment.
+The assistant is available only in Practice never in Mock Interview or Assessment.
 
 ### 2.5 Challenge Gate
 
 Each roadmap topic has a **Topic Mastery Gate**:
-- **10 AI-generated problems** — 4 easy, 4 medium and 2 hard — each verified by execution exactly
+- **10 AI-generated problems** 4 easy, 4 medium and 2 hard each verified by execution exactly
   like Practice problems. Generating the set can take a little while.
 - **No AI assistance** of any kind.
 - A **90-minute** on-screen timer.
@@ -155,7 +161,7 @@ opened until the earlier topics are complete.
 
 **Mock Interview** simulates a real technical interview:
 - Choose a topic and difficulty, then **Start Interview**. An AI-generated interview question appears.
-- It is **timed** (30 minutes by default) and **unassisted** — no hints and no chatbot.
+- It is **timed** (30 minutes by default) and **unassisted** no hints and no chatbot.
 - Write your answer in Python and submit. The time limit is enforced on the server (with a short grace
   period), so a late submission isn't graded.
 - Results show your **time taken**, **tests passed**, and the detected **complexity**.
@@ -185,13 +191,13 @@ Assessments certify mastery of a **topic cluster**:
 | **Tab switching** | Leaving the page (switching tabs or windows) | −5 |
 | **Large paste** | Pasting 30 or more characters into the editor | −8 |
 | **Camera alert** | The camera check finds no face or more than one face, or the camera is unavailable. Frames are checked on the server with OpenCV face detection. | −10 |
-| **Unusual typing rhythm** | Keystroke timing that is both statistically abnormal (an Isolation Forest model) **and** unnaturally fast and uniform — the signature of scripted input. Ordinary fast typing is not flagged. | −6 |
+| **Unusual typing rhythm** | Keystroke timing that is both statistically abnormal (an Isolation Forest model) **and** unnaturally fast and uniform the signature of scripted input. Ordinary fast typing is not flagged. | −6 |
 
 **How scoring works**
 - Every detected event is **saved on the server** as it happens.
 - When you submit, the server **recomputes your integrity score from those saved events**:
   it starts at 100 and subtracts each penalty, with a minimum of 0. Any score sent by the browser is
-  ignored — the live badge you see is only a preview.
+  ignored the live badge you see is only a preview.
 - Your **assessment score** is the percentage of test cases your solution passes.
 - You **pass** when your assessment score is **at least 70** *and* your integrity score is
   **at least 60** (the default threshold).
@@ -212,19 +218,19 @@ Passing an assessment issues a credential automatically. Its tier depends on you
 The **Credentials** page lists everything you have earned. **View Certificate** opens the certificate
 with:
 - a **QR code** that links to its public verification page,
-- **Export PDF** — download the certificate,
+- **Export PDF** download the certificate,
 - **Copy Verification Link**,
-- **Share on LinkedIn** — opens LinkedIn's share window and copies a suggested caption to your clipboard.
+- **Share on LinkedIn** opens LinkedIn's share window and copies a suggested caption to your clipboard.
 
 **Verification.** Each credential has a unique link (`/verify/<id>`) that anyone can open without an
-account. It shows the certificate — tier, topics, assessment and integrity scores, and your name — and
+account. It shows the certificate tier, topics, assessment and integrity scores, and your name and
 never shows your email or other account details. Visitors can download the PDF from there too.
 
 ### 2.9 Peer Discussion
 
 After you fully pass a **practice** problem, **How others solved this** appears below it. Read other
 students' comments on the same problem, and post your own approach or tip. Your code is never shared
-automatically — only what you choose to type. Discussion is never available for assessments.
+automatically only what you choose to type. Discussion is never available for assessments.
 
 ### 2.10 Teacher Comments
 
@@ -236,7 +242,7 @@ expand it and read its teacher comments.
 NeuroCode nudges you to revisit topics before they fade. A **Quick Review** banner appears on your
 Dashboard when a topic was completed **at least 7 days ago** and you haven't practiced it in the last
 7 days. **Review Now** opens Practice on that topic. You can turn the banner off in **Settings**.
-There are no emails or push notifications — reminders are shown in the app only.
+There are no emails or push notifications reminders are shown in the app only.
 
 ### 2.12 Profile and Settings
 
@@ -266,7 +272,7 @@ Educators (and admins) have an **Educator Portal** in the sidebar.
 **Reviewing flagged assessments**
 - Select any student in **Student Progress** to open their **Student Timeline**:
   - roadmap progress for every topic,
-  - every assessment with its score, integrity score, status and date — **flagged** attempts are
+  - every assessment with its score, integrity score, status and date **flagged** attempts are
     highlighted and list their violation types,
   - their credentials,
   - their recent submissions.
@@ -296,7 +302,7 @@ Admins have everything educators have, plus an **Administration** page.
 | Reset Dashboard | XP, level and streak |
 | Reset Roadmap | Topic completion and unlock state (restarted from the first topic), and the recommended next topic |
 | Reset Practice | Practice submissions and their feedback/analysis, the student's generated problems, submission embeddings, and weak/strong topic analytics |
-| Reset Assessments | Assessment attempts, scores and integrity logs — attempts that back an issued credential are kept |
+| Reset Assessments | Assessment attempts, scores and integrity logs attempts that back an issued credential are kept |
 | Reset Credentials | Issued credentials, their verification links and badges |
 | Reset Student (Full Reset) | All of the above in one operation |
 
@@ -325,10 +331,10 @@ Admins have everything educators have, plus an **Administration** page.
 
 | Capability | Student | Educator | Admin |
 |---|:---:|:---:|:---:|
-| Roadmap, Practice, Challenge Gate, Mock Interview, Assessment, Credentials | ✅ | ✅ | ✅ |
-| Educator Portal (cohort, analytics, timelines, comments) | — | ✅ | ✅ |
-| Administration (roles, resets, credentials, audit log) | — | — | ✅ |
-| Switch Practice generation to OpenAI | — | — | ✅ |
+| Roadmap, Practice, Challenge Gate, Mock Interview, Assessment, Credentials | <img src="https://api.iconify.design/lucide/check-circle-2.svg?color=%232DD4A0" width="16" height="16" alt="Yes"/> | <img src="https://api.iconify.design/lucide/check-circle-2.svg?color=%232DD4A0" width="16" height="16" alt="Yes"/> | <img src="https://api.iconify.design/lucide/check-circle-2.svg?color=%232DD4A0" width="16" height="16" alt="Yes"/> |
+| Educator Portal (cohort, analytics, timelines, comments) | <img src="https://api.iconify.design/lucide/minus.svg?color=%238A7A6B" width="16" height="16" alt="No"/> | <img src="https://api.iconify.design/lucide/check-circle-2.svg?color=%232DD4A0" width="16" height="16" alt="Yes"/> | <img src="https://api.iconify.design/lucide/check-circle-2.svg?color=%232DD4A0" width="16" height="16" alt="Yes"/> |
+| Administration (roles, resets, credentials, audit log) | <img src="https://api.iconify.design/lucide/minus.svg?color=%238A7A6B" width="16" height="16" alt="No"/> | <img src="https://api.iconify.design/lucide/minus.svg?color=%238A7A6B" width="16" height="16" alt="No"/> | <img src="https://api.iconify.design/lucide/check-circle-2.svg?color=%232DD4A0" width="16" height="16" alt="Yes"/> |
+| Switch Practice generation to OpenAI | <img src="https://api.iconify.design/lucide/minus.svg?color=%238A7A6B" width="16" height="16" alt="No"/> | <img src="https://api.iconify.design/lucide/minus.svg?color=%238A7A6B" width="16" height="16" alt="No"/> | <img src="https://api.iconify.design/lucide/check-circle-2.svg?color=%232DD4A0" width="16" height="16" alt="Yes"/> |
 
 ---
 
@@ -340,3 +346,12 @@ Admins have everything educators have, plus an **Administration** page.
 ---
 
 For running NeuroCode yourself, see [SETUP_AND_DEPLOYMENT.md](SETUP_AND_DEPLOYMENT.md).
+
+---
+
+<!-- Standard closing line on every NeuroCode doc. -->
+<div align="center">
+
+© 2026 NeuroCode
+
+</div>
