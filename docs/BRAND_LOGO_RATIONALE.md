@@ -1,89 +1,101 @@
-<div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=soft&color=0:000000,50:0d9488,100:000000&height=150&section=header&text=Brand%20Logo%20Rationale&fontSize=40&fontColor=eab308&animation=twinkling&fontAlignY=42&desc=NeuroCode%20%C2%B7%20Design%20Breakdown%20%26%20Rationale&descAlignY=66&descSize=15&descColor=2dd4bf" width="100%"/>
-</div>
+<!--
+  Rewritten to describe the logo actually in use (frontend/src/assets/logo-mark.png).
+  The previous version described an older emerald/mint design that was abandoned
+  and never shipped. Color swatches are static shields.io badges — a markdown
+  file can't animate, so nothing here claims or attempts animation.
+-->
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/mibrahim-O2/NueroCode-Official/main/frontend/src/assets/logo-mark.png" width="130"/>
-</div>
 
-<div align="center">
-  <img src="https://img.shields.io/badge/Doc-Brand_Logo_Rationale-0d9488?style=flat-square&labelColor=000000">
-  <img src="https://img.shields.io/badge/Version-1.0-eab308?style=flat-square&labelColor=000000">
-  <img src="https://img.shields.io/badge/Status-Finalized-2dd4bf?style=flat-square&labelColor=000000">
-  <img src="https://img.shields.io/badge/Components-5-eab308?style=flat-square&labelColor=000000">
-</div>
+<img src="../frontend/src/assets/logo-mark.png" alt="NeuroCode logo mark" width="220"/>
 
-<br/>
+# NeuroCode — Brand Logo Rationale
 
-<div align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=22&duration=2800&pause=900&color=2DD4BF&center=true&vCenter=true&width=650&lines=Learn+%E2%86%92+Improve+%E2%86%92+Master" alt="Typing SVG" />
-  <br/>
-  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=500&size=17&duration=2800&pause=900&color=EAB308&center=true&vCenter=true&width=650&lines=Every+visual+element+maps+to+product+philosophy;Design+by+Muhammad+Ibrahim" alt="Typing SVG" />
+**A circuit-board brain around a bold "N": organic intelligence fused with structured engineering.**
+
+![Brand Orange](https://img.shields.io/badge/Brand_Orange-%23FF6E1A-FF6E1A?style=for-the-badge)
+![Brand Teal](https://img.shields.io/badge/Brand_Teal-%232DD4A0-2DD4A0?style=for-the-badge)
+![Circuit Gold](https://img.shields.io/badge/Circuit_Gold-%23D4AF37-D4AF37?style=for-the-badge)
+
 </div>
 
 ## Contents
 
-1. [Overall composition](#1-overall-composition)
-2. [Component-by-component breakdown](#2-component-by-component-breakdown)
-3. [Why this direction fits NeuroCode specifically](#3-why-this-direction-fits-neurocode-specifically)
-
-<div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=soft&color=0:000000,50:0d9488,100:000000&height=2&section=header" width="70%"/>
-</div>
-
-## 1. Overall composition
-
-The mark reads left-to-right as a single visual sentence: a biological brain feeding into a bicolor monogram, which feeds into a network of achievement nodes. That left-to-right flow isn't decorative — it's a direct visual translation of `DESIGN_SYSTEM.md`'s stated core philosophy for the whole product:
-
-<p align="center"><b>Learn → Improve → Master</b></p>
-
-```mermaid
-flowchart LR
-    A[Brain silhouette<br/>Learn] --> B[Emerald N stroke<br/>Improve]
-    B --> C[Gold N stroke<br/>Master]
-    C --> D[Circuit network<br/>Achievement]
-
-    classDef learn fill:#0d9488,stroke:#2dd4bf,color:#eafff9
-    classDef master fill:#eab308,stroke:#f59e0b,color:#1a1400
-    class A,B learn
-    class C,D master
-```
-
-The brain represents **Learn**, the emerald half of the N represents **Improve** (active coding/practice), and the gold half plus its circuit network represents **Master** (achievement, credentialing). The logo is effectively a compressed diagram of the product's own user journey, not just a brandmark.
-
-<div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=soft&color=0:000000,50:0d9488,100:000000&height=2&section=header&animation=fadeIn" width="70%"/>
-</div>
-
-## 2. Component-by-component breakdown
-
-### Quick reference
-
-| # | Element | Color | Core symbolism |
-|---|---|---|---|
-| a | Brain silhouette | Emerald outline | AI as mentor, not authority |
-| b | Circuit traces (filled nodes) | Emerald | Neuro + Code fused in one shape |
-| c | `</>` bracket | Emerald | Instant "this is a coding platform" cue |
-| d | Bicolor N monogram | Emerald → Gold | Progress bar: learning to mastery |
-| e | Circuit network (open rings) | Gold | Earned, structured achievement |
+1. [The mark at a glance](#1-the-mark-at-a-glance)
+2. [Color palette](#2-color-palette)
+3. [Anatomy of the mark](#3-anatomy-of-the-mark)
+4. [What it communicates](#4-what-it-communicates)
+5. [How the logo is used in the product](#5-how-the-logo-is-used-in-the-product)
 
 ---
 
-### a) The brain silhouette (far left, emerald outline)
+## 1. The mark at a glance
 
-A rounded, organic, cloud-like brain outline — deliberately soft and friendly rather than sharp or robotic.
+The NeuroCode mark is a **brain silhouette drawn as a circuit board**. Its outline is a single dark,
+metallic contour; inside it, every fold of the brain is rendered as circuit traces ending in solder
+pads and glowing nodes. A **bold "N"** stands at the center, and the brain is split vertically into
+**two color halves**: warm orange on the left, teal/mint on the right. Small **gold microchips** and
+gold contact points are embedded in the circuitry on both sides.
 
-> **Why it matters:** `BRANDING.md §7` (AI Experience) is explicit that "Artificial Intelligence should always feel like a mentor, not a replacement" and should "encourage learning" and "maintain an educational focus." A jagged, mechanical, Terminator-style brain would communicate AI-as-authority. A soft, rounded, hand-drawn-feeling lobe communicates AI-as-mentor — approachable intelligence, not a black-box algorithm grading you.
+The idea in one line: **intelligence (the brain) and engineering (the circuit) are the same shape.**
+The mark doesn't place a brain next to a chip — the brain *is* the circuit.
 
-### b) The circuit traces inside the brain (small filled nodes)
+## 2. Color palette
 
-Thin right-angled lines terminating in small filled emerald circles, running through the brain like a simplified PCB trace or neuron pathway.
+| Swatch | Name | Hex | Where it appears in the mark |
+|---|---|---|---|
+| ![](https://img.shields.io/badge/-%20%20%20%20%20%20-FF6E1A?style=for-the-badge) | Brand Orange | `#FF6E1A` | Left half: circuit traces and glowing nodes; the warm side of the "N" |
+| ![](https://img.shields.io/badge/-%20%20%20%20%20%20-2DD4A0?style=for-the-badge) | Brand Teal | `#2DD4A0` | Right half: circuit traces, nodes and chip bodies |
+| ![](https://img.shields.io/badge/-%20%20%20%20%20%20-D4AF37?style=for-the-badge) | Circuit Gold | `#D4AF37` | Microchip borders, contact points, the `</>` bracket and the bright face of the "N" |
 
-> **Why it matters:** This is the most literal piece of symbolism in the mark — it fuses *neuro* (biological cognition) with *code* (electronic computation) inside a single shape, rather than placing a brain next to a chip as two separate icons. That fusion is the whole thesis of the platform: NeuroCode doesn't just teach code, it uses AI (Tree-sitter AST analysis, ChromaDB RAG, adaptive ML recommendations — per `AI_ML_IMPLEMENTATION_PLAN.md`) to understand *how* a student thinks, not just *what* they typed. The filled nodes read as "activated" — knowledge that has already been acquired and fired.
+These are the same values the landing page uses as its design tokens (`--l-orange`, `--l-teal` and
+`--l-gold` in `frontend/src/styles/landing.css`, dark theme), so the site and the mark share one palette.
+The light theme uses deeper variants of the same hues for contrast on a pale background.
 
-### c) The `</>` code bracket
+## 3. Anatomy of the mark
 
-Sitting directly above the monogram, rendered in the same emerald gradient as the brain.
+### The brain silhouette
+A rounded, lobed outline in dark metallic gray, with a short "stem" of traces at the bottom. Its soft,
+organic curves read as a *mind* — approachable rather than mechanical.
 
-> **Why it matters:** It's the one universally-recognized glyph for "this is about programming," included specifically so the mark doesn't rely on the brain alone to signal "coding platform" — someone glancing at it for half a second gets both halves of the name (Neuro + Code) without needing to read the wordmark.
+### The circuit-board interior
+Instead of drawn folds, the brain is filled with right-angled circuit traces that terminate in round
+pads and nodes, like a printed circuit board. The glowing nodes read as active connections — thought
+happening in hardware.
 
+### The two color halves
+- **Orange (left)** — warm, energetic, human. The side with the brightest glowing nodes.
+- **Teal/mint (right)** — cool, precise, technical. The side carrying the `</>` code bracket.
+
+The split is vertical and clean, so the mark is one brain, not two halves pasted together — both
+sides share the same outline and the same circuit language.
+
+### The bold "N"
+A thick, beveled "N" sits over the center line, shaded from bright gold to orange. It anchors the
+composition, gives the mark an instant initial for **N**euroCode, and bridges both halves.
+
+### Gold microchips and contacts
+Small square chips with gold borders sit inside both halves, along with gold solder contacts and the
+gold `</>` bracket on the teal side. Gold is used sparingly — as detail, not as a third half — so it
+reads as precision and value.
+
+## 4. What it communicates
+
+| Element | Meaning |
+|---|---|
+| Brain silhouette | Learning and understanding — the platform is about how a student *thinks*, not only what they type |
+| Circuit-board interior | Real engineering underneath: code that is actually executed, parsed and analyzed |
+| Orange / teal split | The fusion of organic intelligence and structured engineering in one system |
+| Central "N" | NeuroCode's identity, holding both halves together |
+| `</>` bracket | An unmistakable "this is a coding platform" cue, even at small sizes |
+| Gold chips | Earned, verifiable value — the credentials at the end of the learning path |
+
+## 5. How the logo is used in the product
+
+- **Source file:** `frontend/src/assets/logo-mark.png`, rendered by `frontend/src/components/common/Logo.jsx`.
+- **Wordmark:** next to the mark, "Neuro" is set in the primary text color and "Code" in Brand Orange —
+  the same two-tone treatment used for the developer's name on the landing page.
+- **Favicons:** `frontend/public/favicon.ico`, `favicon-32.png` and `apple-touch-icon.png`.
+- **Hero:** on the landing page the mark is shown large, with a soft orange/teal glow, breathing rings
+  and a circuit-trace background that echoes the circuitry inside the mark itself.
+- **App shell:** the sidebar and loading screens use the mark on its own, without the wordmark.
