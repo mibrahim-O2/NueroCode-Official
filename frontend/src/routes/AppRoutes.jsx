@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import Home from '@/pages/Home';
 import Integrity from '@/pages/Integrity';
 import Login from '@/pages/Login';
+import GetStarted from '@/pages/GetStarted';
 import VerifyCredential from '@/pages/VerifyCredential';
 import DemoVerifyCredential from '@/pages/DemoVerifyCredential';
 import NotFound from '@/pages/NotFound';
@@ -29,6 +30,10 @@ export default function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/integrity" element={<Integrity />} />
       <Route path="/login" element={<Login />} />
+      {/* Public explainer that every landing-page Get Started / Sign In button
+          now opens, since the deployed preview has no live backend. /login above
+          stays unchanged for local setups. */}
+      <Route path="/get-started" element={<GetStarted />} />
       <Route path="/verify/:uuid" element={<VerifyCredential />} />
       {/* Demo credentials' QR codes and links land here, never on the real
           /verify page — it only ever shows the "this is a demo credential" notice. */}
