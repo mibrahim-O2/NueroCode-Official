@@ -1,533 +1,336 @@
+<!--
+  Rewritten to be machine-independent: the previous version hardcoded one
+  developer's Piston home-directory path and said it was configured for that
+  developer's own machine. Every step below now works on any machine, with
+  clearly labeled Windows vs. macOS/Linux variants where the commands differ.
+-->
+
 <div align="center">
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:1a1a1a,30:00A676,70:D4AF37,100:1a1a1a&height=160&section=header&text=NeuroCode%20Execution%20Guide&fontSize=42&fontColor=ffffff&animation=fadeIn&fontAlignY=40&desc=Local%20Development%20Environment%20Setup&descAlignY=62&descSize=16&descColor=D4AF37"/>
-<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=500&size=16&duration=2800&pause=1000&color=00A676&center=true&vCenter=true&width=650&lines=Piston+API+%2B+FastAPI+Backend+%2B+Vite+Frontend;Windows+%2B+WSL2+%2B+Docker+Workflow" alt="Typing SVG"/>
+
+# NeuroCode — Setup & Deployment Guide
+
+**Run the full NeuroCode platform on your own machine: Piston code execution, FastAPI backend and Vite frontend.**
+
+[Overview](#overview) •
+[Prerequisites](#prerequisites) •
+[1. Clone](#1-clone-the-repository) •
+[2. Supabase](#2-set-up-supabase-database) •
+[3. Firebase](#3-set-up-firebase-authentication) •
+[4. Piston](#4-start-piston-code-execution) •
+[5. Backend](#5-run-the-backend) •
+[6. Frontend](#6-run-the-frontend) •
+[7. First login](#7-first-login-and-admin-access) •
+[Troubleshooting](#troubleshooting) •
+[Shutdown](#shutdown) •
+[Deployment](#deployment-architecture)
+
 </div>
 
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,30:00A676,70:D4AF37,100:1a1a1a&height=2" width="100%"/>
-
-<div align="center">
+---
 
 ## Overview
 
-Running NeuroCode locally requires **four terminals**, each dedicated to a specific service.
+A local NeuroCode setup runs **three services**, each in its own terminal:
 
-[Terminal 1 Piston API (WSL2 + Docker)](#terminal-1) &nbsp;•&nbsp;
-[Terminal 2 FastAPI Backend](#terminal-2) &nbsp;•&nbsp;
-[Terminal 3 Vite Frontend](#terminal-3) &nbsp;•&nbsp;
-[Terminal 4 Optional (Testing / Git / Logs)](#terminal-4) &nbsp;•&nbsp;
-[Project Architecture](#project-architecture) &nbsp;•&nbsp;
-[Important Notes](#important-notes) &nbsp;•&nbsp;
-[Shutdown](#shutdown) &nbsp;•&nbsp;
-[First Startup Checklist](#first-startup-checklist) &nbsp;•&nbsp;
-[Deployment Architecture](#deployment-architecture) &nbsp;•&nbsp;
-[References](#references)
+| Terminal | Service | Default address | Role |
+|---|---|---|---|
+| 1 | **Piston** (Docker) | `http://localhost:2000` | Executes submitted code in sandboxed containers |
+| 2 | **Backend** (FastAPI + Uvicorn) | `http://localhost:8000` | API, grading, AI generation, proctoring checks |
+| 3 | **Frontend** (Vite + React) | `http://localhost:5173` | The web app you open in the browser |
 
-</div>
+It also uses three hosted services, each with a free tier: **Supabase** (PostgreSQL database),
+**Firebase Authentication** (sign-in), and a **Google Gemini API key** (AI problem generation).
 
-<p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
-</p>
-
-<div align="center">
-
-<a id="terminal-1"></a>
-## Terminal 1 Starting Piston (WSL2)
-
-</div>
-
-### Step 1 Start Docker Desktop
-
-**PowerShell (Windows):**
-
-```powershell
-docker desktop start
 ```
-
-**Expected:**
-> ✓ Starting Docker Desktop
-
-> **Note:** Wait until Docker Desktop is fully started before proceeding.
-
-### Step 2 Verify Docker Desktop
-
-**PowerShell (Windows):**
-
-```powershell
-docker desktop status
+Browser ──▶ Frontend (Vite, :5173)
+                │  Firebase sign-in, then API calls with a session token
+                ▼
+          Backend (FastAPI, :8000) ──▶ Supabase (PostgreSQL)
+                │                 ──▶ Google Gemini (AI generation)
+                │                 ──▶ ChromaDB (local embeddings folder)
+                ▼
+          Piston API (Docker, :2000) ──▶ Python / JavaScript / C++ runtimes
 ```
-**Expected:**
->Status : running
 
 ---
 
-### Step 3 Open WSL
+## Prerequisites
 
-**PowerShell (Windows):**
+| Tool | Version | Notes |
+|---|---|---|
+| Git | any recent | |
+| Docker | Docker Desktop (Windows / macOS) or Docker Engine (Linux) | Piston runs as a privileged Linux container. On Windows, use Docker Desktop with the WSL 2 backend. |
+| Python | 3.11 | The version the backend is developed and tested with |
+| Node.js | 18 or newer | Required by Vite 5; also used by Piston's package CLI |
+| Supabase account | free tier is fine | https://supabase.com |
+| Firebase project | free tier is fine | https://console.firebase.google.com |
+| Gemini API key | free tier is fine | https://aistudio.google.com/apikey |
 
-```powershell
-wsl
-```
-
-This launches the Bash environment all following commands in Terminal 1 run inside WSL.
+> **Windows users:** the commands below are shown for **PowerShell** and for **macOS/Linux (bash/zsh)**
+> where they differ. You can also run every Linux command inside a WSL 2 terminal.
 
 ---
 
-### Step 4 Navigate to the Piston Directory
-
-**Bash (WSL2):**
+## 1. Clone the repository
 
 ```bash
-cd ~/piston
+git clone https://github.com/mibrahim-O2/NueroCode-Official.git
+cd NueroCode-Official
 ```
 
-Verify:
-
-```bash
-pwd
-```
-
-**Expected:**
->/home/mibrahim/piston
+All paths below are relative to this repository folder unless stated otherwise.
 
 ---
 
-## Step 5 Start Piston
+## 2. Set up Supabase (database)
 
-```bash
-docker compose up -d
-```
-
-**Expected:**
->Container piston_api Started
+1. Create a new Supabase project.
+2. Open **SQL Editor** and run every file in `database/schema/` **in numeric order**
+   (`001_users.sql`, `002_roadmap_nodes.sql`, … up to the highest number). Each file is safe to run once.
+   The later files include the explicit `service_role` grants the backend needs.
+3. Open **Project Settings → API** and copy:
+   - the **Project URL** → `SUPABASE_URL`
+   - the **service_role** secret key → `SUPABASE_SERVICE_ROLE_KEY` (server-only; never put it in the frontend)
 
 ---
 
-## Step 6 Verify Installed Runtimes
+## 3. Set up Firebase (authentication)
 
+1. Create a Firebase project and open **Authentication → Sign-in method**.
+2. Enable **Email/Password**, **Google**, and **GitHub** (GitHub needs an OAuth app; Firebase shows the callback URL to use).
+3. Under **Authentication → Settings → Authorized domains**, make sure `localhost` is listed.
+4. **Project settings → General → Your apps:** add a **Web app** and keep its config values
+   (`apiKey`, `authDomain`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`) for the frontend.
+5. **Project settings → Service accounts:** click **Generate new private key** and save the file as
+   `backend/firebase-service-account.json`. This file is already in `.gitignore` — never commit it.
+
+---
+
+## 4. Start Piston (code execution)
+
+**Terminal 1.** Piston is a separate open-source project. Clone it **anywhere outside this repository**
+(your home folder is a good choice) and follow its README if anything below differs for your version:
+https://github.com/engineer-man/piston
+
+**1. Start Docker** (Docker Desktop on Windows/macOS; the Docker service on Linux) and confirm it's running:
+
+```bash
+docker info
+```
+
+**2. Clone and start the Piston API container:**
+
+```bash
+git clone https://github.com/engineer-man/piston.git
+cd piston
+docker compose up -d api
+```
+
+**3. Install the three language runtimes NeuroCode uses.** The versions must match
+`LANGUAGE_CONFIG` in `backend/app/services/piston_service.py`:
+
+```bash
+cd cli
+npm install
+cd ..
+node cli/index.js ppman install python=3.12.0
+node cli/index.js ppman install node=20.11.1
+node cli/index.js ppman install gcc=10.2.0
+```
+
+**4. Verify the runtimes are loaded:**
+
+macOS / Linux:
 ```bash
 curl http://localhost:2000/api/v2/runtimes
 ```
 
-Expected:
-
-```json
-[
-  {
-    "language": "python",
-    "version": "3.12.0"
-  },
-  {
-    "language": "javascript",
-    "version": "20.11.1"
-  },
-  {
-    "language": "c",
-    "version": "10.2.0"
-  },
-  {
-    "language": "c++",
-    "version": "10.2.0"
-  }
-]
+Windows (PowerShell):
+```powershell
+Invoke-RestMethod http://localhost:2000/api/v2/runtimes
 ```
 
-If all runtimes appear, Piston is ready.
-> **Only proceed to the Backend after this check passes.**
+You should see entries for `python` 3.12.0, `javascript` 20.11.1 and `c++` 10.2.0.
+**Only continue once this list is not empty.**
 
-<div align="center">
+> **Recommended compose settings.** Store runtime packages in a Docker **named volume**
+> (e.g. `piston_packages:/piston/packages`) rather than a bind mount, and use
+> `restart: unless-stopped`. A bind mount can occasionally be empty when the container starts
+> (especially on WSL 2), which makes the runtime list come back as `[]`.
 
-[⬆ Back to Overview](#overview)
+---
 
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+## 5. Run the backend
 
-<a id="terminal-2"></a>
-## Terminal 2 Backend
+**Terminal 2**, from the repository root:
 
-</div>
+**1. Create and activate a virtual environment**
 
-**PowerShell (Windows):**
+macOS / Linux:
+```bash
+cd backend
+python3.11 -m venv venv
+source venv/bin/activate
+```
 
+Windows (PowerShell):
 ```powershell
 cd backend
+py -3.11 -m venv venv
+venv\Scripts\Activate.ps1
 ```
 
-**Create the virtual environment (first-time setup only):**
+**2. Install dependencies** (first time, and whenever `requirements.txt` changes):
 
-```powershell
-python -m venv venv
-```
-
-Activate the environment:
-
-```powershell
-venv\Scripts\activate
-```
-
-**Install dependencies (first-time setup, and any time `requirements.txt` changes):**
-
-```powershell
+```bash
 pip install -r requirements.txt
 ```
 
-Run the backend:
+**3. Create your `.env`** from the template:
 
+macOS / Linux:
+```bash
+cp .env.example .env
+```
+
+Windows (PowerShell):
 ```powershell
+Copy-Item .env.example .env
+```
+
+Then fill it in:
+
+| Variable | Required | What to set |
+|---|---|---|
+| `SUPABASE_URL` | ✅ | Project URL from step 2 |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | service_role key from step 2 |
+| `JWT_SECRET` | ✅ | A long random string (signs NeuroCode session tokens) |
+| `GEMINI_API_KEY` | ✅ | Your Gemini API key |
+| `GEMINI_MODEL` | ✅ | A Gemini model name available to your key |
+| `ADMIN_EMAIL` | ✅ | **Your own** sign-in email — the account created with it becomes an admin |
+| `FIREBASE_SERVICE_ACCOUNT_PATH` | ✅ | `./firebase-service-account.json` (from step 3) |
+| `PISTON_API` | ✅ | `http://localhost:2000/api/v2` |
+| `FRONTEND_URL` | ✅ | `http://localhost:5173` (allowed CORS origin) |
+| `PROVIDER_SWITCH_PASSCODE` | recommended | Replace the placeholder; admins enter it to switch Practice to OpenAI |
+| `OPENAI_API_KEY`, `OPENAI_MODEL` | optional | Only needed for the admin-only OpenAI option |
+| `OWNER_EMAIL`, `DEMO_MODE_PASSCODE` | optional | Only needed for Demo Mode (see [docs/demo.md](demo.md)) |
+| `CHROMA_DB_PATH` | optional | Local folder for embeddings (default `./chromadb`) |
+| `INTEGRITY_PASS_THRESHOLD`, `ASSESSMENT_DURATION_SECONDS` | optional | Defaults: `60` and `2700` (45 min) |
+
+At startup the backend logs a warning if `JWT_SECRET` or `PROVIDER_SWITCH_PASSCODE` still use their
+placeholder values, or if the Demo Mode settings are unset.
+
+**4. Start the server:**
+
+```bash
 uvicorn app.main:app --reload --port 8000
 ```
 
-**Expected:**
->Application startup complete.
+**5. Check it:** open http://localhost:8000/health — `supabase`, `chromadb` and `piston` should all
+report `connected`.
 
-Backend URL:
-```
-http://localhost:8000
-```
+---
 
-> **Note:** You only need to re-run `pip install -r requirements.txt` when dependencies change — not on every startup.
+## 6. Run the frontend
 
-<div align="center">
+**Terminal 3**, from the repository root:
 
-[⬆ Back to Overview](#overview)
-
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
-
-<a id="terminal-3"></a>
-## Terminal 3 Frontend
-
-</div>
-
-**PowerShell (Windows):**
-
-```powershell
+```bash
 cd frontend
-```
-
-**Install dependencies (first-time setup, and any time `package.json` changes):**
-
-```powershell
 npm install
 ```
 
-Run:
+Create `frontend/.env` from the template (`cp .env.example .env` on macOS/Linux,
+`Copy-Item .env.example .env` in PowerShell) and fill in:
 
-```powershell
+| Variable | What to set |
+|---|---|
+| `VITE_FIREBASE_API_KEY` … `VITE_FIREBASE_APP_ID` | The web-app config values from step 3 |
+| `VITE_BACKEND_URL` | `http://localhost:8000` |
+| `VITE_OWNER_EMAIL` | Optional, Demo Mode only |
+
+Then start the dev server:
+
+```bash
 npm run dev
 ```
 
-**Expected:**
-```
-http://localhost:5173
-```
+Open **http://localhost:5173**.
 
-> **Note:** You only need to re-run `npm install` when dependencies change — not on every startup.
+---
 
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+## 7. First login and admin access
 
-<div align="center">
+1. Open http://localhost:5173/login and sign in (email, Google or GitHub).
+2. The first sign-in creates your NeuroCode account. If its email matches `ADMIN_EMAIL`, it is an
+   **admin**; everyone else starts as a **student**.
+3. As an admin you can promote other accounts to **educator** or **admin** from the Administration page.
 
-[⬆ Back to Overview](#overview)
+See [DOCUMENTATION.md](DOCUMENTATION.md) for a full walkthrough of every module.
 
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+---
 
-<a id="terminal-4"></a>
-## Terminal 4 Optional (Testing / Git / Logs)
+## Troubleshooting
 
-</div>
+| Symptom | Likely cause and fix |
+|---|---|
+| `/api/v2/runtimes` returns `[]` | Runtimes aren't installed or the packages volume wasn't ready. Run `docker restart piston_api`, check again, and re-run the `ppman install` commands if still empty. |
+| "Code execution service has no runtimes loaded" | Same as above — Piston is up but empty. |
+| "Code execution service unreachable" | Piston isn't running, or `PISTON_API` points to the wrong address. |
+| Browser shows CORS errors | `FRONTEND_URL` in `backend/.env` must exactly match the frontend's address. |
+| `permission denied for table …` from Supabase | A migration was skipped — re-run the `database/schema/` files in order. |
+| "AI provider is temporarily rate-limited" / HTTP 429 | Your Gemini key hit its request quota. Wait, or use a key with a higher limit. |
+| Sign-in works but the app shows no data | The backend isn't running, or `VITE_BACKEND_URL` is wrong. |
 
-**Bash (WSL2):**
+---
 
-```bash
-docker logs piston_api
-```
-
-```bash
-docker ps
-```
-
-```bash
-git status
-```
-<div align="center">
-
-[⬆ Back to Overview](#overview)
-
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
- 
-
-<a id="project-architecture"></a>
-## Project Architecture
-
-</div>
-
-```
-VS Code
-│
-├── Frontend (Vite)
-│      localhost:5173
-│
-├── Backend (FastAPI)
-│      localhost:8000
-│
-└── Piston API (Docker + WSL2)
-       localhost:2000
-```
-**Communication Flow**
-
-```
-Frontend
-   │
-   └──▶ Backend
-           │
-           ▼
-        Piston API
-           │
-           ▼
-        Python Runtime
-```
-
-<div align="center">
-
-[⬆ Back to Overview](#overview)
-
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
-
-<a id="important-notes"></a>
-## Important Notes
-
-</div>
-
-### 1. Docker First
-Always start Docker Desktop before opening WSL.
-
-### 2. Always Verify Piston
-```bash
-curl http://localhost:2000/api/v2/runtimes
-```
-
-### 3. Permanent Fix Applied
-Previously, Piston's runtime list would occasionally return empty (`[]`) after a restart, requiring `docker-compose up -d --force-recreate api` as a workaround. This was traced to bind-mount timing behavior on container redeploy — the runtime directory wasn't always available before Piston initialized.
-
-**This issue has been permanently resolved** by:
-- Replacing the bind mount (`./data/piston/packages:/piston/packages`) with a **Docker named volume** (`piston_packages:/piston/packages`)
-- Changing the restart policy from `restart: always` to `restart: unless-stopped`
-- Migrating existing runtime packages into the new named volume
-
-As a result, empty runtime output no longer occurs during normal startup. `--force-recreate` is no longer required or recommended as a routine step.
-
-### 4. If Empty Output Still Occurs (Rare, Post-Fix)
-This should not happen under normal conditions anymore, but if it does, follow these steps in order — do not jump straight to recreating the container:
-
-**Step 1 — Restart the container**
-```bash
-docker restart piston_api
-```
-Wait 2–3 seconds.
-
-**Step 2 — Verify again**
-```bash
-curl http://localhost:2000/api/v2/runtimes
-```
-
-**Step 3 — If still empty, recreate only the container**
-```bash
-docker rm -f piston_api
-docker compose up -d
-```
-
-**Step 4 — Verify again**
-```bash
-curl http://localhost:2000/api/v2/runtimes
-```
-
-If the issue persists even after Step 3–4, treat it as a new/different problem — not the original bind-mount issue — and investigate separately (check Docker Desktop status, WSL resources, or volume integrity) rather than reapplying the old workaround.
-
-### 5. Backend Environment Variable
-
-`.env`:
-
-```env
-PISTON_API=http://localhost:2000/api/v2
-```
-
-No code changes are required — the backend already reads this URL from the environment configuration.
-
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
-
-<a id="shutdown"></a>
 ## Shutdown
 
-**Backend / Frontend:**
+- **Backend and frontend:** press `Ctrl + C` in each terminal.
+- **Piston:** from your Piston folder, run `docker compose down`.
+
+---
+
+## Deployment architecture
+
+In production the three terminals become managed services:
 
 ```
-Ctrl + C
-```
-(Run in both the Backend and Frontend terminals)
-
-**Piston:**
-
-```bash
-docker-compose down
+┌─────────────────────┐   HTTPS   ┌──────────────────────┐   HTTP (private)   ┌─────────────────────┐
+│ Frontend            │ ────────▶ │ Backend              │ ─────────────────▶ │ Piston              │
+│ static build (dist) │           │ FastAPI / Uvicorn    │                    │ Docker, Linux host  │
+│ e.g. Netlify/Vercel │           │ container or Linux VM│                    │ (privileged)        │
+└─────────────────────┘           └──────────────────────┘                    └─────────────────────┘
 ```
 
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
+| Development | Production equivalent |
+|---|---|
+| `npm run dev` | `npm run build` produces static files in `frontend/dist/`, served by any static host. `frontend/netlify.toml` is included: set the Netlify **Base directory** to `frontend`, and it builds with `npm run build`, publishes `dist`, and rewrites every route to `index.html` so client-side routes work on refresh. |
+| `uvicorn --reload` | The same command without `--reload`, run by a process manager or container platform that restarts it on failure. |
+| Piston in local Docker | The same Piston image on a Linux host that allows privileged containers. Keep it on a private network reachable only by the backend. |
 
-<a id="first-startup-checklist"></a>
-## First Startup Checklist
+Only configuration changes between environments — never code:
 
-- [ ] Docker Desktop Running
-- [ ] WSL Opened
-- [ ] `docker-compose up -d api`
-- [ ] `curl http://localhost:2000/api/v2/runtimes`
-- [ ] Backend venv created (`python -m venv venv`)
-- [ ] Backend dependencies installed (`pip install -r requirements.txt`)
-- [ ] Backend Running
-- [ ] Frontend dependencies installed (`npm install`)
-- [ ] Frontend Running
+| Variable | Development | Production |
+|---|---|---|
+| `VITE_BACKEND_URL` (frontend build) | `http://localhost:8000` | Your backend's public HTTPS URL |
+| `VITE_FIREBASE_*` (frontend build) | Firebase web config | Same values; add your production domain to Firebase **Authorized domains** |
+| `FRONTEND_URL` | `http://localhost:5173` | Your frontend's public URL (CORS origin) |
+| `PISTON_API` | `http://localhost:2000/api/v2` | Piston's private network address |
+| `JWT_SECRET` | any local string | A strong random secret |
+| `FIREBASE_SERVICE_ACCOUNT_PATH` | `./firebase-service-account.json` | Path to the secret file mounted on the host |
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY`, `ADMIN_EMAIL` | your values | same (store as secrets) |
 
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
-
-<a id="deployment-architecture"></a>
-
-## Deployment Architecture
-
-<p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=3" width="85%"/>
-</p>
-
-This section maps each of the three development terminals to its production equivalent — what changes, what stays the same, and why.
+> **Note on a public backend:** AI problem generation uses your Gemini key. A free-tier key has a low
+> daily request limit, so a publicly reachable backend can exhaust it quickly. Use a key with an
+> appropriate quota before exposing the backend to real traffic.
 
 ---
 
-### Development (Current 3 Terminals)
- 
-<div align="center">
-<pre>
-┌─────────────────────────────────────────────────────────────────┐
-│                     DEVELOPMENT (Your Machine)                  │
-│                                                                 │
-│  Terminal 1          Terminal 2          Terminal 3             │
-│  ┌──────────┐        ┌──────────┐        ┌────────┐             │
-│  │  Piston  │        │ Backend  │        │Frontend│             │
-│  │  Docker  │◄──────►│ FastAPI  │◄──────►│  Vite  │             │
-│  │  (WSL2)  │  HTTP  │ Uvicorn  │  HTTP  │  Dev   │             │
-│  │          │        │ --reload │        │ Server │             │
-│  └──────────┘        └──────────┘        └────────┘             │
-│  :2000                :8000               :5173                │
-└─────────────────────────────────────────────────────────────────┘
-
-</pre>
-</div>
-
-All three processes run on `localhost`, communicating over plain HTTP on different ports. Each needs its own terminal because each is a separate, long-running, blocking process (different language runtime, different lifecycle) — not an architectural requirement, just a dev-workflow one.
-
----
-
-<div align="center">
-
-### Production (Target Deployment)
-
-<div align="center">
-<pre>
-┌────────────────────────────────────────────────────────────────────┐
-│                            PRODUCTION                              │
-│                                                                    │
-│   Vercel                    Railway                                │
-│  ┌──────────┐         ┌──────────────────┐                         │
-│  │ Frontend │  HTTPS  │     Backend      │                         │
-│  │ (static  │────────►│  FastAPI/Uvicorn │                         │
-│  │  build)  │         │  (managed,always │                         │
-│  │          │         │  on,auto-restart)│                         │
-│  └──────────┘         └─────────┬────────┘                         │
-│  CDN-served                     │ HTTP (internal)                  │
-│  no server                      ▼                                  │
-│                        ┌──────────────────┐                        │
-│                        │      Piston      │      Railway (or       │
-│                        │  Docker container│     dedicated Linux VM │
-│                        │  (Linux-native,  │                        │
-│                        │ no WSL2 involved)│                        │
-│                        └──────────────────┘                        │
-└────────────────────────────────────────────────────────────────────┘
-</pre>
-</div>
-
----
-
-### Terminal → Production Mapping
-
-| Dev (Terminal)                          | Production Equivalent                                                                 |
-|------------------------------------------|-----------------------------------------------------------------------------------------|
-| **Terminal 3**  Vite dev server          | Gone entirely. `npm run build` → static HTML/CSS/JS, served by **Vercel** behind a CDN. No Node process running in production. |
-| **Terminal 2**  `uvicorn --reload`       | Same Uvicorn command, minus `--reload`, run as a **Railway-managed process**. Railway restarts it automatically on crash. |
-| **Terminal 1**  Piston (WSL2 Docker)     | Same Docker image, deployed as a container on **Railway** (or a dedicated small Linux VM) — not on a personal Windows/WSL2 machine. |
-
-In production there are no terminals in the everyday sense — all three become background services managed by a hosting platform, which starts them, restarts them on crash, and exposes logs through a dashboard instead of a terminal window.
-
-</div>
-
----
-
-### Why Moving Piston Off WSL2 Matters
-
-The empty-runtimes bug (`[]` from `/api/v2/runtimes`) was rooted in a **bind-mount + `restart: always` race condition specific to WSL2's boot sequence** — the mounted volume wasn't always ready before Piston's one-time runtime scan ran.
-
-Deploying Piston to Railway (or a Linux VM) removes this entire class of problem — not because the code changes, but because the host stops being the Windows↔Linux bridge that caused the race in the first place. Linux-native hosting has no WSL2 boot cycle to race against.
-
-The **named volume + `restart: unless-stopped` fix** (see Permanent Fix section) still applies and is carried into the production Docker Compose/config as-is it's not a dev-only fix, it's the correct config regardless of host.
-
----
-
-### Environment Variable Switch (Dev → Prod)
-
-Only URLs change the communication mechanism (HTTP) stays identical. This is why every service reads these as env vars instead of hardcoding `localhost`.
-
-| Variable              | Development                          | Production                                  |
-|------------------------|----------------------------------------|-----------------------------------------------|
-| `VITE_BACKEND_URL`     | `http://localhost:8000`               | `https://your-app.up.railway.app`             |
-| `PISTON_API`           | `http://localhost:2000/api/v2`        | Internal Railway service URL / private network address |
-| `SUPABASE_URL`         | Supabase project URL                   | same (per-environment project)                |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service-role key         | same (keep secret; server-only)               |
-| `JWT_SECRET`           | any local string                       | strong random secret                          |
-| `GEMINI_API_KEY`       | Google AI Studio key                   | same                                          |
-| `FRONTEND_URL`         | `http://localhost:5173`               | `https://your-frontend.vercel.app` (CORS origin) |
-| `FIREBASE_SERVICE_ACCOUNT_PATH` | `./firebase-service-account.json` | path/secret file mounted on the host     |
-| `ADMIN_EMAIL`          | your admin account email               | same                                          |
-| `INTEGRITY_PASS_THRESHOLD` | `60`                               | `60` (tune as needed)                         |
-| `ASSESSMENT_DURATION_SECONDS` | `2700`                          | `2700`                                        |
-| `REVIEW_DUE_DAYS`      | `7`                                    | `7`                                           |
-| `INTERVIEW_DURATION_SECONDS` | `1800`                           | `1800`                                        |
-
-Switching environments is a **config change, not a code change**.
-
----
-
-### Summary
-
-- **Dev:** 3 terminals, all `localhost`, manually started/watched.
-- **Prod:** 2 managed services (Backend, Piston) on Railway + 1 static site (Frontend) on Vercel CDN. No terminals, no manual restarts, dashboard-based logs.
-- The Piston bind-mount race condition is a **Windows/WSL2-specific problem** it does not exist on Railway's Linux-native environment, independent of the permanent fix already applied.
-
-<div align="center">
-
-[⬆ Back to Overview](#overview)
-
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1a1a1a,50:2ea44f,100:1a1a1a&height=2" width="100%"/>
-
-<a id="references"></a>
 ## References
 
-</div>
-
-- [Docker Mounted Folder Becomes Empty After Redeploy Oscar's Notebook](https://oscarchou.com/posts/troubleshoot/docker-compose-mount-empty-after-redeploy/)
-- [Piston Configuration Documentation](https://piston.readthedocs.io/en/latest/configuration/)
-
-<div align="center">
-<sub>© 2026 AbstractMinds. All rights reserved.</sub>
-<br/>
-<sub>This execution guide is configured for the local development machine of <b>Muhammad Ibrahim</b> (Team Lead) paths, ports, and environment values may differ on other developers' machines.</sub>
-</div>
-<p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0d9488,50:eab308,100:0d9488&height=2" width="90%"/>
-</p>
-<div align="center">
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:1a1a1a,30:00A676,70:D4AF37,100:1a1a1a&height=100&section=footer"/>
-</div>
+- [Piston — GitHub repository and README](https://github.com/engineer-man/piston)
+- [Piston configuration documentation](https://piston.readthedocs.io/en/latest/configuration/)
+- [Supabase documentation](https://supabase.com/docs)
+- [Firebase Authentication documentation](https://firebase.google.com/docs/auth)
+- [Netlify file-based configuration](https://docs.netlify.com/configure-builds/file-based-configuration/)
