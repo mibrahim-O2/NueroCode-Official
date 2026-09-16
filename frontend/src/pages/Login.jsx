@@ -4,6 +4,31 @@ import { Mail, Lock, User, Loader2, Github, ArrowLeft, Eye, EyeOff } from 'lucid
 import Logo from '@/components/common/Logo';
 import { useAuth } from '@/context/AuthContext';
 
+// When the backend can't be reached (always the case on the static deployed
+// preview), the sign-in token exchange fails at the network level. Browsers
+// report that as a fetch TypeError with one of these messages (Chrome/Edge,
+// Firefox, Safari), which is the raw text the auth context would otherwise
+// show. Firebase's own errors and backend HTTP errors never match this, so
+// every other auth error is still displayed exactly as before.
+const BACKEND_UNREACHABLE_PATTERN = /failed to fetch|networkerror when attempting to fetch|load failed/i;
+
+function isBackendUnreachable(message) {
+  return typeof message === 'string' && BACKEND_UNREACHABLE_PATTERN.test(message);
+}
+
+// Friendly replacement for that raw network error: explains there is no live
+// backend here and points to the /get-started explainer.
+function BackendUnavailableNotice() {
+  return (
+    <div className="animate-slide-fade-in rounded-input border border-orange/40 bg-orange/10 px-3 py-2.5 text-xs leading-relaxed text-text-secondary">
+      NeuroCode&apos;s backend isn&apos;t running on this deployed preview, so sign-in can&apos;t complete here.{' '}
+      <Link to="/get-started" className="font-semibold text-orange hover:underline">
+        See why, and how to run it yourself →
+      </Link>
+    </div>
+  );
+}
+
 export default function Login() {
   const navigate = useNavigate();
   const { loginWithGoogle, loginWithGithub, loginWithEmail, registerWithEmail, resetPassword, error, setError } =
@@ -240,7 +265,15 @@ export default function Login() {
                 </button>
               )}
 
-              {error && <p className="animate-slide-fade-in text-xs text-status-error">{error}</p>}
+              {/* Sign-in / sign-up errors. Only the "backend unreachable" network
+                  failure is swapped for the friendly notice; every other auth
+                  error (wrong password, existing account, …) renders as before. */}
+              {error &&
+                (isBackendUnreachable(error) ? (
+                  <BackendUnavailableNotice />
+                ) : (
+                  <p className="animate-slide-fade-in text-xs text-status-error">{error}</p>
+                ))}
 
               <button
                 type="submit"
