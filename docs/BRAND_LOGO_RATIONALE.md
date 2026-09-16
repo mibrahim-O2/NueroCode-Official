@@ -1,7 +1,7 @@
 <!--
   Rewritten to describe the logo actually in use (frontend/src/assets/logo-mark.png).
   The previous version described an older emerald/mint design that was abandoned
-  and never shipped. Color swatches are static shields.io badges — a markdown
+  and never shipped. Color swatches are static shields.io badges a markdown
   file can't animate, so nothing here claims or attempts animation.
 -->
 
@@ -9,7 +9,7 @@
 
 <img src="../frontend/src/assets/logo-mark.png" alt="NeuroCode logo mark" width="220"/>
 
-# NeuroCode — Brand Logo Rationale
+# NeuroCode Brand Logo Rationale
 
 **A circuit-board brain around a bold "N": organic intelligence fused with structured engineering.**
 
@@ -38,7 +38,7 @@ pads and glowing nodes. A **bold "N"** stands at the center, and the brain is sp
 gold contact points are embedded in the circuitry on both sides.
 
 The idea in one line: **intelligence (the brain) and engineering (the circuit) are the same shape.**
-The mark doesn't place a brain next to a chip — the brain *is* the circuit.
+The mark doesn't place a brain next to a chip the brain *is* the circuit.
 
 ## 2. Color palette
 
@@ -56,18 +56,18 @@ The light theme uses deeper variants of the same hues for contrast on a pale bac
 
 ### The brain silhouette
 A rounded, lobed outline in dark metallic gray, with a short "stem" of traces at the bottom. Its soft,
-organic curves read as a *mind* — approachable rather than mechanical.
+organic curves read as a *mind* approachable rather than mechanical.
 
 ### The circuit-board interior
 Instead of drawn folds, the brain is filled with right-angled circuit traces that terminate in round
-pads and nodes, like a printed circuit board. The glowing nodes read as active connections — thought
+pads and nodes, like a printed circuit board. The glowing nodes read as active connections thought
 happening in hardware.
 
 ### The two color halves
-- **Orange (left)** — warm, energetic, human. The side with the brightest glowing nodes.
-- **Teal/mint (right)** — cool, precise, technical. The side carrying the `</>` code bracket.
+- **Orange (left)** warm, energetic, human. The side with the brightest glowing nodes.
+- **Teal/mint (right)** cool, precise, technical. The side carrying the `</>` code bracket.
 
-The split is vertical and clean, so the mark is one brain, not two halves pasted together — both
+The split is vertical and clean, so the mark is one brain, not two halves pasted together both
 sides share the same outline and the same circuit language.
 
 ### The bold "N"
@@ -76,26 +76,35 @@ composition, gives the mark an instant initial for **N**euroCode, and bridges bo
 
 ### Gold microchips and contacts
 Small square chips with gold borders sit inside both halves, along with gold solder contacts and the
-gold `</>` bracket on the teal side. Gold is used sparingly — as detail, not as a third half — so it
+gold `</>` bracket on the teal side. Gold is used sparingly as detail, not as a third half so it
 reads as precision and value.
 
 ## 4. What it communicates
 
 | Element | Meaning |
 |---|---|
-| Brain silhouette | Learning and understanding — the platform is about how a student *thinks*, not only what they type |
+| Brain silhouette | Learning and understanding the platform is about how a student *thinks*, not only what they type |
 | Circuit-board interior | Real engineering underneath: code that is actually executed, parsed and analyzed |
 | Orange / teal split | The fusion of organic intelligence and structured engineering in one system |
 | Central "N" | NeuroCode's identity, holding both halves together |
 | `</>` bracket | An unmistakable "this is a coding platform" cue, even at small sizes |
-| Gold chips | Earned, verifiable value — the credentials at the end of the learning path |
+| Gold chips | Earned, verifiable value the credentials at the end of the learning path |
 
 ## 5. How the logo is used in the product
 
 - **Source file:** `frontend/src/assets/logo-mark.png`, rendered by `frontend/src/components/common/Logo.jsx`.
-- **Wordmark:** next to the mark, "Neuro" is set in the primary text color and "Code" in Brand Orange —
+- **Wordmark:** next to the mark, "Neuro" is set in the primary text color and "Code" in Brand Orange 
   the same two-tone treatment used for the developer's name on the landing page.
 - **Favicons:** `frontend/public/favicon.ico`, `favicon-32.png` and `apple-touch-icon.png`.
 - **Hero:** on the landing page the mark is shown large, with a soft orange/teal glow, breathing rings
   and a circuit-trace background that echoes the circuitry inside the mark itself.
 - **App shell:** the sidebar and loading screens use the mark on its own, without the wordmark.
+
+---
+
+<!-- Standard closing line on every NeuroCode doc. -->
+<div align="center">
+
+© 2026 NeuroCode
+
+</div>
