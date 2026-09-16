@@ -1,7 +1,13 @@
-# NeuroCode Demo Mode — Presenter Script
+<div align="center">
+
+<img src="../frontend/src/assets/logo-mark.png" alt="NeuroCode logo" width="160"/>
+
+</div>
+
+# NeuroCode Demo Mode Presenter Script
 
 > Generated from `backend/app/demo/demo_content.py` by `python -m app.demo.generate_demo_docs`.
-> Don't edit the problem sections by hand — edit the content file and regenerate.
+> Don't edit the problem sections by hand edit the content file and regenerate.
 
 ## What Demo Mode is
 
@@ -21,7 +27,7 @@ and streak are the one deliberate exception: they are real.
    Restart the backend; the startup warning about these two settings should be gone.
 3. Optional: set `VITE_OWNER_EMAIL` in `frontend/.env` to the same email.
 4. Start Piston (Docker Desktop → `wsl` → `cd ~/piston && docker compose up -d`) and run
-   `cd backend && python -m app.demo.verify_demo_content` — it must end with `ALL DEMO CONTENT VERIFIED`.
+   `cd backend && python -m app.demo.verify_demo_content` it must end with `ALL DEMO CONTENT VERIFIED`.
 
 ## Switching Demo Mode on and off
 
@@ -48,15 +54,15 @@ The order matters: it guarantees I never hit an unexpected lock. The demo roadma
 4. **Complete topics.** Use **Mark Complete** on the active topics in order: Arrays → Hash Maps → Strings (or
    Arrays → Strings if I skipped step 3). Each completion awards real XP. This satisfies Assessment 1's rule:
    *Complete Arrays and Strings on the demo roadmap.*
-5. **Assessment 1 — Fundamentals.** Start it, show the inline integrity guide, and switch tabs once to show a live
+5. **Assessment 1 Fundamentals.** Start it, show the inline integrity guide, and switch tabs once to show a live
    *Tab Switching* event. Paste each question's correct solution and submit.
    - Pasting counts as a real *Large Paste* event (−8 each), tab switch −5, camera alert −10, typing-rhythm alert −6;
      below 60 the attempt is flagged and can't pass. Three pastes plus one tab switch = 71, which still passes.
    - Keep the camera on and stay in frame, or repeated camera alerts will flag the attempt.
-6. **Challenge Gate — Two Pointers.** Roadmap → Two Pointers → **Take Challenge Gate**. Submit a wrong
+6. **Challenge Gate Two Pointers.** Roadmap → Two Pointers → **Take Challenge Gate**. Submit a wrong
    solution once to show a failure, then solve all 3. The topic completes (+100 XP), which satisfies Assessment 2's rule:
    *Solve all 3 problems in the Two Pointers Challenge Gate.*
-7. **Assessment 2 — Lookups & Efficiency.** Same flow as Assessment 1.
+7. **Assessment 2 Lookups & Efficiency.** Same flow as Assessment 1.
 8. **Credentials.** Pick the assessment and tier (pre-selected to the tier I actually earned) → **Issue Demo Credential**
    → **View Certificate** → **Copy Verification Link** and open it: it shows *"This is a demo credential"*.
 9. **Mock Interview.** Topic `Arrays`, `Strings` or `Hash Maps` → solve under the real timer.
@@ -98,20 +104,20 @@ then Dashboard last.
 **mibrahim-O2** is the identity I present under, so my personal name, email and photo never appear on the projector.
 **Demo Student A, Demo Student B, Demo Student C** are clearly fictional accounts with `@example.com` addresses. They are real database rows, so the
 real admin role and reset actions work on them unchanged, and they carry a permanent `is_demo_cohort` flag that
-excludes them from every real leaderboard, cohort view, user list, analytics query and admin count — whether Demo Mode
+excludes them from every real leaderboard, cohort view, user list, analytics query and admin count whether Demo Mode
 is on or off. They exist only to give the educator view something realistic to show.
 
 ## Fixed demo content
 
 ### Practice (9 problems, Python / JavaScript / C++)
 
-#### First Repeated Reading — easy · Arrays · key `easy-first-repeated-reading` · ANTI-PATTERN TRIGGER
+#### First Repeated Reading easy · Arrays · key `easy-first-repeated-reading` · ANTI-PATTERN TRIGGER
 
 A sensor streams integer readings one at a time. Return the first reading value that appears for a second time as you read the list from left to right. If no value ever repeats, return -1.
 
 Expected complexity: `O(n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(readings):
@@ -123,7 +129,7 @@ def solve(readings):
     return -1
 ```
 
-**Python — wrong.** Two problems. First, each reading is added to `seen` BEFORE the check, so every reading finds itself and the function always returns the first element. Second, `seen` is a list, so `value in seen` rescans it on every iteration (O(n^2)). The analyzer flags that second issue as a linear membership check, which is what moves Hash Maps forward on the roadmap. Fix: check a set first, then add.
+**Python wrong.** Two problems. First, each reading is added to `seen` BEFORE the check, so every reading finds itself and the function always returns the first element. Second, `seen` is a list, so `value in seen` rescans it on every iteration (O(n^2)). The analyzer flags that second issue as a linear membership check, which is what moves Hash Maps forward on the roadmap. Fix: check a set first, then add.
 
 ```python
 def solve(readings):
@@ -135,7 +141,7 @@ def solve(readings):
     return -1
 ```
 
-**JavaScript — correct**
+**JavaScript correct**
 
 ```javascript
 function solve(readings) {
@@ -150,7 +156,7 @@ function solve(readings) {
 }
 ```
 
-**JavaScript — wrong.** Pushes the reading before checking, so every reading matches itself and the first element is always returned; `includes` on an array is also a linear scan per step. Fix: check a Set first, then add.
+**JavaScript wrong.** Pushes the reading before checking, so every reading matches itself and the first element is always returned; `includes` on an array is also a linear scan per step. Fix: check a Set first, then add.
 
 ```javascript
 function solve(readings) {
@@ -165,7 +171,7 @@ function solve(readings) {
 }
 ```
 
-**C++ — correct**
+**C++ correct**
 
 ```cpp
 #include <unordered_set>
@@ -182,7 +188,7 @@ int solve(vector<int> readings) {
 }
 ```
 
-**C++ — wrong.** Stores the reading before scanning, so the inner loop always matches the reading itself and the first element is returned. Fix: check an unordered_set before inserting.
+**C++ wrong.** Stores the reading before scanning, so the inner loop always matches the reading itself and the first element is returned. Fix: check an unordered_set before inserting.
 
 ```cpp
 int solve(vector<int> readings) {
@@ -199,27 +205,27 @@ int solve(vector<int> readings) {
 }
 ```
 
-#### Reverse Word Order — easy · Strings · key `easy-reverse-word-order`
+#### Reverse Word Order easy · Strings · key `easy-reverse-word-order`
 
 Given a line of text, return its words in reverse order, separated by single spaces. The input may contain leading, trailing, or repeated spaces between words; the output must not.
 
 Expected complexity: `O(n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(text):
     return " ".join(reversed(text.split()))
 ```
 
-**Python — wrong.** Missed edge case: split(" ") keeps an empty string for every extra space, so repeated spaces survive into the output. It passes on clean input and fails on messy spacing. Fix: split() with no argument, which splits on any run of whitespace.
+**Python wrong.** Missed edge case: split(" ") keeps an empty string for every extra space, so repeated spaces survive into the output. It passes on clean input and fails on messy spacing. Fix: split() with no argument, which splits on any run of whitespace.
 
 ```python
 def solve(text):
     return " ".join(text.split(" ")[::-1])
 ```
 
-**JavaScript — correct**
+**JavaScript correct**
 
 ```javascript
 function solve(text) {
@@ -227,7 +233,7 @@ function solve(text) {
 }
 ```
 
-**JavaScript — wrong.** Missed edge case: split(" ") produces empty strings for repeated spaces, and they are rejoined into the output. Fix: filter out the empty pieces before reversing.
+**JavaScript wrong.** Missed edge case: split(" ") produces empty strings for repeated spaces, and they are rejoined into the output. Fix: filter out the empty pieces before reversing.
 
 ```javascript
 function solve(text) {
@@ -235,7 +241,7 @@ function solve(text) {
 }
 ```
 
-**C++ — correct**
+**C++ correct**
 
 ```cpp
 #include <sstream>
@@ -258,7 +264,7 @@ string solve(string text) {
 }
 ```
 
-**C++ — wrong.** Splits on every single space, so repeated spaces create empty words that are joined back into the output. Fix: read words with a stream, which skips any whitespace.
+**C++ wrong.** Splits on every single space, so repeated spaces create empty words that are joined back into the output. Fix: read words with a stream, which skips any whitespace.
 
 ```cpp
 string solve(string text) {
@@ -284,13 +290,13 @@ string solve(string text) {
 }
 ```
 
-#### Largest Temperature Rise — easy · Arrays · key `easy-largest-temperature-rise`
+#### Largest Temperature Rise easy · Arrays · key `easy-largest-temperature-rise`
 
 You are given hourly temperature readings in order. Return the largest rise from an earlier reading to a later one (later minus earlier). If temperatures never rise, return 0.
 
 Expected complexity: `O(n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(temps):
@@ -302,7 +308,7 @@ def solve(temps):
     return best
 ```
 
-**Python — wrong.** Missed edge case: `best` starts at the first difference instead of 0, so when temperatures only fall it returns a negative 'rise'. Fix: start `best` at 0.
+**Python wrong.** Missed edge case: `best` starts at the first difference instead of 0, so when temperatures only fall it returns a negative 'rise'. Fix: start `best` at 0.
 
 ```python
 def solve(temps):
@@ -314,7 +320,7 @@ def solve(temps):
     return best
 ```
 
-**JavaScript — correct**
+**JavaScript correct**
 
 ```javascript
 function solve(temps) {
@@ -328,7 +334,7 @@ function solve(temps) {
 }
 ```
 
-**JavaScript — wrong.** Starts `best` at the first difference, which is negative when temperatures fall. Fix: start `best` at 0.
+**JavaScript wrong.** Starts `best` at the first difference, which is negative when temperatures fall. Fix: start `best` at 0.
 
 ```javascript
 function solve(temps) {
@@ -342,7 +348,7 @@ function solve(temps) {
 }
 ```
 
-**C++ — correct**
+**C++ correct**
 
 ```cpp
 #include <algorithm>
@@ -358,7 +364,7 @@ int solve(vector<int> temps) {
 }
 ```
 
-**C++ — wrong.** Starts `best` at the first difference, which is negative when temperatures fall. Fix: start `best` at 0.
+**C++ wrong.** Starts `best` at the first difference, which is negative when temperatures fall. Fix: start `best` at 0.
 
 ```cpp
 #include <algorithm>
@@ -374,13 +380,13 @@ int solve(vector<int> temps) {
 }
 ```
 
-#### Pairs That Hit the Target — medium · Hash Maps · key `medium-pairs-that-hit-target`
+#### Pairs That Hit the Target medium · Hash Maps · key `medium-pairs-that-hit-target`
 
 Given a list of integers and a target, count the index pairs (i, j) with i < j whose values add up exactly to target. A value can never be paired with itself.
 
 Expected complexity: `O(n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(nums, target):
@@ -392,7 +398,7 @@ def solve(nums, target):
     return pairs
 ```
 
-**Python — wrong.** Ordering bug: the current value is counted BEFORE looking up its complement, so when x + x == target the value pairs with itself. It passes most inputs and fails only when two halves of the target appear. Fix: look up first, then record x.
+**Python wrong.** Ordering bug: the current value is counted BEFORE looking up its complement, so when x + x == target the value pairs with itself. It passes most inputs and fails only when two halves of the target appear. Fix: look up first, then record x.
 
 ```python
 def solve(nums, target):
@@ -404,7 +410,7 @@ def solve(nums, target):
     return pairs
 ```
 
-**JavaScript — correct**
+**JavaScript correct**
 
 ```javascript
 function solve(nums, target) {
@@ -418,7 +424,7 @@ function solve(nums, target) {
 }
 ```
 
-**JavaScript — wrong.** Records x before looking up target - x, so x pairs with itself when x + x == target. Fix: look up first, then record.
+**JavaScript wrong.** Records x before looking up target - x, so x pairs with itself when x + x == target. Fix: look up first, then record.
 
 ```javascript
 function solve(nums, target) {
@@ -432,7 +438,7 @@ function solve(nums, target) {
 }
 ```
 
-**C++ — correct**
+**C++ correct**
 
 ```cpp
 #include <unordered_map>
@@ -451,7 +457,7 @@ int solve(vector<int> nums, int target) {
 }
 ```
 
-**C++ — wrong.** Increments counts[x] before the lookup, so x pairs with itself when x + x == target. Fix: look up first, then increment.
+**C++ wrong.** Increments counts[x] before the lookup, so x pairs with itself when x + x == target. Fix: look up first, then increment.
 
 ```cpp
 #include <unordered_map>
@@ -470,13 +476,13 @@ int solve(vector<int> nums, int target) {
 }
 ```
 
-#### Affordable Gift Pairs — medium · Two Pointers · key `medium-affordable-gift-pairs`
+#### Affordable Gift Pairs medium · Two Pointers · key `medium-affordable-gift-pairs`
 
 A shop lists item prices in no particular order. Count how many pairs of different items (i < j) cost no more than budget in total. A total exactly equal to budget is affordable.
 
 Expected complexity: `O(n log n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(prices, budget):
@@ -492,7 +498,7 @@ def solve(prices, budget):
     return count
 ```
 
-**Python — wrong.** Wrong comparison operator: `<` instead of `<=`, so a pair costing exactly the budget is treated as too expensive. Fix: use `<=`.
+**Python wrong.** Wrong comparison operator: `<` instead of `<=`, so a pair costing exactly the budget is treated as too expensive. Fix: use `<=`.
 
 ```python
 def solve(prices, budget):
@@ -508,7 +514,7 @@ def solve(prices, budget):
     return count
 ```
 
-**JavaScript — correct**
+**JavaScript correct**
 
 ```javascript
 function solve(prices, budget) {
@@ -528,7 +534,7 @@ function solve(prices, budget) {
 }
 ```
 
-**JavaScript — wrong.** Uses `<` instead of `<=`, rejecting pairs that cost exactly the budget.
+**JavaScript wrong.** Uses `<` instead of `<=`, rejecting pairs that cost exactly the budget.
 
 ```javascript
 function solve(prices, budget) {
@@ -548,7 +554,7 @@ function solve(prices, budget) {
 }
 ```
 
-**C++ — correct**
+**C++ correct**
 
 ```cpp
 #include <algorithm>
@@ -570,7 +576,7 @@ int solve(vector<int> prices, int budget) {
 }
 ```
 
-**C++ — wrong.** Uses `<` instead of `<=`, rejecting pairs that cost exactly the budget.
+**C++ wrong.** Uses `<` instead of `<=`, rejecting pairs that cost exactly the budget.
 
 ```cpp
 #include <algorithm>
@@ -592,13 +598,13 @@ int solve(vector<int> prices, int budget) {
 }
 ```
 
-#### Busiest Stretch of Hours — medium · Sliding Window · key `medium-busiest-stretch-of-hours`
+#### Busiest Stretch of Hours medium · Sliding Window · key `medium-busiest-stretch-of-hours`
 
 visits[i] is the number of visitors in hour i. Return the largest total number of visitors across any k consecutive hours.
 
 Expected complexity: `O(n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(visits, k):
@@ -610,7 +616,7 @@ def solve(visits, k):
     return best
 ```
 
-**Python — wrong.** Off-by-one: the loop stops one hour early, so the final window is never considered. It passes whenever the busiest stretch is somewhere earlier. Fix: loop to len(visits).
+**Python wrong.** Off-by-one: the loop stops one hour early, so the final window is never considered. It passes whenever the busiest stretch is somewhere earlier. Fix: loop to len(visits).
 
 ```python
 def solve(visits, k):
@@ -622,7 +628,7 @@ def solve(visits, k):
     return best
 ```
 
-**JavaScript — correct**
+**JavaScript correct**
 
 ```javascript
 function solve(visits, k) {
@@ -639,7 +645,7 @@ function solve(visits, k) {
 }
 ```
 
-**JavaScript — wrong.** Off-by-one: stops before the last window. Fix: loop while i < visits.length.
+**JavaScript wrong.** Off-by-one: stops before the last window. Fix: loop while i < visits.length.
 
 ```javascript
 function solve(visits, k) {
@@ -656,7 +662,7 @@ function solve(visits, k) {
 }
 ```
 
-**C++ — correct**
+**C++ correct**
 
 ```cpp
 #include <algorithm>
@@ -675,7 +681,7 @@ int solve(vector<int> visits, int k) {
 }
 ```
 
-**C++ — wrong.** Off-by-one: stops before the last window. Fix: loop while i < visits.size().
+**C++ wrong.** Off-by-one: stops before the last window. Fix: loop while i < visits.size().
 
 ```cpp
 #include <algorithm>
@@ -694,13 +700,13 @@ int solve(vector<int> visits, int k) {
 }
 ```
 
-#### Longest Run of Unique Characters — hard · Sliding Window · key `hard-longest-unique-run`
+#### Longest Run of Unique Characters hard · Sliding Window · key `hard-longest-unique-run`
 
 Return the length of the longest contiguous stretch of text in which no character repeats.
 
 Expected complexity: `O(n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(text):
@@ -715,7 +721,7 @@ def solve(text):
     return best
 ```
 
-**Python — wrong.** Missed edge case: a character last seen BEFORE the current window can drag `left` backwards (try "abba"), re-admitting a repeat into the window. It passes the common examples and fails exactly that case. Fix: only move `left` when the last occurrence is inside the window (last_seen[ch] >= left).
+**Python wrong.** Missed edge case: a character last seen BEFORE the current window can drag `left` backwards (try "abba"), re-admitting a repeat into the window. It passes the common examples and fails exactly that case. Fix: only move `left` when the last occurrence is inside the window (last_seen[ch] >= left).
 
 ```python
 def solve(text):
@@ -730,7 +736,7 @@ def solve(text):
     return best
 ```
 
-**JavaScript — correct**
+**JavaScript correct**
 
 ```javascript
 function solve(text) {
@@ -749,7 +755,7 @@ function solve(text) {
 }
 ```
 
-**JavaScript — wrong.** Lets `left` move backwards when the repeat was already outside the window. Fix: require lastSeen.get(ch) >= left.
+**JavaScript wrong.** Lets `left` move backwards when the repeat was already outside the window. Fix: require lastSeen.get(ch) >= left.
 
 ```javascript
 function solve(text) {
@@ -768,7 +774,7 @@ function solve(text) {
 }
 ```
 
-**C++ — correct**
+**C++ correct**
 
 ```cpp
 #include <unordered_map>
@@ -790,7 +796,7 @@ int solve(string text) {
 }
 ```
 
-**C++ — wrong.** Lets `left` move backwards when the repeat was already outside the window. Fix: require lastSeen[ch] >= left.
+**C++ wrong.** Lets `left` move backwards when the repeat was already outside the window. Fix: require lastSeen[ch] >= left.
 
 ```cpp
 #include <unordered_map>
@@ -812,13 +818,13 @@ int solve(string text) {
 }
 ```
 
-#### Widest Water Tank — hard · Two Pointers · key `hard-widest-water-tank`
+#### Widest Water Tank hard · Two Pointers · key `hard-widest-water-tank`
 
 walls[i] is the height of a vertical wall at position i. Any two walls form a tank whose capacity is the distance between them multiplied by the shorter wall's height. Return the largest possible capacity.
 
 Expected complexity: `O(n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(walls):
@@ -834,7 +840,7 @@ def solve(walls):
     return best
 ```
 
-**Python — wrong.** Moves the TALLER wall inward instead of the shorter one, so the short wall keeps capping every later tank. It still passes symmetric inputs like [4, 3, 2, 1, 4]. Fix: move the pointer at the shorter wall (flip the comparison).
+**Python wrong.** Moves the TALLER wall inward instead of the shorter one, so the short wall keeps capping every later tank. It still passes symmetric inputs like [4, 3, 2, 1, 4]. Fix: move the pointer at the shorter wall (flip the comparison).
 
 ```python
 def solve(walls):
@@ -850,7 +856,7 @@ def solve(walls):
     return best
 ```
 
-**JavaScript — correct**
+**JavaScript correct**
 
 ```javascript
 function solve(walls) {
@@ -870,7 +876,7 @@ function solve(walls) {
 }
 ```
 
-**JavaScript — wrong.** Moves the taller wall inward instead of the shorter one. Fix: flip the comparison.
+**JavaScript wrong.** Moves the taller wall inward instead of the shorter one. Fix: flip the comparison.
 
 ```javascript
 function solve(walls) {
@@ -890,7 +896,7 @@ function solve(walls) {
 }
 ```
 
-**C++ — correct**
+**C++ correct**
 
 ```cpp
 #include <algorithm>
@@ -912,7 +918,7 @@ int solve(vector<int> walls) {
 }
 ```
 
-**C++ — wrong.** Moves the taller wall inward instead of the shorter one. Fix: flip the comparison.
+**C++ wrong.** Moves the taller wall inward instead of the shorter one. Fix: flip the comparison.
 
 ```cpp
 #include <algorithm>
@@ -934,13 +940,13 @@ int solve(vector<int> walls) {
 }
 ```
 
-#### Longest Balanced Ledger Run — hard · Hash Maps · key `hard-longest-balanced-ledger-run`
+#### Longest Balanced Ledger Run hard · Hash Maps · key `hard-longest-balanced-ledger-run`
 
 A ledger records daily balance changes, which can be negative. Return the length of the longest run of consecutive days whose changes add up exactly to k, or 0 if no such run exists.
 
 Expected complexity: `O(n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(changes, k):
@@ -956,7 +962,7 @@ def solve(changes, k):
     return best
 ```
 
-**Python — wrong.** Overwrites each prefix sum's index on every occurrence, so it remembers the LATEST index instead of the earliest — and the longest run needs the earliest. It passes when no prefix sum repeats. Fix: only store a prefix the first time it appears.
+**Python wrong.** Overwrites each prefix sum's index on every occurrence, so it remembers the LATEST index instead of the earliest and the longest run needs the earliest. It passes when no prefix sum repeats. Fix: only store a prefix the first time it appears.
 
 ```python
 def solve(changes, k):
@@ -971,7 +977,7 @@ def solve(changes, k):
     return best
 ```
 
-**JavaScript — correct**
+**JavaScript correct**
 
 ```javascript
 function solve(changes, k) {
@@ -991,7 +997,7 @@ function solve(changes, k) {
 }
 ```
 
-**JavaScript — wrong.** Overwrites the earliest index of each prefix sum. Fix: only set it the first time.
+**JavaScript wrong.** Overwrites the earliest index of each prefix sum. Fix: only set it the first time.
 
 ```javascript
 function solve(changes, k) {
@@ -1009,7 +1015,7 @@ function solve(changes, k) {
 }
 ```
 
-**C++ — correct**
+**C++ correct**
 
 ```cpp
 #include <unordered_map>
@@ -1033,7 +1039,7 @@ int solve(vector<int> changes, int k) {
 }
 ```
 
-**C++ — wrong.** Overwrites the earliest index of each prefix sum. Fix: only set it the first time.
+**C++ wrong.** Overwrites the earliest index of each prefix sum. Fix: only set it the first time.
 
 ```cpp
 #include <unordered_map>
@@ -1055,15 +1061,15 @@ int solve(vector<int> changes, int k) {
 }
 ```
 
-### Challenge Gate — Two Pointers (3 problems, Python)
+### Challenge Gate Two Pointers (3 problems, Python)
 
-#### Q1. Unique Values in a Sorted Log — easy
+#### Q1. Unique Values in a Sorted Log easy
 
 values is sorted in non-decreasing order. Using two pointers, compact the unique values to the front of the list in place and return how many unique values there are.
 
 Expected complexity: `O(n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(values):
@@ -1077,7 +1083,7 @@ def solve(values):
     return slow + 1
 ```
 
-**Python — wrong.** Off-by-one: `slow` is the INDEX of the last unique value, so the count is slow + 1. Only the empty-list case passes.
+**Python wrong.** Off-by-one: `slow` is the INDEX of the last unique value, so the count is slow + 1. Only the empty-list case passes.
 
 ```python
 def solve(values):
@@ -1091,13 +1097,13 @@ def solve(values):
     return slow
 ```
 
-#### Q2. Palindrome With One Deletion — medium
+#### Q2. Palindrome With One Deletion medium
 
 Return 1 if text reads the same forwards and backwards after deleting at most one character, otherwise return 0.
 
 Expected complexity: `O(n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(text):
@@ -1120,7 +1126,7 @@ def solve(text):
     return 1
 ```
 
-**Python — wrong.** Missed case: on a mismatch it only tries deleting the LEFT character, never the right one, so inputs like "eeeed" that need the right-hand deletion fail. Fix: try both sides.
+**Python wrong.** Missed case: on a mismatch it only tries deleting the LEFT character, never the right one, so inputs like "eeeed" that need the right-hand deletion fail. Fix: try both sides.
 
 ```python
 def solve(text):
@@ -1143,13 +1149,13 @@ def solve(text):
     return 1
 ```
 
-#### Q3. Rainwater Between Walls — hard
+#### Q3. Rainwater Between Walls hard
 
 heights[i] is the height of a wall of width 1. After rain, water collects between taller walls. Return the total units of water trapped.
 
 Expected complexity: `O(n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(heights):
@@ -1168,7 +1174,7 @@ def solve(heights):
     return water
 ```
 
-**Python — wrong.** Ordering bug: water is added BEFORE the running maximum is updated, so every new tallest wall contributes negative water. Fix: update the maximum first, then add.
+**Python wrong.** Ordering bug: water is added BEFORE the running maximum is updated, so every new tallest wall contributes negative water. Fix: update the maximum first, then add.
 
 ```python
 def solve(heights):
@@ -1189,7 +1195,7 @@ def solve(heights):
 
 ### Assessments (2 assessments × 3 questions, Python)
 
-#### Fundamentals (`assessment_1`) — topics: Arrays, Strings
+#### Fundamentals (`assessment_1`) topics: Arrays, Strings
 
 Unlocks when: **Complete Arrays and Strings on the demo roadmap.**
 
@@ -1199,7 +1205,7 @@ Return how many different words appear exactly once in sentence. Words are separ
 
 Expected complexity: `O(n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(sentence):
@@ -1209,7 +1215,7 @@ def solve(sentence):
     return sum(1 for c in counts.values() if c == 1)
 ```
 
-**Python — wrong.** Missed requirement: compares words case-sensitively, so "Go" and "go" count as different words. Fix: lowercase the sentence first.
+**Python wrong.** Missed requirement: compares words case-sensitively, so "Go" and "go" count as different words. Fix: lowercase the sentence first.
 
 ```python
 def solve(sentence):
@@ -1225,7 +1231,7 @@ Return the second highest DISTINCT value in readings, or -1 if there isn't one.
 
 Expected complexity: `O(n log n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(readings):
@@ -1233,7 +1239,7 @@ def solve(readings):
     return distinct[1] if len(distinct) > 1 else -1
 ```
 
-**Python — wrong.** Missed requirement: duplicates aren't removed, so a repeated maximum is returned as the "second highest". Fix: deduplicate with set() before sorting.
+**Python wrong.** Missed requirement: duplicates aren't removed, so a repeated maximum is returned as the "second highest". Fix: deduplicate with set() before sorting.
 
 ```python
 def solve(readings):
@@ -1247,21 +1253,21 @@ Return "YES" if first and second contain exactly the same letters the same numbe
 
 Expected complexity: `O(n log n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(first, second):
     return "YES" if sorted(first.lower()) == sorted(second.lower()) else "NO"
 ```
 
-**Python — wrong.** Compares SETS of letters, which ignores how many times each letter appears, so "aab" and "abb" look like anagrams. Fix: compare sorted letters (or counts).
+**Python wrong.** Compares SETS of letters, which ignores how many times each letter appears, so "aab" and "abb" look like anagrams. Fix: compare sorted letters (or counts).
 
 ```python
 def solve(first, second):
     return "YES" if set(first.lower()) == set(second.lower()) else "NO"
 ```
 
-#### Lookups & Efficiency (`assessment_2`) — topics: Hash Maps, Two Pointers
+#### Lookups & Efficiency (`assessment_2`) topics: Hash Maps, Two Pointers
 
 Unlocks when: **Solve all 3 problems in the Two Pointers Challenge Gate.**
 
@@ -1271,7 +1277,7 @@ Return the indices of the first pair of readings (in index order) that add up to
 
 Expected complexity: `O(n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(nums, target):
@@ -1283,7 +1289,7 @@ def solve(nums, target):
     return "-1,-1"
 ```
 
-**Python — wrong.** Ordering bug: stores the current index before checking, so a value can pair with itself (answering "0,0"). Fix: check for the complement first, then store.
+**Python wrong.** Ordering bug: stores the current index before checking, so a value can pair with itself (answering "0,0"). Fix: check for the complement first, then store.
 
 ```python
 def solve(nums, target):
@@ -1301,7 +1307,7 @@ values is sorted ascending. Using two pointers, return the sum of two different 
 
 Expected complexity: `O(n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(values, target):
@@ -1320,7 +1326,7 @@ def solve(values, target):
     return best
 ```
 
-**Python — wrong.** Moves the wrong pointer: when the sum is too SMALL it shrinks the larger value, making the sum even smaller. Fix: a sum below target moves `left` up; above target moves `right` down.
+**Python wrong.** Moves the wrong pointer: when the sum is too SMALL it shrinks the larger value, making the sum even smaller. Fix: a sum below target moves `left` up; above target moves `right` down.
 
 ```python
 def solve(values, target):
@@ -1343,7 +1349,7 @@ Return the length of the longest sequence of consecutive integers that can be fo
 
 Expected complexity: `O(n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(nums):
@@ -1358,7 +1364,7 @@ def solve(nums):
     return best
 ```
 
-**Python — wrong.** Missed edge case: a duplicate value resets the streak (in [0, 1, 1, 2] the second 1 breaks it), so streaks containing repeats come out too short. Fix: deduplicate first, or skip equal neighbours without resetting.
+**Python wrong.** Missed edge case: a duplicate value resets the streak (in [0, 1, 1, 2] the second 1 breaks it), so streaks containing repeats come out too short. Fix: deduplicate first, or skip equal neighbours without resetting.
 
 ```python
 def solve(nums):
@@ -1377,13 +1383,13 @@ def solve(nums):
 
 ### Mock Interview (3 topics, Python)
 
-#### Topic "Arrays": Merge Two Sorted Lists — easy
+#### Topic "Arrays": Merge Two Sorted Lists easy
 
 a and b are each sorted ascending. Return a single list containing every value from both, sorted.
 
 Expected complexity: `O(n + m)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(a, b):
@@ -1401,7 +1407,7 @@ def solve(a, b):
     return merged
 ```
 
-**Python — wrong.** Forgets the leftover tail of b, so whenever a runs out first the rest of b is dropped. Fix: extend with b[j:] as well.
+**Python wrong.** Forgets the leftover tail of b, so whenever a runs out first the rest of b is dropped. Fix: extend with b[j:] as well.
 
 ```python
 def solve(a, b):
@@ -1418,13 +1424,13 @@ def solve(a, b):
     return merged
 ```
 
-#### Topic "Strings": Balanced Brackets — medium
+#### Topic "Strings": Balanced Brackets medium
 
 text contains only the characters ()[]{}. Return "YES" if every bracket is closed by the matching type in the correct order, otherwise "NO".
 
 Expected complexity: `O(n)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(text):
@@ -1439,7 +1445,7 @@ def solve(text):
     return "YES" if not stack else "NO"
 ```
 
-**Python — wrong.** Missed edge case: never checks for brackets still open at the end, so "((" is accepted. Fix: only answer YES if the stack is empty.
+**Python wrong.** Missed edge case: never checks for brackets still open at the end, so "((" is accepted. Fix: only answer YES if the stack is empty.
 
 ```python
 def solve(text):
@@ -1454,13 +1460,13 @@ def solve(text):
     return "YES"
 ```
 
-#### Topic "Hash Maps": Count Anagram Groups — medium
+#### Topic "Hash Maps": Count Anagram Groups medium
 
 Return how many groups of anagrams the list of words forms. Words in a group use exactly the same letters.
 
 Expected complexity: `O(n * k log k)`
 
-**Python — correct**
+**Python correct**
 
 ```python
 def solve(words):
@@ -1471,7 +1477,7 @@ def solve(words):
     return len(groups)
 ```
 
-**Python — wrong.** Builds the key from the SET of letters, so words with the same letters in different amounts ("aab" vs "abb") land in one group. Fix: sort every letter, duplicates included.
+**Python wrong.** Builds the key from the SET of letters, so words with the same letters in different amounts ("aab" vs "abb") land in one group. Fix: sort every letter, duplicates included.
 
 ```python
 def solve(words):
@@ -1481,3 +1487,11 @@ def solve(words):
         groups[key] = groups.get(key, 0) + 1
     return len(groups)
 ```
+
+---
+
+<div align="center">
+
+© 2026 NeuroCode
+
+</div>
