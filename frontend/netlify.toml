@@ -1,0 +1,25 @@
+# Netlify configuration for the NeuroCode frontend (Vite + React SPA).
+#
+# This file lives in frontend/, so set the site's "Base directory" to
+# `frontend` in the Netlify UI — Netlify then reads this file and resolves
+# the paths below relative to that directory.
+
+[build]
+  # `vite build` (see package.json) — vite.config.js doesn't override
+  # build.outDir, so Vite writes to its default `dist` folder.
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Vite 5 requires Node.js 18 or newer; pin a current LTS for reproducible builds.
+  NODE_VERSION = "20"
+
+# SPA fallback. The app uses client-side routing (react-router), so paths
+# like /get-started or /verify/<id> don't exist as files. Without this rule,
+# refreshing or directly opening any route other than "/" returns a Netlify
+# 404. Status 200 is a rewrite (not a redirect): the URL stays the same and
+# index.html is served, letting the router render the right page.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
