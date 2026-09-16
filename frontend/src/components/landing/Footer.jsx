@@ -54,7 +54,8 @@ export default function Footer() {
         className="mx-auto mt-12 max-w-7xl border-t pt-6 text-center text-xs"
         style={{ borderColor: 'var(--l-border)', color: 'var(--l-text-muted)' }}
       >
-        © 2026 NeuroCode. Final Year Project, Institute of Mathematics and Computer Science, University of Sindh.
+        {/* Personal-project credit line (replaces the former institutional line). */}
+        © 2026 NeuroCode. Built by Muhammad Ibrahim.
       </div>
     </footer>
   );
