@@ -73,8 +73,10 @@ export default function Navbar() {
             {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
+          {/* Signed-out visitors go to the /get-started explainer instead of
+              /login: the deployed preview has no live backend to sign in to. */}
           <Link
-            to={user ? '/dashboard' : '/login'}
+            to={user ? '/dashboard' : '/get-started'}
             className="rounded-full px-5 py-2.5 text-sm font-semibold transition-transform hover:scale-[1.03]"
             style={{ backgroundColor: 'var(--l-orange)', color: '#1A0900' }}
           >
