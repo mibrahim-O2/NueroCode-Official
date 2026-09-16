@@ -9,9 +9,10 @@ import { getAssessmentTitle } from '@/utils/certificateShare';
 // now derives from the ACTUAL earned tier, rather than always defaulting
 // to a flat gold regardless of what was earned — a Bronze credential
 // genuinely looks bronze, a Platinum credential genuinely looks
-// platinum, not a re-skinned gold template. Gold remains fully reserved
-// for the Gold tier itself and the Team Leader badge elsewhere in the
-// app, consistent with the design system's gold-restriction policy.
+// platinum, not a re-skinned gold template. Gold remains reserved for the
+// Gold tier itself and a few small accents elsewhere in the app, consistent
+// with the design system's gold-restriction policy. (Reference to a former
+// team badge removed: NeuroCode is a solo, personal project.)
 const TIER_THEMES = {
   bronze: { primary: '#B08D57', accent: '#D4B483', glow: 'rgba(176, 141, 87, 0.35)' },
   silver: { primary: '#C0C0C0', accent: '#E4E4E4', glow: 'rgba(192, 192, 192, 0.3)' },
