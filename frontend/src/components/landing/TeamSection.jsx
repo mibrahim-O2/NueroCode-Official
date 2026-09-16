@@ -1,8 +1,8 @@
-// This section was changed from a three-person team grid to a single
-// developer card because NeuroCode is a solo Final Year Project: the public
-// landing page now presents its one developer only, and no other person's
-// details appear here. The section keeps id="team" so every existing #team
-// anchor (Navbar, Footer) keeps scrolling here without changes.
+// This section is a single developer card rather than a team grid, because
+// NeuroCode is a solo, personal project: the public landing page presents its
+// one developer only, and no other person's details appear here. The section
+// keeps id="team" so every existing #team anchor (Navbar, Footer) keeps
+// scrolling here without changes.
 import SocialBadge from './SocialBadge';
 import Reveal from './Reveal';
 
@@ -11,8 +11,13 @@ import Reveal from './Reveal';
 const DEVELOPER = {
   firstName: 'Muhammad',
   lastName: 'Ibrahim',
-  role: 'Full Stack Design · Backend & Systems Architect · AI & Gamified Engineer',
+  // Updated role title (requested wording for the personal-project framing).
+  role: 'Full-Stack Developer · AI Systems Architect · Gamification Engineer',
   bio: "Every great idea begins with code. I'm an AI engineer and software developer building intelligent, real-world solutions.",
+  // Open-source invitation shown under the GitHub link. The specific license
+  // (MIT) is stated in the README rather than here, to keep this line short.
+  openSourceNote:
+    "NeuroCode is open source — if you'd like to explore the code, contribute, or just say hi, you're always welcome.",
   avatar: 'https://github.com/mibrahim-O2.png',
   githubProfile: 'https://github.com/mibrahim-O2',
   links: {
@@ -115,15 +120,23 @@ export default function TeamSection() {
                   “{DEVELOPER.bio}”
                 </blockquote>
 
-                <a
-                  href={DEVELOPER.githubProfile}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium transition-opacity hover:opacity-80"
-                  style={{ color: 'var(--l-orange)' }}
-                >
-                  Explore more of my work on GitHub ↗
-                </a>
+                <div className="flex flex-col items-center gap-2 md:items-start">
+                  <a
+                    href={DEVELOPER.githubProfile}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium transition-opacity hover:opacity-80"
+                    style={{ color: 'var(--l-orange)' }}
+                  >
+                    Explore more of my work on GitHub ↗
+                  </a>
+                  {/* Plain, muted body text (not italic, not accent-colored) so
+                      it reads as a friendly aside and doesn't compete with the
+                      bio quote above or the GitHub link beside it. */}
+                  <p className="max-w-xl text-sm leading-relaxed" style={{ color: 'var(--l-text-muted)' }}>
+                    {DEVELOPER.openSourceNote}
+                  </p>
+                </div>
 
                 <div className="flex gap-2">
                   {Object.entries(DEVELOPER.links).map(([platform, href]) => (
