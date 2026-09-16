@@ -1,6 +1,6 @@
 <!--
-  Root README. Everything below — features, architecture diagrams, file
-  structure — was written from the actual code and repository layout.
+  Root README. Everything below features, architecture diagrams, file
+  structure was written from the actual code and repository layout.
 -->
 
 <div align="center">
@@ -14,11 +14,12 @@
 An AI-powered coding education platform that connects adaptive learning, real code execution,
 proctored assessment and verifiable credentials in one system.
 
-![Live Preview](https://img.shields.io/badge/Live_Preview-Deployment_Pending-D4AF37?style=for-the-badge&labelColor=1A140F)
+<!-- Live preview is now deployed on Netlify (frontend only; see Getting Started). -->
+[![Live Preview](https://img.shields.io/badge/Live_Preview-neurocode--official.netlify.app-D4AF37?style=for-the-badge&labelColor=1A140F)](https://neurocode-official.netlify.app/)
 ![License: MIT](https://img.shields.io/badge/License-MIT-2DD4A0?style=for-the-badge&labelColor=1A140F)
 ![Open Source](https://img.shields.io/badge/Open_Source-Contributions_Welcome-FF6E1A?style=for-the-badge&labelColor=1A140F)
 
-**Live preview:** **[LIVE SITE — DEPLOYMENT PENDING]**
+**Live preview:** [neurocode-official.netlify.app](https://neurocode-official.netlify.app/)
 
 </div>
 
@@ -59,7 +60,7 @@ isolation. NeuroCode was built around closing the gaps between those pieces:
 | Gap | How NeuroCode addresses it |
 |---|---|
 | **Fixed problem banks** can be memorized, and solutions shared. | Problems are generated fresh per request. |
-| **AI-generated content can be wrong** — a model can write a plausible solution that doesn't actually work. | Every generated problem's reference solution is executed in a sandbox first, and the real outputs become the expected answers. |
+| **AI-generated content can be wrong** a model can write a plausible solution that doesn't actually work. | Every generated problem's reference solution is executed in a sandbox first, and the real outputs become the expected answers. |
 | **Pass/fail judges say little about how code is written.** | Tree-sitter analysis estimates complexity and flags inefficient patterns, with written feedback. |
 | **Learning paths are static.** | The roadmap reorders itself from detected weaknesses and suggests the next topic from recent struggles. |
 | **AI tutors can simply hand out answers.** | The learning assistant is hint-only: direct-answer requests are refused before the AI is called, and hints are grounded in the student's own past submissions. |
@@ -178,7 +179,7 @@ These technologies have no logo available on shields.io:
 
 | Technology | Role in NeuroCode |
 |---|---|
-| **ChromaDB** | Vector store for submission embeddings — powers the hint assistant's context and topic recommendations |
+| **ChromaDB** | Vector store for submission embeddings powers the hint assistant's context and topic recommendations |
 | **OpenAI** | Optional, admin-only AI provider for problem generation |
 | **Tree-sitter** | Parses submitted code into a syntax tree for complexity and anti-pattern analysis |
 
@@ -229,13 +230,13 @@ currently empty placeholders.
 
 ## Getting Started
 
-The deployed preview is frontend-only. To run the complete platform, follow
+The [live preview](https://neurocode-official.netlify.app/) is frontend-only. To run the complete platform, follow
 **[docs/SETUP_AND_DEPLOYMENT.md](docs/SETUP_AND_DEPLOYMENT.md)**. You'll need Docker, Python 3.11,
 Node.js 18+, and free Supabase, Firebase and Gemini accounts.
 
 ## Open Source
 
-NeuroCode is open source under the [MIT License](LICENSE) — if you'd like to explore the code,
+NeuroCode is open source under the [MIT License](LICENSE) if you'd like to explore the code,
 contribute, or just say hi, you're always welcome. Explorers, issue reports and pull requests are all
 encouraged.
 
@@ -244,5 +245,14 @@ encouraged.
 <div align="center">
 
 **Built by Muhammad Ibrahim.**
+
+</div>
+
+---
+
+<!-- Standard closing line on every NeuroCode doc. -->
+<div align="center">
+
+© 2026 NeuroCode
 
 </div>
