@@ -7,7 +7,9 @@
 
 <div align="center">
 
-# NeuroCode — Setup & Deployment Guide
+<img src="../frontend/src/assets/logo-mark.png" alt="NeuroCode logo" width="160"/>
+
+# NeuroCode Setup & Deployment Guide
 
 **Run the full NeuroCode platform on your own machine: Piston code execution, FastAPI backend and Vite frontend.**
 
@@ -102,7 +104,7 @@ All paths below are relative to this repository folder unless stated otherwise.
 4. **Project settings → General → Your apps:** add a **Web app** and keep its config values
    (`apiKey`, `authDomain`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`) for the frontend.
 5. **Project settings → Service accounts:** click **Generate new private key** and save the file as
-   `backend/firebase-service-account.json`. This file is already in `.gitignore` — never commit it.
+   `backend/firebase-service-account.json`. This file is already in `.gitignore` never commit it.
 
 ---
 
@@ -202,15 +204,15 @@ Then fill it in:
 
 | Variable | Required | What to set |
 |---|---|---|
-| `SUPABASE_URL` | ✅ | Project URL from step 2 |
-| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | service_role key from step 2 |
-| `JWT_SECRET` | ✅ | A long random string (signs NeuroCode session tokens) |
-| `GEMINI_API_KEY` | ✅ | Your Gemini API key |
-| `GEMINI_MODEL` | ✅ | A Gemini model name available to your key |
-| `ADMIN_EMAIL` | ✅ | **Your own** sign-in email — the account created with it becomes an admin |
-| `FIREBASE_SERVICE_ACCOUNT_PATH` | ✅ | `./firebase-service-account.json` (from step 3) |
-| `PISTON_API` | ✅ | `http://localhost:2000/api/v2` |
-| `FRONTEND_URL` | ✅ | `http://localhost:5173` (allowed CORS origin) |
+| `SUPABASE_URL` | <img src="https://api.iconify.design/lucide/check-circle-2.svg?color=%232DD4A0" width="16" height="16" alt="Yes"/> | Project URL from step 2 |
+| `SUPABASE_SERVICE_ROLE_KEY` | <img src="https://api.iconify.design/lucide/check-circle-2.svg?color=%232DD4A0" width="16" height="16" alt="Yes"/> | service_role key from step 2 |
+| `JWT_SECRET` | <img src="https://api.iconify.design/lucide/check-circle-2.svg?color=%232DD4A0" width="16" height="16" alt="Yes"/> | A long random string (signs NeuroCode session tokens) |
+| `GEMINI_API_KEY` | <img src="https://api.iconify.design/lucide/check-circle-2.svg?color=%232DD4A0" width="16" height="16" alt="Yes"/> | Your Gemini API key |
+| `GEMINI_MODEL` | <img src="https://api.iconify.design/lucide/check-circle-2.svg?color=%232DD4A0" width="16" height="16" alt="Yes"/> | A Gemini model name available to your key |
+| `ADMIN_EMAIL` | <img src="https://api.iconify.design/lucide/check-circle-2.svg?color=%232DD4A0" width="16" height="16" alt="Yes"/> | **Your own** sign-in email the account created with it becomes an admin |
+| `FIREBASE_SERVICE_ACCOUNT_PATH` | <img src="https://api.iconify.design/lucide/check-circle-2.svg?color=%232DD4A0" width="16" height="16" alt="Yes"/> | `./firebase-service-account.json` (from step 3) |
+| `PISTON_API` | <img src="https://api.iconify.design/lucide/check-circle-2.svg?color=%232DD4A0" width="16" height="16" alt="Yes"/> | `http://localhost:2000/api/v2` |
+| `FRONTEND_URL` | <img src="https://api.iconify.design/lucide/check-circle-2.svg?color=%232DD4A0" width="16" height="16" alt="Yes"/> | `http://localhost:5173` (allowed CORS origin) |
 | `PROVIDER_SWITCH_PASSCODE` | recommended | Replace the placeholder; admins enter it to switch Practice to OpenAI |
 | `OPENAI_API_KEY`, `OPENAI_MODEL` | optional | Only needed for the admin-only OpenAI option |
 | `OWNER_EMAIL`, `DEMO_MODE_PASSCODE` | optional | Only needed for Demo Mode (see [docs/demo.md](demo.md)) |
@@ -226,7 +228,7 @@ placeholder values, or if the Demo Mode settings are unset.
 uvicorn app.main:app --reload --port 8000
 ```
 
-**5. Check it:** open http://localhost:8000/health — `supabase`, `chromadb` and `piston` should all
+**5. Check it:** open http://localhost:8000/health `supabase`, `chromadb` and `piston` should all
 report `connected`.
 
 ---
@@ -275,10 +277,10 @@ See [DOCUMENTATION.md](DOCUMENTATION.md) for a full walkthrough of every module.
 | Symptom | Likely cause and fix |
 |---|---|
 | `/api/v2/runtimes` returns `[]` | Runtimes aren't installed or the packages volume wasn't ready. Run `docker restart piston_api`, check again, and re-run the `ppman install` commands if still empty. |
-| "Code execution service has no runtimes loaded" | Same as above — Piston is up but empty. |
+| "Code execution service has no runtimes loaded" | Same as above Piston is up but empty. |
 | "Code execution service unreachable" | Piston isn't running, or `PISTON_API` points to the wrong address. |
 | Browser shows CORS errors | `FRONTEND_URL` in `backend/.env` must exactly match the frontend's address. |
-| `permission denied for table …` from Supabase | A migration was skipped — re-run the `database/schema/` files in order. |
+| `permission denied for table …` from Supabase | A migration was skipped re-run the `database/schema/` files in order. |
 | "AI provider is temporarily rate-limited" / HTTP 429 | Your Gemini key hit its request quota. Wait, or use a key with a higher limit. |
 | Sign-in works but the app shows no data | The backend isn't running, or `VITE_BACKEND_URL` is wrong. |
 
@@ -309,7 +311,7 @@ In production the three terminals become managed services:
 | `uvicorn --reload` | The same command without `--reload`, run by a process manager or container platform that restarts it on failure. |
 | Piston in local Docker | The same Piston image on a Linux host that allows privileged containers. Keep it on a private network reachable only by the backend. |
 
-Only configuration changes between environments — never code:
+Only configuration changes between environments never code:
 
 | Variable | Development | Production |
 |---|---|---|
@@ -329,8 +331,17 @@ Only configuration changes between environments — never code:
 
 ## References
 
-- [Piston — GitHub repository and README](https://github.com/engineer-man/piston)
+- [Piston GitHub repository and README](https://github.com/engineer-man/piston)
 - [Piston configuration documentation](https://piston.readthedocs.io/en/latest/configuration/)
 - [Supabase documentation](https://supabase.com/docs)
 - [Firebase Authentication documentation](https://firebase.google.com/docs/auth)
 - [Netlify file-based configuration](https://docs.netlify.com/configure-builds/file-based-configuration/)
+
+---
+
+<!-- Standard closing line on every NeuroCode doc. -->
+<div align="center">
+
+© 2026 NeuroCode
+
+</div>
